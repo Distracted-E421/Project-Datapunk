@@ -1,0 +1,2 @@
+# CompSci-Master-Project
+ This project is focused on empowering users to take control of their personal data collected by major services like Google and Microsoft. The tool provides a user-friendly interface to download, manage, and analyze personal data, offering insights into usage patterns, behavioral trends, and more. With a strong emphasis on privacy and security, the tool ensures all data is encrypted and stored locally, giving users full ownership and control.
