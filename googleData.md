@@ -513,26 +513,109 @@ Your preferences and personal places in Maps
 
 -----------------------------------------------------------------
 
+
+# My Activity
+Records of your activity data, along with image and audio attachments.
+
+## Activity records [JSON]
+Timestamped records of your activity across different Google Products
+## Image attachments [N/A]
+Images related to your activity records
+## Audio attachments [MPEG]
+Audio files related to your activity records
+## CSV attachments [CSV]
+CSV files related to your activity records
+
+
+-----------------------------------------------------------------
+
 # Maps (your places)
 Records of your starred places and place reviews. To obtain a copy of photos uploaded with your reviews and posts, include Google Photos in your archive.
+
+## Starred places [GeoJSON]
+Places which were starred as a favorite.
+A file created with GeoJSON format.
+
+## Reviews [GeoJSON]
+Reviews (with or without text) left for a place.
+A file created with GeoJSON format.
 
 -----------------------------------------------------------------
 
 # My Maps
 Maps, layers, features and media stored in your My Maps.
 
-## [KMZ format]
+## Map [KMZ/KML]
+The map as a KML/KMZ file.
+KML format that has been zipped, extractable by a standard unzip program.
 -----------------------------------------------------------------
 
 # Nest
 Data from your Nest devices and services including any video history from Nestcams. Files are provided in various formats. If you request your Video History, you can use the "Advanced Settings" to select the number of days you want to download
+
+## Users [JSON/CSV]
+Information about your homes and products paired to those homes
+Files may be provided in machine-readable JSON or CSV format.
+
+## Store [JSON]
+Nest Store (store.nest.com) saved payment instruments including contact information such as your billing or shipping address, past or current order history, and subscription information.
+All files are in JSON format.
+
+## Geofence [JSON]
+Your mobile phone geofence history for any Nest homes that you are a member of.
+Newline delimited JSON.
+
+## Pro [JSON]
+Includes any of your Nest Pro account and organization information.
+Newline delimited JSON.
+
+## Camera - Event Data [JSON]
+Event data from your Nest cameras and Nest Hello such as Timeline events, snapshots and activity markers.
+Machine readable JSON format.
+
+## Camera - Feature Data [JPEG/JSON]
+Feature data from your Nest cameras and Nest Hello such as Familiar Faces and Activity Zones.
+Familiar faces are stored in JPEG format. All other is available in machine readable JSON format.
+
+## Camera - Video History [MP4]
+Video footage recorded from your Nest Cameras and Nest Hello.
+Original uploaded bitrate.
+
+## Thermostat - Sensor Data [CSV]
+Sensor readings from your devices including temperature, humidity, ambient light, far passive infrared, and near proximity data. The exact sensors are dependent on the type of Nest thermostat you have.
+Machine readable CSV format.
+
+## Thermostat - Cycle times and Target Temp Data [JSON]
+Data about how long your heat or cooling was active and why including target temperature adjustments.
+Machine readable JSON format.
+
+## Protect - Sensor data [CSV]
+Sensor readings from your devices including carbon Monoxide, Smoke obscuration measurements, temperature, humidity, and passive infrared readings. The exact sensors are dependent on the type of Nest Protect you have.
+Machine readable CSV format.
+
+## Protect [CSV]
+Data about feature usage such as Pathlight, Sound Check, or Safety Check-Up.
+Machine readable CSV format.
+
+## Nest Renew [JSON/PDF]
+Your billing statements and subscription information, including Energy Shift and home profile data
+Files may be provided in machine-readable JSON or PDF format.
+
+## Redemptions [JSON]
+Data about offers that you have redeemed using your Google account.
+Machine readable JSON format.
+
+## Automations [JSON]
+Data about automations in a structure
+Machine readable JSON format.
 
 -----------------------------------------------------------------
 
 # News
 Data about the magazines, categories, and sources you are interested in.
 
-## [TXT format]
+## Saved Content [TXT]
+List of topics, articles, magazines and other topics you follow or have saved on Google News.
 
 -----------------------------------------------------------------
 
@@ -568,10 +651,10 @@ Your current profile settings.
 ## Inactive Account Manager Settings [JSON]
 Your current Inactive Account Manager settings.
 
-## Previous profile photos [N/A]
+## Previous profile photos [OGFormat]
 A directory of your previous profile and cover photos.
 
-## Current profile photos. [N/A]
+## Current profile photos. [OGFormat]
 Your current profile and cover photo.
 
 -----------------------------------------------------------------
