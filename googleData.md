@@ -341,28 +341,20 @@ Conference data stored in Google Meet
 
 ## Money Sends and Requests [CSV]
 - Your send and request transaction history.
-
 ## My Activity [HTML]
 - Your Google Pay activity visible at myactivity.google.com. This includes online and in-store activity made with virtual account numbers.
-
 ## Saved Passes [PDF]
 - Your saved passes, such as boarding passes, event tickets, and loyalty cards.
-
 ## Google Transactions [CSV]
 - Your purchases on Google like Play and YouTube, and purchases made using Google Pay balance.
-
 ## Chat Messages on Google Pay [JSON]
 - Your chat messages sent to other Google Pay users, merchants, and so on.
-
 ## Your Activity from Spots on Google Pay [JSON]
 - Description and status of your activity, such as purchases, as reported by the Spot provider.
-
 ## Rewards Earned [CSV]
 - Collection of rewards earned by you, such as cashback rewards, using Google Pay.
-
 ## Group Expenses [JSON/JPEG/PNG]
 - Collection of group expenses that you are a participant of.
-
 ## Social Campaign Data [JSON]
 - Collection of social campaign data that you generated during the campaigns.
 
@@ -400,7 +392,6 @@ Conference data stored in Google Meet
 
 ## Play Books Metadata [JSON or HTML]
 - Metadata about your purchased books.
-
 ## Uploaded Content [OGFormat]
 - Your content uploaded to Google Play Books.
 
