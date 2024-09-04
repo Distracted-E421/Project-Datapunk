@@ -136,6 +136,7 @@ Billing Information
 Directory Server
 Mileage
 Subject
+
 -----------------------------------------------------------------
 
 # Crisis User Reports
@@ -584,6 +585,12 @@ Your purchases and reservations made using Search, Maps, and the Assistant.
 # Purchases & Reservations
 Your purchases and reservations made using Search, Maps, and the Assistant. 
 
+## Purchases [JSON]
+Your upcoming and past purchases gathered from Google Services.
+
+## Reservations [JSON]
+Your upcoming and past reservations gathered from Google Services.
+
 -----------------------------------------------------------------
 
 # Reminders [HTML]
@@ -604,24 +611,71 @@ The application
 # Saved
 Collections of saved links (images, places, web pages, etc.) from Google Search and Maps (Saved items in Inbox are available in your Reminders export.).
 
+## Collection of saved items [CSV]
+Title, URL, note, and comments of the saved item
+
+## Uploaded images [IMAGE]
+Images the user uploaded or were uploaded to their collection
+
 -----------------------------------------------------------------
 
 # Search Contributions
 Your ratings, reviews, comments and other contributions to Google Search
+
+## Reactions [JSON]
+Your reactions, like when you react like on an image.
+
+## Thumbs [JSON]
+Thumb ratings for movies, TV shows, music albums, etc.
+
+## Reviews [JSON]
+Reviews added to movies and other search results.
+
+## Hearts [JSON]
+Hearts for articles, etc.
+
+## Profile [JSON/JPG]
+Profile with social links, etc.
+
+## Comments on Search [JSON]
+Comments added in Search.
+
+## Notes [JSON/JPG]
+Notes about a link with related content and images.
+
+## Streaming video providers [JSON]
+User-reported information about streaming providers that the user is subscribed to.
+
+## Watched [JSON]
+Movies and TV shows that the user reported as already watched.
 
 -----------------------------------------------------------------
 
 # Search Notifications
 User notification configurations and topic subscriptions.
 
+## Your Notification Configurations [CSV]
+Overall account and device configurations used to send notifications.
+Settings are grouped by row and applicable to the account scope within the "Scope Identifier" column.
+## Your Notification Subscriptions [CSV]
+A list of notification topics to which you are subscribed.
+A text file list the various notification subscriptions grouped by row in the file.
 -----------------------------------------------------------------
 
 # Street View
 Images and videos you have uploaded to Google Street View
 
+## Video [Video]
+A video file
+## Uploaded 360 Image [Image]
+Uploaded spherical image
+## Sensor data [JSON]
+Uploaded sensor data
+
+
 -----------------------------------------------------------------
 
-# Tasks
+# Tasks [JSON]
 Data for your open and completed tasks.
 
 
@@ -656,88 +710,88 @@ Whether the task was starred
 # YouTube and YouTube Music
 Watch and search history, videos, comments and other content you've created on YouTube and YouTube Music
 
-## video media
+## video media [OGFormat/MP4]
 Videos you've uploaded (Either your originally uploaded videos, or a high-quality transcode.)
 
-## videos
+## videos [CSV]
 The video entity data
 
-## video interactions
+## video interactions [CSV]
 Interactions on a YouTube Video.
 
-## video recording
+## video recording [CSV]
 Recording information about a YouTube video.
 
-## video text
+## video text [CSV]
 Creator-provided structured text associated with a YouTube video.
 
-## playlists
+## playlists [CSV]
 Playlists you've created
 
-## playlist videos
+## playlist videos [CSV]
 videos in each playlist
 
-## channel
+## channel [CSV]
 Information about your channel.
 
-## channel community moderation settings
+## channel community moderation settings [CSV]
 Channel wide settings shared among Live chat messages and comments.
 
-## channel feature data
+## channel feature data [CSV]
 YouTube Channel Feature Related Data.
 
-## channel images
+## channel images [CSV]
 YouTube Channel Image Data.
 
-## channel page settings
+## channel page settings [CSV]
 Settings for the layout and description of the channel page.
 
-## channel URL configs
+## channel URL configs [CSV]
 A structure that holds URL-related information of a YouTube channel.
 
-## subscriptions
+## subscriptions [CSV]
 Your channel subscriptions.
 
-## comment
+## comment [CSV]
 Comment you've created
 
-## sent live chats
+## sent live chats [CSV]
 Live chats you've authored
 
-## posts
+## posts [CSV]
 Posts you've created
 
-## post comments settings
+## post comments settings [CSV]
 Comments settings for the Posts.
 
-## clips
+## clips [CSV]
 Clips you've created
 
-## music media
+## music media [OGFormat]
 Music media you've uploaded (Your originally uploaded music media.)
 
-## music library songs
+## music library songs [CSV]
 A list of all the songs added to your YouTube Music library.
 
-## music uploads metadata
+## music uploads metadata [OGFormat]
 Metadata about user's uploaded music media at YouTube Music (Your originally uploaded audio file.)
 
-## product save list
+## product save list [CSV]
 YouTube Shopping wishlist of saved for later products.
 
-## product save list item
+## product save list item [CSV]
 YouTube Shopping wishlist items.
 
-## playables metadata
+## playables metadata [CSV]
 Your YouTube Playable saved games.
 
-## playables save data
+## playables save data [Binary]
 Playables game's exported save file.
 
-## history
+## history [JSON]
 Your watch and search history from YouTube.
 
-## creator demographics
+## creator demographics [CSV]
 Self-ID survey responses. To download your Creator demographics data for the YouTube channel(s) you own, you need to be logged in with your personal Google Account, not a Brand Account.
 
 [IncludedData]
