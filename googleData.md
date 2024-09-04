@@ -321,15 +321,40 @@ Your Google Fi phone number and voicemails
 # Google Finance
 Your portfolios of stocks and watchlists you track on Google Finance.
 
+Portfolios [JSON]
+All the portfolios that reflect actual investments.
+Watchlists [JSON]
+The watchlists you have created, as well as a list of financial entities you are tracking.
+Hidden News Sources [TXT]
+A list of hidden or blocked news sources.
+
+[ExportLabels]
+Hidden News Sources
+Portfolios
+Watchlists
+
 ----------------------------------------------------------------
 
 # Google Help Communities
-Your ask and reply contributions to the Google Help Communities including text and images posted. 
+- Your ask and reply contributions to the Google Help Communities, including text and images posted.
+- Your ask and reply contributions to the Google Help Communities are provided in a zip file with questions and answers (text), and the files you uploaded to the service, such as screenshot images or other items uploaded in the course of asking or answering product help questions.
+
+## Posted Text [CSVorJSON]
+- Text you submitted.
+- Text posted will be delivered in a tabular format compatible with spreadsheets and databases.
+## Attachments [OGFormat]
+- Files uploaded by the user are provided in the same format originally uploaded.
+
 
 ----------------------------------------------------------------
 
 # Google Meet
-Conference data stored in Google Meet
+- Conference data stored in Google Meet.
+
+## Conference History Retention Policy [CSV]
+- Details of the retention policy for conference history.
+## Conference History Record [CSV]
+- A record of your conference history.
 
 ----------------------------------------------------------------
 
