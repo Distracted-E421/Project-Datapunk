@@ -1,47 +1,47 @@
 
 
 # Access Log Activity
-Collection of account activity logs.  
+- Collection of account activity logs.  
 *(Due to the size of content found in the Access Log Activity product, exports may take longer to process.)*
 
 ## Account Access Activity [CSV]
-A list of Google services accessed by your devices (for example, every time your phone synchronizes with your Gmail).
+- A list of Google services accessed by your devices (for example, every time your phone synchronizes with your Gmail).
 
 ## Device Access Activity [CSV]
-A list of devices (e.g., Nest, Pixel, iPhone, Galaxy, etc.) that have accessed your Google account over the last 30 days.
+- A list of devices (e.g., Nest, Pixel, iPhone, Galaxy, etc.) that have accessed your Google account over the last 30 days.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Alerts
-User Google Alerts subscriptions.
+- User Google Alerts subscriptions.
 
-## Your Google Alerts subscriptions [JSON]
-A list of subscriptions to Google Search queries.  
-A JSON file that lists the subscriptions and their settings.
+## Your Google Alerts Subscriptions [JSON]
+- A list of subscriptions to Google Search queries.
+- A JSON file that lists the subscriptions and their settings.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Android Device Configuration Service
-Android device attributes, performance data, software versions, and account identifiers.
+- Android device attributes, performance data, software versions, and account identifiers.
 
 ## Android Device Data [HTML]
-Android device attributes, performance data, software versions, and account identifiers.
+- Android device attributes, performance data, software versions, and account identifiers.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Arts & Culture
 Favorites and galleries you've created on Google Arts & Culture.
 
 
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Assignments
 Your courses and assignments, including rubrics and feedback comments.
 
 
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Calendar
 Your calendar data in iCalendar format
@@ -58,12 +58,12 @@ The following information is included in your download, in JSON format:
 
 Meeting Breakout configuration
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Chrome
 Bookmarks, history, and other settings from Chrome.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Classroom
 Your Classroom classes, posts, submissions, and rosters
@@ -97,7 +97,7 @@ Student submissions and associated comments, grades, and rubrics.
 Student practice sets and associated grades.
 Read Along (domain wide takeout only): Student’s performance on Read Along in Classroom assignments.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Contacts
 Contacts and contact photos you added yourself, as well as contacts saved from your interactions in Google products like Gmail. 
@@ -137,22 +137,22 @@ Directory Server
 Mileage
 Subject
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Crisis User Reports
 Information provided to help others during crises
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Data Shared for Research
 Responses saved with your Google Account from your participation in Google research studies and projects.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Discover
 Your follows, likes, and not interested settings saved by Discover.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Drive
 Files you own that have been stored in your My Drive and Computers.
@@ -266,28 +266,28 @@ Words added to your spelling suggestions dictionary
 User-uploaded scripts
 User-uploaded captions
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Fit
 Your Google Fit data, including your workouts, sleep data, and daily metrics like steps and distance.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Google Account
 Data about registration and account activity.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Google Business Profile
 All data related to your business, including data from your info page, your posts, your reviews & replies, and your uploaded photos & videos.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Google Cloud Search
 You can export and download your organization’s Google Cloud Search data. This includes metadata for data indexed from third-party repositories, and cloud search query history.
 
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Google Chat
 The users, groups, conversation history and attachments for your Google Chat domain
@@ -301,54 +301,140 @@ Memberships in direct messages, group messages, and spaces
 Messages along with attachments from direct messages, group messages, and spaces
 Tip: Group messages and spaces created by users with a work or school account won't export as part of your Chat history.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Google Developers
 Records of your Developer Profile and the activity associated with it.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Google Feedback
 Feedback reports you have submitted across Google products
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Google Fi Wireless
 Your Google Fi phone number and voicemails
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Google Finance
 Your portfolios of stocks and watchlists you track on Google Finance.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Google Help Communities
 Your ask and reply contributions to the Google Help Communities including text and images posted. 
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Google Meet
 Conference data stored in Google Meet
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Google Pay
-Your Google Pay transaction history from Google services like Play and YouTube and peer to peer payments in the Google Pay app is provided in CSV format. If you previously deleted those transaction types, they were removed from your web and mobile transaction history, but Google retains them for a certain period for record-keeping purposes. This means if you use Google Takeout, you may still see some transactions you've deleted.
+- Your saved passes, activity using virtual account numbers, and transaction history from Google services like Play and YouTube, and peer-to-peer payments in the Google Pay app.
+- Your Google Pay transaction history from Google services like Play and YouTube, and peer-to-peer payments in the Google Pay app is provided in CSV format. 
+- If you previously deleted those transaction types, they were removed from your web and mobile transaction history, but Google retains them for a certain period for record-keeping purposes. 
+- This means if you use Google Takeout, you may still see some transactions you've deleted.
 
------------------------------------------------------------------
+## Money Sends and Requests [CSV]
+- Your send and request transaction history.
+
+## My Activity [HTML]
+- Your Google Pay activity visible at myactivity.google.com. This includes online and in-store activity made with virtual account numbers.
+
+## Saved Passes [PDF]
+- Your saved passes, such as boarding passes, event tickets, and loyalty cards.
+
+## Google Transactions [CSV]
+- Your purchases on Google like Play and YouTube, and purchases made using Google Pay balance.
+
+## Chat Messages on Google Pay [JSON]
+- Your chat messages sent to other Google Pay users, merchants, and so on.
+
+## Your Activity from Spots on Google Pay [JSON]
+- Description and status of your activity, such as purchases, as reported by the Spot provider.
+
+## Rewards Earned [CSV]
+- Collection of rewards earned by you, such as cashback rewards, using Google Pay.
+
+## Group Expenses [JSON/JPEG/PNG]
+- Collection of group expenses that you are a participant of.
+
+## Social Campaign Data [JSON]
+- Collection of social campaign data that you generated during the campaigns.
+
+### Selected Activities
+- **Google transactions**
+- **Group expenses**
+- **Money sends and requests**
+- **My Activity**
+- **Rewards earned**
+- **Saved items including loyalty & gift cards**
+- **Social Campaign**
+
+----------------------------------------------------------------
 
 # Google Photos
-Your photos and videos from Google Photos.
+- Your photos and videos from Google Photos.
+
+## Photos [OGFormat/PNG/JPG/WEBP]
+- Unedited and edited photos contained in each album.
+- Format depends on quality chosen when uploaded.
+## Videos [OGFormat/MP4]
+- Videos contained in each album.
+- Format depends on quality chosen when uploaded.
+## Album Metadata [JSON]
+- Data associated with each album, such as title or description.
+- JSON is an open-standard file format that provides data in human-readable form.
+## Photo Metadata [JSON]
+- Data associated with each photo or video, such as creation time or comments.
+- JSON is an open-standard file format that provides data in human-readable form.
 
 ----------------------------------------------------------------
 
 # Google Play Books
-The titles and authors of your purchased and uploaded books in Google Play Books, plus notes and bookmarks 
+- The titles and authors of your purchased and uploaded books in Google Play Books, plus notes and bookmarks.
+
+## Play Books Metadata [JSON or HTML]
+- Metadata about your purchased books.
+
+## Uploaded Content [OGFormat]
+- Your content uploaded to Google Play Books.
+
+### More Information
+- For Play Books orders and other Google Play activity, go to My Activity, then select Other Google activity. Purchased Google eBooks can be exported individually from My Books on Google Play.
 
 
-[MoreInfo]
-For Play Books orders and other Google Play activity, go to My Activity, then select Other Google activity. Purchased Google eBooks can be exported individually from My Books on Google Play.
+----------------------------------------------------------------
+# Google Play Games Services
+- Data, including achievements and scores, from games you play.
+- When you log into games using Google Play Games, we store data about that game, including achievements earned, scores posted to leaderboards, or game saves, depending on how the developer has set up their game.
+
+## Avatar.png [PNG]
+- The avatar picture used by the player.
+## Player Information [N/A]
+- The player profile settings, as set in the Play Games App Settings screen.
+## Scores [N/A]
+- Details of the high scores we have stored for the player/game in question.
+## Achievements [N/A]
+- Details of the achievements we have stored for the player/game in question.
+## Quests [N/A]
+- Details of the quests we have stored for the player/game in question.
+## Experience [N/A]
+- Details of the experience point earning events we have stored for the player/game in question.
+## Activity [N/A]
+- Details of the activity (e.g., first/last time played) we have stored for the player/game in question.
+## Cover Image [PNG/JPG]
+- An image (usually a screenshot) generated by the game when the game was saved.
+## Data.bin [OGFormat]
+- The actual saved game data.
+## Metadata [N/A]
+- Metadata associated with the saved game (date/time, description, etc.).
+## name.bin [OGFormat]
+- The actual saved game data.
 
 ----------------------------------------------------------------
 
@@ -367,7 +453,6 @@ For Play Books orders and other Google Play activity, go to My Activity, then se
 
 ### More Information
 - For Play Movies & TV orders and other Google Play activity, go to My Activity, then select Other Google activity.
-
 
 ----------------------------------------------------------------
 
