@@ -341,7 +341,7 @@ Your Google Pay transaction history from Google services like Play and YouTube a
 # Google Photos
 Your photos and videos from Google Photos.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Google Play Books
 The titles and authors of your purchased and uploaded books in Google Play Books, plus notes and bookmarks 
@@ -350,553 +350,652 @@ The titles and authors of your purchased and uploaded books in Google Play Books
 [MoreInfo]
 For Play Books orders and other Google Play activity, go to My Activity, then select Other Google activity. Purchased Google eBooks can be exported individually from My Books on Google Play.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Google Play Movies & TV
-Your Google Play Movies & TV preferences, services, watchlist, and ratings.
+- Your Google Play Movies & TV preferences, services, watchlist, and ratings.
+
+## Movies & TV Data [CSV or JSON]
+- Metadata for your Linked Services, Notifications Preferences, Ratings, Streaming Services, and Watchlists.
+
+### Included Types
+- **Linked Services**
+- **Notification Preferences**
+- **Ratings**
+- **Streaming Services**
+- **Watchlist**
+
+### More Information
+- For Play Movies & TV orders and other Google Play activity, go to My Activity, then select Other Google activity.
 
 
-
-[MoreInfo]
-For Play Movies & TV orders and other Google Play activity, go to My Activity, then select Other Google activity
-
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Google Play Store
-Data about your app installs, ratings, and orders
+- Data about your app installs, ratings, and orders.
 
------------------------------------------------------------------
+## Installs [JSON]
+- List of your Google Play app installs.
+## Redemptions [JSON]
+- List of your Google Play promo redemptions.
+## Library [JSON]
+- List of your Google Play downloads, including music, movies, and apps.
+## Purchases [JSON]
+- List of your Google Play purchases.
+## Devices [JSON]
+- Metadata about your devices that have accessed the Google Play Store.
+## Subscriptions [JSON]
+- List of your Google Play subscriptions.
+## Play Grouping [JSON]
+- List of your Google Play Grouping tags.
+## Play User Settings [JSON]
+- Settings for your Google Play apps.
+## Play Points [JSON]
+- Information about your Play Points.
+## Promotions [JSON]
+- List of your Google Play promotions.
+
+----------------------------------------------------------------
 
 # Google Podcasts
-Podcasts you subscribed to.
+- Podcasts you subscribed to.
 
------------------------------------------------------------------
+## Subscriptions [OPML]
+- Your Google Podcasts show subscriptions.
+
+----------------------------------------------------------------
 
 # Google Shopping
-Google Shopping order history, loyalty, addresses and reviews.
+- Google Shopping order history, loyalty, addresses, and reviews.
 
------------------------------------------------------------------
+## Order History Data [JSON]
+- Details of your orders in Google Shopping.
+- Text file of order history data.
+## Loyalty Data [CSV]
+- Your loyalty data in Google Shopping.
+- A text file listing the merchant name, loyalty code, and loyalty user.
+## Addresses Data [CSV]
+- Your address data in Google Shopping.
+- A text file listing the recipient name and address.
+## Product Reviews Data [CSV]
+- Your product reviews data.
+- A text file listing the rating, comment, and creation timestamp.
+## Merchant Reviews Data [CSV]
+- Your merchant reviews data.
+- A text file listing the rating, comment, and creation timestamp.
+## Shopping Cart Data [CSV]
+- Shopping cart of the user.
+- A text file listing the items in your shopping cart.
+
+----------------------------------------------------------------
 
 # Google Store
-Google Store purchases, subscriptions and product reviews
+- Google Store purchases, subscriptions, and product reviews.
 
------------------------------------------------------------------
+## Purchases [JSON]
+- Details on your purchases on Google Store.
+## Returns and Repairs [JSON]
+- Details on your returns and repairs on Google Store.
+## Product Reviews [JSON]
+- Details on product reviews left on Google Store.
+
+
+----------------------------------------------------------------
 
 # Google Translator Toolkit
-Documents you have in your Google Translator Toolkit
+- Documents you have in your Google Translator Toolkit.
+
+## Documents [OGFormat]
+- Documents that you have uploaded.
+- Original format uploaded.
+## Translation Memories [TMX]
+- Translation memory entries that you have uploaded and saved.
+- An open XML standard format used for exchanging translation memory data.
+## Glossaries [CSV]
+- Glossaries that you have uploaded.
+- Comma-separated values.
 
 -----------------------------------------------------------------
 
 # Google Workspace Marketplace
-Metadata which describes an application published in Google Workspace Marketplace.
+- Metadata which describes an application published in Google Workspace Marketplace.
 
------------------------------------------------------------------
+## Application Listings [JSON]
+- Application listings published on Google Workspace Marketplace: [Google Workspace Marketplace](https://workspace.google.com/marketplace)
+- The application listings are exported to developers in JSON format. One file is created per app listing.
+## Reviews [JSON]
+- Reviews about apps published on Google Workspace Marketplace: [Google Workspace Marketplace](https://workspace.google.com/marketplace)
+- Reviews provided by the logged-in user are exported in a file in JSON format.
+
+----------------------------------------------------------------
 
 # Groups
-Data for your usage of Google Groups and for Google Groups that you own.
+- Data for your usage of Google Groups and for Google Groups that you own.
 
+## Group Information [CSV]
+- Basic information about the group such as name and description.
+## Group Memberships [CSV]
+- All members in the group.
+## Group Posts [MBOX]
+- All posts in the group.
 
-[MoreInfo]
-What data gets exported?
-Information about you
-Exported data includes activity you performed in groups on googlegroups.com or in your domain (if you’re using a work or school account):
+### What Data Gets Exported?
+#### Information About You
+- Exported data includes activity you performed in groups on googlegroups.com or in your domain (if you’re using a work or school account):
+  - **Email templates**
+  - **Links to favorite messages**
+  - **Links to favorite groups**
+  - **Links to recent activity: Recently posted-to groups, Recently viewed groups, Recently posted-to conversations, Recently viewed conversations, Recent searches**
 
-Email templates
-Links to favorite messages
-Links to favorite groups
-Links to recent activity:
-Recently posted-to groups
-Recently viewed groups
-Recently posted-to conversations
-Recently viewed conversations
-Recent searches
-Information about groups you own
-Exported data includes information about each group you own on googlegroups.com or in your domain (if you’re using a work or school account):
+#### Information About Groups You Own
+- Exported data includes information about each group you own on googlegroups.com or in your domain (if you’re using a work or school account):
+  - **Archived threads and messages with Google Groups-specific labels**
+  - **Pending messages**
+  - **The group's topic tags and categories**
 
-Archived threads and messages with Google Groups-specific labels
-Pending messages
-The group's topic tags and categories
-Membership info containing:
-Member's email
-Display name for the group
-When their membership last changed
-If the member is an owner, manager, or member
-This data includes information for users banned from the group, invited to the group, or with a pending request to join the group.
+#### Membership Info Containing:
+- **Member's email**
+- **Display name for the group**
+- **When their membership last changed**
+- **If the member is an owner, manager, or member**
 
-Group information containing:
-The group's name
-Email address
-Description
-Auto replies
-Footer text
-Subject prefix
-Welcome message
-Custom reply
-Message deny notification
+- This data includes information for users banned from the group, invited to the group, or with a pending request to join the group.
 
------------------------------------------------------------------
+#### Group Information Containing:
+- **The group's name**
+- **Email address**
+- **Description**
+- **Auto replies**
+- **Footer text**
+- **Subject prefix**
+- **Welcome message**
+- **Custom reply**
+- **Message deny notification**
+
+----------------------------------------------------------------
 
 # Home App
-Device, room, home and history information from the Home App
+- Device, room, home, and history information from the Home App.
 
+## Home App Data [JSON]
+- Devices, rooms, and homes
+- JSON file containing "devices" nested in "rooms", nested in "structures" (homes).
+## Home History Data [JSON]
+- History of events in your home
+- JSON file containing history events about your home and devices.
+## Audio Recordings [audio/aac]
+- Audio recordings at the time sound sensing devices detected activity 
+- Audio recordings are found in the "blobs" folder and end with the ".aac" suffix.
+## Professional Services Data [JSON]
+- Information about professional services (e.g., installation services) you have ordered:
+- JSON file containing details of professional services ordered.
+## Automations Data [JSON]
+- Information about Automations in homes
+- JSON file containing automations.
 
+### More Information
+- Your Home App information is provided in JSON format. 
+-You will see data from your devices, rooms, and homes (e.g., names, owners), and the structure of your devices, rooms, and homes (e.g., which device is in which room). 
+- You will also see event history for your homes and devices.
 
-[MoreInfo]
-Your Home App information is provided in the JSON format. You will see data from your devices, rooms, and homes (e.g. names, owners), and the structure of your devices, rooms, and homes (e.g. which device is in which room). You will also see event history for your homes and devices.
-
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Keep
-Notes and media attachments stored in Google Keep.
+- Notes and media attachments stored in Google Keep.
 
+## Note Content [HTML]
+- Content of your notes, viewable in any web browser.
+## Note Content [JSON]
+- Content of your notes formatted in JSON, viewable in any JSON-compatible text reader.
+## Image Attachments [OGFormat]
+- Photos and images attached to your notes.
+## Voice Attachments [3GP, AAC, AMR]
+- Voice recordings attached to your notes.
 
+### More Information
+- Your download includes the following:
+  - **Note content: text, list items**
+  - **Note attachments: voice recordings, drawings, images**
+  - **Note color**
+  - **Note state: pinned and archived**
+  - **Note collaborators**
+  - **User's list of note labels**
 
-[MoreInfo]
-Your download includes the following:
-
-Note content (text, list items)
-Note attachments (voice recordings, drawings, images)
-Note color
-Note state (pinned and archived)
-Note collaborators
-User's list of note labels
-
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Location History (Timeline)
-Your Timeline data, like settings and locations.
+- Your Timeline data, including settings and locations.
 
------------------------------------------------------------------
+## Records [N/A]
+- Your Timeline data, applicable if you haven't started using the new version of Timeline.
+## Semantic Location History [JSON]
+- Data consisting of inferred Place Visits and Activity Segments from your Timeline, applicable if you haven't started using the new version of Timeline.
+## Settings [JSON]
+- Your location history settings.
+## Tombstones [CSV]
+- Markers for deleted Timeline data.
+## Timeline Edits & Related Data [JSON]
+- Your edits and related data, including original Place Visits and Activity Segments, associated raw signals used for inference, and updated Place Visits and Activity Segments.
+## Backups [TXT]
+- A file indicating whether you have encrypted Timeline backups stored on Google servers.
+
+----------------------------------------------------------------
 
 # Mail
-Messages and attachments in your Gmail account in MBOX format. User settings from your Gmail account in JSON format. In Gmail, labels are applied to entire threads, not single messages. This means you may receive duplicate copies of some messages if you decided to export multiple labels.
+- Your Gmail messages and attachments are exported in MBOX format, and user settings are exported in JSON format.
+- In Gmail, labels are applied to entire threads, not individual messages. 
+- As a result, you may receive duplicate copies of some messages if you export multiple labels.
 
+## Email Messages [MBOX]
+- A standard format for storing email messages.
+## User Settings [JSON]
+- A standard lightweight data-interchange format for storing user settings.
 
-[MoreInfo]
-Your download includes the following:
+### Exported Labels
+- **(Archived)**, **(Category Forums)**, **(Category Personal)**, **(Category Promotions)**, **(Category Purchases)**, **(Category Social)**, **(Category Travel)**, **(Category Updates)**, **(Chat)**, **(Conversation History)**, **(Drafts)**, **(Important)**, **(Inbox)**, **(Music)**, **(Muted)**, **(Opened)**, **(Read Receipt Sent)**, **(Scheduled Send)**, **(Sent)**, **(Snoozed)**, **(Spam)**, **(Starred)**, **(Template Response)**, **(Trash)**, **(Unread)**, **([Imap]/Drafts)**, **(eej311@gmail.com)**
 
-Message content
-Message headers
-Attachments
-Gmail labels for the following class of messages
-Messages in the Inbox
-Unread messages
-Sent messages
-Starred messages
-Draft messages
-Messages that have been marked as important
-Messages in the Trash folder
-Messages in the Spam folder
-Archived messages
-Template responses saved by the user
-Messages in each of the Category tabs shown in the Web UI
-Muted messages
-Messages opened by the user
-Messages for which read receipts were sent to the sender
-Messages that are scheduled to be sent in the future
-Messages that have been snoozed
-User-defined labels and IMAP keywords
-User Settings
-Email signatures
-Vacation response message and subject
-Delegated sender addresses
-Other account addresses
-Forwarding addresses
-Filters
-Blocked addresses
-The end time of a Snoozed message
+### More Information
+- Your download includes the following data:
+  - **Message content**
+  - **Message headers**
+  - **Attachments**
+  - **Gmail labels for the following class of messages**
+  - **Messages in the Inbox**
+  - **Unread messages**
+  - **Sent messages**
+  - **Starred messages**
+  - **Draft messages**
+  - **Messages that have been marked as important**
+  - **Messages in the Trash folder**
+  - **Messages in the Spam folder**
+  - **Archived messages**
+  - **Template responses saved by the user**
+  - **Messages in each of the Category tabs shown in the Web UI**
+  - **Muted messages**
+  - **Messages opened by the user**
+  - **Messages for which read receipts were sent to the sender**
+  - **Messages that are scheduled to be sent in the future**
+  - **Messages that have been snoozed**
+  - **User-defined labels and IMAP keywords**
+  - **User settings**
+  - **Email signatures**
+  - **Vacation response message and subject**
+  - **Delegated sender addresses**
+  - **Other account addresses**
+  - **Forwarding addresses**
+  - **Filters**
+  - **Blocked addresses**
+  - **The end time of a snoozed message**
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Maps
-Your preferences and personal places in Maps
+- Your preferences and personal places in Maps
 
------------------------------------------------------------------
+## Added dishes, products, activities. [JSON]
+- Dishes, products, activities you added to places in Maps.
+## Aliased Places [JSON]
+- Your pinned locations on Maps
+## Answers to automated questions [JSON]
+- Your answers to automated questions from Google Maps.
+## Commute routes [JSON]
+- Your pinned trips on Maps, including routes, destinations, and modes of transportation.
+## Commute settings [JSON]
+- Your commute settings, such as the preferred mode of transportation.
+## Electric vehicle profile. [JSON]
+- The electric vehicle profile you created in Maps.
+## Reports on content [JSON] 
+- Reports you submitted about others' content not following the Maps content policy.
+## Food & drink preferences [JSON]
+- Your food and drink preferences, such as cuisines, ambience,budget, and so on.
+## Geocode contributions [JSON] 
+- The geocodes you added to Google Maps.
+## Home and Work [JSON]
+- Your declared home and work locations.
+## Instructions [JSON]
+- Instructions that you sent to Google Maps.
+## My labeled places [GeoJSON]
+- Your labeled places, such as your home and work locations.
+## Photos Contribution [JSON]
+- Photos or videos you added to places on Maps.
+## Post Trip answers [JSON]
+- Your answers to questions following a navigation session.
+## Questions and Answers [JSON]
+- Questions and answers you posted in Maps.
+## Requests for services [JSON]
+- This includes interactions between service businesses and users from the time a request is made using Search and Maps.
+## Suggested edits to business establishments [JSON]
+- Your suggested edits to business establishments.
+## Your Navigation Feedback [XML]
+- The sensor information, precise locations, and route information from your recent navigation feedback reports.
+## Your personalization feedback. [CSV]
+- Your private feedback on places is used to improve your matches.
 
+----------------------------------------------------------------
 
 # My Activity
-Records of your activity data, along with image and audio attachments.
+- Records of your activity data, along with image and audio attachments.
 
 ## Activity records [JSON]
-Timestamped records of your activity across different Google Products
+- Timestamped records of your activity across different Google Products
 ## Image attachments [N/A]
-Images related to your activity records
+- Images related to your activity records
 ## Audio attachments [MPEG]
-Audio files related to your activity records
+- Audio files related to your activity records
 ## CSV attachments [CSV]
-CSV files related to your activity records
+- CSV files related to your activity records
 
-
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Maps (your places)
-Records of your starred places and place reviews. To obtain a copy of photos uploaded with your reviews and posts, include Google Photos in your archive.
+- Records of your starred places and place reviews. To obtain a copy of photos uploaded with your reviews and posts, include Google Photos in your archive.
 
 ## Starred places [GeoJSON]
-Places which were starred as a favorite.
-A file created with GeoJSON format.
-
+- Places which were starred as a favorite.
+- A file created with GeoJSON format.
 ## Reviews [GeoJSON]
-Reviews (with or without text) left for a place.
-A file created with GeoJSON format.
+- Reviews (with or without text) left for a place.
+- A file created with GeoJSON format.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # My Maps
 Maps, layers, features and media stored in your My Maps.
 
 ## Map [KMZ/KML]
-The map as a KML/KMZ file.
-KML format that has been zipped, extractable by a standard unzip program.
------------------------------------------------------------------
+- The map as a KML/KMZ file.
+- KML format that has been zipped, extractable by a standard unzip program.
+
+----------------------------------------------------------------
 
 # Nest
-Data from your Nest devices and services including any video history from Nestcams. Files are provided in various formats. If you request your Video History, you can use the "Advanced Settings" to select the number of days you want to download
+- Data from your Nest devices and services including any video history from Nestcams. 
+- Files are provided in various formats. If you request your Video History, you can use the "Advanced Settings" to select the number of days you want to download
 
 ## Users [JSON/CSV]
-Information about your homes and products paired to those homes
-Files may be provided in machine-readable JSON or CSV format.
-
+- Information about your homes and products paired to those homes
+- Files may be provided in machine-readable JSON or CSV format.
 ## Store [JSON]
-Nest Store (store.nest.com) saved payment instruments including contact information such as your billing or shipping address, past or current order history, and subscription information.
-All files are in JSON format.
-
+- Nest Store (store.nest.com) saved payment instruments including contact information such as your billing or shipping address, past or current order history, and subscription information.
+- All files are in JSON format.
 ## Geofence [JSON]
-Your mobile phone geofence history for any Nest homes that you are a member of.
-Newline delimited JSON.
-
+- Your mobile phone geofence history for any Nest homes that you are a member of.
+- Newline delimited JSON.
 ## Pro [JSON]
-Includes any of your Nest Pro account and organization information.
-Newline delimited JSON.
-
+- Includes any of your Nest Pro account and organization information.
+- Newline delimited JSON.
 ## Camera - Event Data [JSON]
-Event data from your Nest cameras and Nest Hello such as Timeline events, snapshots and activity markers.
-Machine readable JSON format.
-
+- Event data from your Nest cameras and Nest Hello such as Timeline events, snapshots and activity markers.
+- Machine readable JSON format.
 ## Camera - Feature Data [JPEG/JSON]
-Feature data from your Nest cameras and Nest Hello such as Familiar Faces and Activity Zones.
-Familiar faces are stored in JPEG format. All other is available in machine readable JSON format.
-
+- Feature data from your Nest cameras and Nest Hello such as Familiar Faces and Activity Zones.
+- Familiar faces are stored in JPEG format. 
+- All other is available in machine readable JSON format.
 ## Camera - Video History [MP4]
-Video footage recorded from your Nest Cameras and Nest Hello.
-Original uploaded bitrate.
-
+- Video footage recorded from your Nest Cameras and Nest Hello.
+- Original uploaded bitrate.
 ## Thermostat - Sensor Data [CSV]
-Sensor readings from your devices including temperature, humidity, ambient light, far passive infrared, and near proximity data. The exact sensors are dependent on the type of Nest thermostat you have.
-Machine readable CSV format.
-
+- Sensor readings from your devices including temperature, humidity, ambient light, far passive infrared, and near proximity data. 
+- The exact sensors are dependent on the type of Nest thermostat you have.
+- Machine readable CSV format.
 ## Thermostat - Cycle times and Target Temp Data [JSON]
-Data about how long your heat or cooling was active and why including target temperature adjustments.
-Machine readable JSON format.
-
+- Data about how long your heat or cooling was active and why including target temperature adjustments.
+- Machine readable JSON format.
 ## Protect - Sensor data [CSV]
-Sensor readings from your devices including carbon Monoxide, Smoke obscuration measurements, temperature, humidity, and passive infrared readings. The exact sensors are dependent on the type of Nest Protect you have.
-Machine readable CSV format.
-
+- Sensor readings from your devices including carbon Monoxide, Smoke obscuration measurements, temperature, humidity, and passive infrared readings. 
+- The exact sensors are dependent on the type of Nest Protect you have.
+- Machine readable CSV format.
 ## Protect [CSV]
-Data about feature usage such as Pathlight, Sound Check, or Safety Check-Up.
-Machine readable CSV format.
-
+- Data about feature usage such as Pathlight, Sound Check, or Safety Check-Up.
+- Machine readable CSV format.
 ## Nest Renew [JSON/PDF]
-Your billing statements and subscription information, including Energy Shift and home profile data
-Files may be provided in machine-readable JSON or PDF format.
-
+- Your billing statements and subscription information, including Energy Shift and home profile data
+- Files may be provided in machine-readable JSON or PDF format.
 ## Redemptions [JSON]
-Data about offers that you have redeemed using your Google account.
-Machine readable JSON format.
-
+- Data about offers that you have redeemed using your Google account.
+- Machine readable JSON format.
 ## Automations [JSON]
-Data about automations in a structure
-Machine readable JSON format.
+- Data about automations in a structure
+- Machine readable JSON format.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # News
-Data about the magazines, categories, and sources you are interested in.
+- Data about the magazines, categories, and sources you are interested in.
 
 ## Saved Content [TXT]
-List of topics, articles, magazines and other topics you follow or have saved on Google News.
+- List of topics, articles, magazines and other topics you follow or have saved on Google News.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Pinpoint
 Your data from Pinpoint, including files you have uploaded
 
 ## Collections [CSV]
-CSV containing all titles and descriptions of collections you own
-
+- CSV containing all titles and descriptions of collections you own
 ## Collection Files [N/A]
-All files uploaded to Pinpoint in their original format
-
+- All files uploaded to Pinpoint in their original format
 ## Document Highlights [CSV]
-CSV containing all highlights you have created on documents you own
-
+- CSV containing all highlights you have created on documents you own
 ## Audio Transcriptions [TXT]
-Audio transcription files Pinpoint created for you in .txt format
-
+- Audio transcription files Pinpoint created for you in .txt format
 ## Document Labels [CSV]
-CSV containing all labels you have applied on documents you own
-
+- CSV containing all labels you have applied on documents you own
 ## Structured Data Annotations [JSON]
-JSON file containing all annotations you have applied on collections for extracting structured data
+- JSON file containing all annotations you have applied on collections for extracting structured data
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Profile
-Settings and images from your Google profile
+- Settings and images from your Google profile.
 
 ## Profile Settings [JSON]
-Your current profile settings.
-
+- Your current profile settings.
 ## Inactive Account Manager Settings [JSON]
-Your current Inactive Account Manager settings.
+- Your current Inactive Account Manager settings.
+## Previous Profile Photos [OGFormat]
+- A directory of your previous profile and cover photos.
+## Current Profile Photos [OGFormat]
+- Your current profile and cover photo.
 
-## Previous profile photos [OGFormat]
-A directory of your previous profile and cover photos.
-
-## Current profile photos. [OGFormat]
-Your current profile and cover photo.
-
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Purchases & Reservations
-Your purchases and reservations made using Search, Maps, and the Assistant. 
-
-
------------------------------------------------------------------
-
-# Purchases & Reservations
-Your purchases and reservations made using Search, Maps, and the Assistant. 
+- Your purchases and reservations made using Search, Maps, and the Assistant.
 
 ## Purchases [JSON]
-Your upcoming and past purchases gathered from Google Services.
-
+- Your upcoming and past purchases gathered from Google Services.
 ## Reservations [JSON]
-Your upcoming and past reservations gathered from Google Services.
+- Your upcoming and past reservations gathered from Google Services.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Reminders [HTML]
-Reminders that you created with Google.
+- Reminders that you created with Google.
 
-[MoreInfo]
-Exported data from Google Reminders might include:
+### More Information
+- Exported data from Google Reminders might include:
+  - **Title**
+  - **Created time**
+  - **Archived, upcoming, and active reminders**
+  - **Expiration date**
+  - **Recurrence information**
+  - **The application**
 
-Title
-Created time
-Archived, upcoming, and active reminders
-Expiration date
-Recurrence information
-The application
-
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Saved
-Collections of saved links (images, places, web pages, etc.) from Google Search and Maps (Saved items in Inbox are available in your Reminders export.).
+- Collections of saved links (images, places, web pages, etc.) from Google Search and Maps (Saved items in Inbox are available in your Reminders export).
 
-## Collection of saved items [CSV]
-Title, URL, note, and comments of the saved item
+## Collection of Saved Items [CSV]
+- Title, URL, note, and comments of the saved item.
+## Uploaded Images [IMAGE]
+- Images the user uploaded or were uploaded to their collection.
 
-## Uploaded images [IMAGE]
-Images the user uploaded or were uploaded to their collection
-
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Search Contributions
-Your ratings, reviews, comments and other contributions to Google Search
+- Your ratings, reviews, comments, and other contributions to Google Search.
 
 ## Reactions [JSON]
-Your reactions, like when you react like on an image.
-
+- Your reactions, such as when you react with a like on an image.
 ## Thumbs [JSON]
-Thumb ratings for movies, TV shows, music albums, etc.
-
+- Thumb ratings for movies, TV shows, music albums, etc.
 ## Reviews [JSON]
-Reviews added to movies and other search results.
-
+- Reviews added to movies and other search results.
 ## Hearts [JSON]
-Hearts for articles, etc.
-
+- Hearts for articles, etc.
 ## Profile [JSON/JPG]
-Profile with social links, etc.
-
+- Profile with social links, etc.
 ## Comments on Search [JSON]
-Comments added in Search.
-
+- Comments added in Search.
 ## Notes [JSON/JPG]
-Notes about a link with related content and images.
-
-## Streaming video providers [JSON]
-User-reported information about streaming providers that the user is subscribed to.
-
+- Notes about a link with related content and images.
+## Streaming Video Providers [JSON]
+- User-reported information about streaming providers that the user is subscribed to.
 ## Watched [JSON]
-Movies and TV shows that the user reported as already watched.
+- Movies and TV shows that the user reported as already watched.
 
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # Search Notifications
-User notification configurations and topic subscriptions.
+- User notification configurations and topic subscriptions.
 
 ## Your Notification Configurations [CSV]
-Overall account and device configurations used to send notifications.
-Settings are grouped by row and applicable to the account scope within the "Scope Identifier" column.
-## Your Notification Subscriptions [CSV]
-A list of notification topics to which you are subscribed.
-A text file list the various notification subscriptions grouped by row in the file.
------------------------------------------------------------------
+- Overall account and device configurations used to send notifications.
+- Settings are grouped by row and applicable to the account scope within the "Scope Identifier" column.
 
-# Street View
-Images and videos you have uploaded to Google Street View
+## Your Notification Subscriptions [CSV]
+- A list of notification topics to which you are subscribed.
+- A text file listing the various notification subscriptions grouped by row in the file.
+
+----------------------------------------------------------------
+
+# Street View Uploads
+- Images and videos you have uploaded to Google Street View.
 
 ## Video [Video]
-A video file
+- A video file.
 ## Uploaded 360 Image [Image]
-Uploaded spherical image
-## Sensor data [JSON]
-Uploaded sensor data
+- Uploaded spherical image.
+## Sensor Data [JSON]
+- Uploaded sensor data.
 
+----------------------------------------------------------------
 
------------------------------------------------------------------
+# Tasks
+- Data for your open and completed tasks.
 
-# Tasks [JSON]
-Data for your open and completed tasks.
+## Task [JSON]
+- Your Google Tasks.
+- JavaScript Object Notation.
 
+### More Information
+- This information is included in your download:
+  - **Assignee emails**
+  - **Assigner emails**
+  - **Completed timestamps**
+  - **Creation timestamps**
+  - **Creator emails**
+  - **Descriptions**
+  - **Due dates**
+  - **IDs**
+  - **Last updated timestamps**
+  - **Link descriptions**
+  - **Link types**
+  - **Links**
+  - **List IDs**
+  - **List titles**
+  - **Parent IDs**
+  - **Source IDs**
+  - **Source names**
+  - **Starring timestamps**
+  - **Task types**
+  - **Titles**
+  - **Whether task was completed or needs action**
+  - **Whether the task was starred**
 
-[MoreInfo]
-This information is included in your download:
-
-Assignee emails
-Assigner emails
-Completed timestamps
-Creation timestamps
-Creator emails
-Descriptions
-Due dates
-IDs
-Last updated timestamps
-Link descriptions
-Link types
-Links
-List IDs
-List titles
-Parent IDs
-Source IDs
-Source names
-Starring timestamps
-Task types
-Titles
-Whether task was completed or needs action
-Whether the task was starred
-
------------------------------------------------------------------
+----------------------------------------------------------------
 
 # YouTube and YouTube Music
-Watch and search history, videos, comments and other content you've created on YouTube and YouTube Music
+- Watch and search history, videos, comments, and other content you've created on YouTube and YouTube Music.
 
-## video media [OGFormat/MP4]
-Videos you've uploaded (Either your originally uploaded videos, or a high-quality transcode.)
+## Video Media [OGFormat/MP4]
+- Videos you've uploaded (either your originally uploaded videos or a high-quality transcode).
+## Videos [CSV]
+- The video entity data.
+## Video Interactions [CSV]
+- Interactions on a YouTube video.
+## Video Recording [CSV]
+- Recording information about a YouTube video.
+## Video Text [CSV]
+- Creator-provided structured text associated with a YouTube video.
+## Playlists [CSV]
+- Playlists you've created.
+## Playlist Videos [CSV]
+- Videos in each playlist.
+## Channel [CSV]
+- Information about your channel.
+## Channel Community Moderation Settings [CSV]
+- Channel-wide settings shared among Live chat messages and comments.
+## Channel Feature Data [CSV]
+- YouTube Channel feature-related data.
+## Channel Images [CSV]
+- YouTube Channel image data.
+## Channel Page Settings [CSV]
+- Settings for the layout and description of the channel page.
+## Channel URL Configs [CSV]
+- A structure that holds URL-related information of a YouTube channel.
+## Subscriptions [CSV]
+- Your channel subscriptions.
+## Comment [CSV]
+- Comments you've created.
+## Sent Live Chats [CSV]
+- Live chats you've authored.
+## Posts [CSV]
+- Posts you've created.
+## Post Comments Settings [CSV]
+- Comments settings for the posts.
+## Clips [CSV]
+- Clips you've created.
+## Music Media [OGFormat]
+- Music media you've uploaded (your originally uploaded music media).
+## Music Library Songs [CSV]
+- A list of all the songs added to your YouTube Music library.
+## Music Uploads Metadata [OGFormat]
+- Metadata about user's uploaded music media at YouTube Music (your originally uploaded audio file).
+## Product Save List [CSV]
+- YouTube Shopping wishlist of saved-for-later products.
+## Product Save List Item [CSV]
+- YouTube Shopping wishlist items.
+## Playables Metadata [CSV]
+- Your YouTube Playable saved games.
+## Playables Save Data [Binary]
+- Playable game's exported save file.
+## History [JSON]
+- Your watch and search history from YouTube.
+## Creator Demographics [CSV]
+- Self-ID survey responses. To download your Creator demographics data for the YouTube channel(s) you own, you need to be logged in with your personal Google Account, not a Brand Account.
 
-## videos [CSV]
-The video entity data
+### Included Data
+- **Channels**
+- **Comments**
+- **Creator Demographics**
+- **History**
+- **Kids**
+- **Live Chats**
+- **Music Library Songs**
+- **Music Uploads**
+- **Playables**
+- **Playlists**
+- **Shopping**
+- **Subscriptions**
+- **Support Issues**
+- **Video Metadata**
+- **Videos**
 
-## video interactions [CSV]
-Interactions on a YouTube Video.
+### More Information
+- Some videos may have been uploaded using a Brand Account. Switch to your Brand Account in order to export those videos.
+- Videos are downloaded in their original format, or as MP4 files with H264 video and AAC audio. Only your own comments will be included in your archive.
 
-## video recording [CSV]
-Recording information about a YouTube video.
-
-## video text [CSV]
-Creator-provided structured text associated with a YouTube video.
-
-## playlists [CSV]
-Playlists you've created
-
-## playlist videos [CSV]
-videos in each playlist
-
-## channel [CSV]
-Information about your channel.
-
-## channel community moderation settings [CSV]
-Channel wide settings shared among Live chat messages and comments.
-
-## channel feature data [CSV]
-YouTube Channel Feature Related Data.
-
-## channel images [CSV]
-YouTube Channel Image Data.
-
-## channel page settings [CSV]
-Settings for the layout and description of the channel page.
-
-## channel URL configs [CSV]
-A structure that holds URL-related information of a YouTube channel.
-
-## subscriptions [CSV]
-Your channel subscriptions.
-
-## comment [CSV]
-Comment you've created
-
-## sent live chats [CSV]
-Live chats you've authored
-
-## posts [CSV]
-Posts you've created
-
-## post comments settings [CSV]
-Comments settings for the Posts.
-
-## clips [CSV]
-Clips you've created
-
-## music media [OGFormat]
-Music media you've uploaded (Your originally uploaded music media.)
-
-## music library songs [CSV]
-A list of all the songs added to your YouTube Music library.
-
-## music uploads metadata [OGFormat]
-Metadata about user's uploaded music media at YouTube Music (Your originally uploaded audio file.)
-
-## product save list [CSV]
-YouTube Shopping wishlist of saved for later products.
-
-## product save list item [CSV]
-YouTube Shopping wishlist items.
-
-## playables metadata [CSV]
-Your YouTube Playable saved games.
-
-## playables save data [Binary]
-Playables game's exported save file.
-
-## history [JSON]
-Your watch and search history from YouTube.
-
-## creator demographics [CSV]
-Self-ID survey responses. To download your Creator demographics data for the YouTube channel(s) you own, you need to be logged in with your personal Google Account, not a Brand Account.
-
-[IncludedData]
-channels
-comments
-creator-demographics
-history
-kids
-live chats
-music-library-songs
-music-uploads
-playables
-playlists
-shopping
-subscriptions
-support issues
-video metadata
-videos
-
-[MoreInfo]
-Some videos may have been uploaded using a brand account. Switch to your brand account in order to export those videos.
-
-Videos are downloaded in their original format, or as MP4 files with H264 video and AAC audio. Only your own comments will be included in your archive.
-
------------------------------------------------------------------
+----------------------------------------------------------------
