@@ -316,22 +316,28 @@ Feedback reports you have submitted across Google products
 # Google Fi Wireless
 Your Google Fi phone number and voicemails
 
+Phone number [TXT]
+Your Google Fi phone number
+Voicemails [MP3]
+Recordings of voicemails
+
 ----------------------------------------------------------------
 
 # Google Finance
-Your portfolios of stocks and watchlists you track on Google Finance.
+- Your portfolios of stocks and watchlists you track on Google Finance.
 
-Portfolios [JSON]
-All the portfolios that reflect actual investments.
-Watchlists [JSON]
-The watchlists you have created, as well as a list of financial entities you are tracking.
-Hidden News Sources [TXT]
-A list of hidden or blocked news sources.
+## Portfolios [JSON]
+- All the portfolios that reflect actual investments.
+## Watchlists [JSON]
+- The watchlists you have created, as well as a list of financial entities you are tracking.
+## Hidden News Sources [TXT]
+- A list of hidden or blocked news sources.
 
-[ExportLabels]
-Hidden News Sources
-Portfolios
-Watchlists
+### Export Labels
+- **Hidden News Sources**
+- **Portfolios**
+- **Watchlists**
+
 
 ----------------------------------------------------------------
 
@@ -344,7 +350,6 @@ Watchlists
 - Text posted will be delivered in a tabular format compatible with spreadsheets and databases.
 ## Attachments [OGFormat]
 - Files uploaded by the user are provided in the same format originally uploaded.
-
 
 ----------------------------------------------------------------
 
