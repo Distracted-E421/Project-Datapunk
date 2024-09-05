@@ -281,6 +281,57 @@ Data about registration and account activity.
 # Google Business Profile
 All data related to your business, including data from your info page, your posts, your reviews & replies, and your uploaded photos & videos.
 
+Info [JSON]
+All data from the Info page.
+GeoJSON format
+Posts [JSON]
+All your business posts.
+GeoJSON format
+Reviews & Replies [JSON]
+Reviews you have received and your replies on them.
+GeoJSON format
+Messaging Settings [JSON]
+Your settings for messaging.
+GeoJSON format
+Photos & Videos [OGFormat]
+Your uploaded photo & video files, along with the ones provided for Posts.
+Website (if created through Google Business Profile) [JSON]
+Data entered for the website you created on Google.
+GeoJSON format
+Verification Address [JSON]
+Your address specifically entered for verification.
+GeoJSON format
+Accounts [JSON]
+All your accounts data for Google Business Profile.
+GeoJSON format
+Business Phone Calls [JSON]
+Phone calls made by your customers to your business.
+GeoJSON format
+Business Personalization [JSON]
+Your decision about whether your account is to be recognized as a business account.
+GeoJSON format
+Health Attributes [JSON]
+The health insurance networks accepted by the business (for businesses that provide health care services).
+GeoJSON format
+Lodging Details [JSON]
+All amenity and policy details you specified in your property listing(s).
+GeoJSON format
+Hotel Rates [CSV]
+Hotel rates associated with your business.
+CSV format
+Hotel Rates Settings [JSON]
+Hotel rates settings associated with your business.
+GeoJSON format
+Products [JSON]
+All products listed on your business profile.
+GeoJSON format
+Questions and Answers [JSON]
+Questions and answers submitted using your business profile.
+GeoJSON format
+Tickets [JSON]
+All tickets listed on your business profile.
+GeoJSON format
+
 ----------------------------------------------------------------
 
 # Google Cloud Search
@@ -305,13 +356,10 @@ All data related to your business, including data from your info page, your post
 
 ## Users [JSON]
 - User metadata (e.g., name and memberships).
-
 ## Messages [JSON]
 - Conversation history for each Google Chat topic and direct message.
-
 ## Groups [JSON]
 - List of Google Chat groups and associated metadata.
-
 ## Attachments [OGFormat]
 - Attachments for messages in each Google Chat topic and direct messages.
 
