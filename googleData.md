@@ -140,147 +140,176 @@ Subject
 ----------------------------------------------------------------
 
 # Crisis User Reports
-Information provided to help others during crises
+- Information provided to help others during crises.
+
+## Yes/No Questions [CSV]
+- Answers to yes/no user-report questions related to crises.
 
 ----------------------------------------------------------------
 
 # Data Shared for Research
-Responses saved with your Google Account from your participation in Google research studies and projects.
+- Responses saved with your Google Account from your participation in Google research studies and projects.
+
+## Crowdsource Donated Images [JPG]
+- For Crowdsource donated images, you'll receive a collection of image files for each image you donated.
+- Images will be exported as JPG.
+## Crowdsource Donated Labels [TXT]
+- For Crowdsource donated labels, you'll receive a collection of text files for each image you donated.
 
 ----------------------------------------------------------------
 
 # Discover
-Your follows, likes, and not interested settings saved by Discover.
+- Your follows, likes, and not interested settings saved by Discover.
+
+## Your Follows [CSV]
+- A list of searches and sites the user follows.
+- A text file listing the name of the site or search query.
+## Your Liked Content [CSV]
+- A list of links to your liked documents.
+- A text file listing the URL of liked content and the date when you liked the content.
+## Not Interested Setting [CSV]
+- Content you marked as not interested.
+- A text file listing the name of the uninterested entity and the not interested setting.
 
 ----------------------------------------------------------------
 
 # Drive
-Files you own that have been stored in your My Drive and Computers.
+- Files you own that have been stored in your My Drive and Computers.
 
-Documents [DOCXorPDF]
-A document created by Microsoft Word or another word processing program.
-Drawings [JPGorPDF]
-Forms [ZIP]
-A zip archive per form, possibly containing multiple files within.
-Jamboard [PDF]
-A PDF render of the Jam doc.
-Presentations [PPTXorPDF]
-Scripts [JSON]
-A JSON script, such as those created by Google Apps Script.
-Spreadsheets [XLSXorPDF]
-An Excel spreadsheet created by Microsoft Excel or another spreadsheet program.
-Uploads [OGFormat]
-Files you have uploaded to Google Drive.
+## Documents [DOCX or PDF]
+- A document created by Microsoft Word or another word processing program.
+## Drawings [JPG or PDF]
+## Forms [ZIP]
+- A zip archive per form, possibly containing multiple files within.
+## Jamboard [PDF]
+- A PDF render of the Jam doc.
+## Presentations [PPTX or PDF]
+## Scripts [JSON]
+- A JSON script, such as those created by Google Apps Script.
+## Spreadsheets [XLSX or PDF]
+- An Excel spreadsheet created by Microsoft Excel or another spreadsheet program.
+## Uploads [OGFormat]
+- Files you have uploaded to Google Drive.
 
-[AdvancedSettings]
-Include named, published, and uploaded versions
-Include additional info for files and folders
+### Advanced Settings
+- Include named, published, and uploaded versions.
+- Include additional info for files and folders.
 
-[MoreInfo]
-Important: Attempting to export files that exceed the maximum size limits may cause your export to fail.
-The following content is included in your download:
-Google Docs
-Document text
-Open and resolved comments, and open and resolved suggestions
-Scripts created in Apps Script
-Bookmarks and page numbers
-Charts and tables
-Drawings
-Images. Downloaded images might be lower quality
-Named revisions
-Published revisions
-Words added to your spelling suggestions dictionary
-Tasks
-Google Sheets
-Open and resolved comments
-Scripts created in Apps Script
-Charts and tables
-Drawings
-Images. Downloaded images might be lower quality
-Named revisions
-Published revisions
-Notes
-Cell content, like text and formulas
-Words added to your spelling suggestions dictionary
-Google Slides
-Open and resolved comments
-Scripts created in Apps Script
-Charts and tables
-Embedded video and audio
-Images. Downloaded images might be lower quality
-Named revisions
-Published revisions
-Presentation content, like slides and text
-Q&A
-Words added to your spelling suggestions dictionary
-Metadata for any Slides recordings
-Google Drawings
-Open and resolved comments
-Drawings
-Images. Downloaded images might be lower quality
-Named revisions
-Published revisions
-Words added to your spelling suggestions dictionary
-New Sites
-Draft sites
-Published sites
-Embedded URLs and full pages
-Table of Contents
-Image Carousels
-Text and collapsible text
-Buttons
-Custom page paths and navigation links
-Themes, fonts, colors, logos, favicon
-Classic Sites
-Site content, like text, images, links, table of contents, and embedded HTML
-Navigation bars
-Themes, fonts, colors
-Announcements
-File cabinet and attachments
-Lists
-Page templates
-Site owners
-Google Drive
-Email Layouts
-Files and folders
-Current version of each file
-File versions marked as "Keep forever"
-File title
-Shared drive resource ID & subfolder names
-Drive for desktop files
-Trashed content
-Metadata for each exported file, such as whether it's starred, file descriptions, and folder colors
-Workspace names
-Custom shared drive background images
-Shared drive names
-Meet video recordings and chat transcripts
-File comments
-Google Forms
-Form title
-Description
-Questions
-Question validation settings
-Question grading settings
-Embedded images
-Form responses
-Quiz score
-Manual quiz feedback
-Draft responses
-Jamboard
-Drawing strokes
-Drawing elements, like sticky notes, stickers, and autodraw shapes
-Embedded images
-Embedded PDF pages
-Backgrounds
-Google Vids
-Open and resolved comments (exported as a .html file)
-Embedded and recorded video and audio
-Images. Downloaded images might be of lower quality
-Named revisions
-Video content (like scenes and text) exported as MP4
-Words added to your spelling suggestions dictionary
-User-uploaded scripts
-User-uploaded captions
+### More Information
+- Important: Attempting to export files that exceed the maximum size limits may cause your export to fail.
+- The following content is included in your download:
+
+#### Google Docs
+- Document text.
+- Open and resolved comments, and open and resolved suggestions.
+- Scripts created in Apps Script.
+- Bookmarks and page numbers.
+- Charts and tables.
+- Drawings.
+- Images. Downloaded images might be lower quality.
+- Named revisions.
+- Published revisions.
+- Words added to your spelling suggestions dictionary.
+- Tasks.
+
+#### Google Sheets
+- Open and resolved comments.
+- Scripts created in Apps Script.
+- Charts and tables.
+- Drawings.
+- Images. Downloaded images might be lower quality.
+- Named revisions.
+- Published revisions.
+- Notes.
+- Cell content, like text and formulas.
+- Words added to your spelling suggestions dictionary.
+
+#### Google Slides
+- Open and resolved comments.
+- Scripts created in Apps Script.
+- Charts and tables.
+- Embedded video and audio.
+- Images. Downloaded images might be lower quality.
+- Named revisions.
+- Published revisions.
+- Presentation content, like slides and text.
+- Q&A.
+- Words added to your spelling suggestions dictionary.
+- Metadata for any Slides recordings.
+
+#### Google Drawings
+- Open and resolved comments.
+- Drawings.
+- Images. Downloaded images might be lower quality.
+- Named revisions.
+- Published revisions.
+- Words added to your spelling suggestions dictionary.
+
+#### New Sites
+- Draft sites.
+- Published sites.
+- Embedded URLs and full pages.
+- Table of Contents.
+- Image Carousels.
+- Text and collapsible text.
+- Buttons.
+- Custom page paths and navigation links.
+- Themes, fonts, colors, logos, favicon.
+
+#### Classic Sites
+- Site content, like text, images, links, table of contents, and embedded HTML.
+- Navigation bars.
+- Themes, fonts, colors.
+- Announcements.
+- File cabinet and attachments.
+- Lists.
+- Page templates.
+- Site owners.
+
+#### Google Drive
+- Email Layouts.
+- Files and folders.
+- Current version of each file.
+- File versions marked as "Keep forever."
+- File title.
+- Shared drive resource ID & subfolder names.
+- Drive for desktop files.
+- Trashed content.
+- Metadata for each exported file, such as whether it's starred, file descriptions, and folder colors.
+- Workspace names.
+- Custom shared drive background images.
+- Shared drive names.
+- Meet video recordings and chat transcripts.
+- File comments.
+
+#### Google Forms
+- Form title.
+- Description.
+- Questions.
+- Question validation settings.
+- Question grading settings.
+- Embedded images.
+- Form responses.
+- Quiz score.
+- Manual quiz feedback.
+- Draft responses.
+
+#### Jamboard
+- Drawing strokes.
+- Drawing elements, like sticky notes, stickers, and autodraw shapes.
+- Embedded images.
+- Embedded PDF pages.
+- Backgrounds.
+
+#### Google Vids
+- Open and resolved comments (exported as a .html file).
+- Embedded and recorded video and audio.
+- Images. Downloaded images might be of lower quality.
+- Named revisions.
+- Video content (like scenes and text) exported as MP4.
+- Words added to your spelling suggestions dictionary.
+- User-uploaded scripts.
+- User-uploaded captions.
 
 ----------------------------------------------------------------
 
