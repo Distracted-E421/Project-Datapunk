@@ -301,16 +301,27 @@ All data related to your business, including data from your info page, your post
 ----------------------------------------------------------------
 
 # Google Chat
-The users, groups, conversation history and attachments for your Google Chat domain
+- The users, groups, conversation history, and attachments for your Google Chat domain.
 
-[MoreInfo]
+## Users [JSON]
+- User metadata (e.g., name and memberships).
 
-Your download includes your:
+## Messages [JSON]
+- Conversation history for each Google Chat topic and direct message.
 
-User profile information
-Memberships in direct messages, group messages, and spaces
-Messages along with attachments from direct messages, group messages, and spaces
-Tip: Group messages and spaces created by users with a work or school account won't export as part of your Chat history.
+## Groups [JSON]
+- List of Google Chat groups and associated metadata.
+
+## Attachments [OGFormat]
+- Attachments for messages in each Google Chat topic and direct messages.
+
+### More Information
+- Your download includes your:
+  - User profile information.
+  - Memberships in direct messages, group messages, and spaces.
+  - Messages along with attachments from direct messages, group messages, and spaces.
+
+- **Tip:** Group messages and spaces created by users with a work or school account won't export as part of your Chat history.
 
 ----------------------------------------------------------------
 
