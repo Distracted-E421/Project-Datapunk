@@ -1,5 +1,3 @@
-
-
 # Access Log Activity
 - Collection of account activity logs.  
 *(Due to the size of content found in the Access Log Activity product, exports may take longer to process.)*
@@ -30,112 +28,167 @@
 ----------------------------------------------------------------
 
 # Arts & Culture
-Favorites and galleries you've created on Google Arts & Culture.
+- Favorites and galleries you've created on Google Arts & Culture.
 
+## Favorites [HTML]
+- List of your favorites on Google Arts & Culture.
+## Galleries [CSV]
+- Galleries that you've created on Google Arts & Culture.
+- Comma-separated values that can be imported into a spreadsheet.
 
 
 ----------------------------------------------------------------
 
 # Assignments
-Your courses and assignments, including rubrics and feedback comments.
+- Your courses and assignments, including rubrics and feedback comments.
 
-
+## Courses [JSON]
+- Data associated with your courses, such as assignment rubrics and feedback comments.
+- One file for each of your courses.
+## Comment Bank [JSON]
+- Comments in your comment bank (instructors only).
+- A single file with all your comments.
+## Collaborations [JSON]
+- Data associated with your collaborations, including LMS user IDs of collaborators and IDs of Drive files.
+- A single file with all your collaboration data.
+## Meetings [JSON]
+- Data associated with your meetings created via the Meet LTI tool, like meeting links and meeting settings.
+- A single file with all your meeting data.
 
 ----------------------------------------------------------------
 
 # Calendar
-Your calendar data in iCalendar format
+- Your calendar data in iCalendar format.
 
-[MoreInfo]
-The following information is included in your download, in iCalendar format: 
+## Calendar [iCalendar]
+- A universal calendar format used by several email and calendar programs.
 
-Event start and end time
-Frequency related data for recurring events
-Invitees and their response statuses
-Event title, description, and location, if available
-Event creation and last modification time
-The following information is included in your download, in JSON format: 
+## Meeting Settings [JSON]
+- Meet settings of calendar events.
+- JavaScript Object Notation.
 
-Meeting Breakout configuration
+### More Information
+- The following information is included in your download, in iCalendar format:
+  - Event start and end time.
+  - Frequency-related data for recurring events.
+  - Invitees and their response statuses.
+  - Event title, description, and location, if available.
+  - Event creation and last modification time.
+
+- The following information is included in your download, in JSON format:
+  - Meeting Breakout configuration.
 
 ----------------------------------------------------------------
 
 # Chrome
-Bookmarks, history, and other settings from Chrome.
+- Bookmarks, history, and other settings from Chrome.
+## Addresses and More [JSON]
+- Information entered into online forms, such as phone numbers, email addresses, and some physical addresses.
+## Bookmarks [HTML]
+- The pages bookmarked in Chrome.
+- Bookmarks are exported as HTML files in Netscape Bookmark File Format.
+## History [JSON]
+- The sites visited in Chrome, including web addresses entered in the address bar.
+## Dictionary [CSV]
+- Words added to Chrome dictionary.
+- The exported CSV has a single column with one dictionary word per row. Note that if the data is encrypted, the word <i>Encrypted</i> is written instead.
+## Extensions [JSON]
+- Extensions installed from the Chrome Web Store.
+## Settings [JSON]
+- Chrome user settings.
+## Reading List [HTML]
+- Pages added to the reading list in Chrome.
+- Reading list pages are exported as HTML files in Netscape Bookmark File Format.
+## OS Settings [JSON]
+- ChromeOS settings. Not exported in third-party takeout.
+## Device Information [JSON]
+- Information about user devices that are running a sync-enabled Chrome browser. Not exported in third-party takeout.
 
 ----------------------------------------------------------------
 
 # Classroom
-Your Classroom classes, posts, submissions, and rosters
+- Your Classroom classes, posts, submissions, and rosters.
 
+## Class [JSON/PNG/XML]
+- A Classroom class including its posts, submissions, and roster.
 
-[MoreInfo]
+### More Information
+- Important: Exporting Classroom Analytics data is not currently supported in Google Takeout. You can manually request your organization's Classroom Analytics data to be exported through this form.
 
-Important: Exporting Classroom Analytics data is not currently supported in Google Takeout. You can manually request your organization's Classroom Analytics data to be exported through this form.
-Your download includes the following data:  
-For Teachers and co-teachers:
-Class information:
-Title
-Description
-Room
-Web link to the calendar
-Information about class Drive folder
-Grade Categories, their weight expressed as a percentage, and the default points per assignment in that category.
-People:
-List of people associated with the class and their role including teachers, students, and guardians.
-Information about Drive folders containing students’ class documents (such as their unique identifier, URL, and folder name).
-Classwork:
-Announcements, posts, assignments, questions, topics, materials and related information.
-Submissions from students and related information such as grades, comments, and rubric scores.
-Practice sets:
-Practice set names, problem inputs, learning skills, and answers.
-Video activities:
-Video activity names, YouTube video content, question timestamps, question inputs, and answers.
-For Students:
-Student posts
-Student submissions and associated comments, grades, and rubrics.
-Student practice sets and associated grades.
-Read Along (domain wide takeout only): Student’s performance on Read Along in Classroom assignments.
+- Your download includes the following data:
+
+#### For Teachers and Co-teachers:
+- **Class Information:**
+  - Title.
+  - Description.
+  - Room.
+  - Web link to the calendar.
+  - Information about class Drive folder.
+  - Grade Categories, their weight expressed as a percentage, and the default points per assignment in that category.
+
+- **People:**
+  - List of people associated with the class and their role, including teachers, students, and guardians.
+  - Information about Drive folders containing students’ class documents (such as their unique identifier, URL, and folder name).
+
+- **Classwork:**
+  - Announcements, posts, assignments, questions, topics, materials, and related information.
+  - Submissions from students and related information such as grades, comments, and rubric scores.
+
+- **Practice Sets:**
+  - Practice set names, problem inputs, learning skills, and answers.
+
+- **Video Activities:**
+  - Video activity names, YouTube video content, question timestamps, question inputs, and answers.
+
+#### For Students:
+- **Student Posts:**
+  - Student submissions and associated comments, grades, and rubrics.
+  - Student practice sets and associated grades.
+
+- **Read Along (domain-wide Takeout only):**
+  - Student’s performance on Read Along in Classroom assignments.
+
 
 ----------------------------------------------------------------
 
 # Contacts
-Contacts and contact photos you added yourself, as well as contacts saved from your interactions in Google products like Gmail. 
+- Contacts and contact photos you added yourself, as well as contacts saved from your interactions in Google products like Gmail.
 
+## Contacts [CSV or vCard]
+- For importing to MS Outlook or another Google Account.
 
-[MoreInfo]
-Your download includes:
+### More Information
+- Your download includes:
+  - Contacts and contact photos you added to your Google Account (“My Contacts”).
+  - Contacts automatically saved from your interactions in Google products like Gmail (“All Contacts”).
+  - Contacts uploaded when your setting, Contact info from your devices, is on (“Device contacts”).
 
-Contacts and contact photos you added to your Google Account (“My Contacts”)
-Contacts automatically saved from your interactions in Google products like Gmail (“All Contacts”)
-Contacts uploaded when your setting, Contact info from your devices, is on (“Device contacts”)
-The data for each contact includes:
-
-Name
-Photo
-Group Membership
-Email
-IM
-Phone
-Address
-Organization
-Relation
-External Id
-Website
-Event
-Custom Field
-Notes
-Location
-Birthday
-Hobby
-Gender
-Occupation
-Priority
-Sensitivity
-Billing Information
-Directory Server
-Mileage
-Subject
+- The data for each contact includes:
+  - **Name**
+  - **Photo**
+  - **Group Membership**
+  - **Email**
+  - **IM**
+  - **Phone**
+  - **Address**
+  - **Organization**
+  - **Relation**
+  - **External Id**
+  - **Website**
+  - **Event**
+  - **Custom Field**
+  - **Notes**
+  - **Location**
+  - **Birthday**
+  - **Hobby**
+  - **Gender**
+  - **Occupation**
+  - **Priority**
+  - **Sensitivity**
+  - **Billing Information**
+  - **Directory Server**
+  - **Mileage**
+  - **Subject**
 
 ----------------------------------------------------------------
 
