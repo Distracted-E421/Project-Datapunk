@@ -157,12 +157,28 @@ Your follows, likes, and not interested settings saved by Discover.
 # Drive
 Files you own that have been stored in your My Drive and Computers.
 
+Documents [DOCXorPDF]
+A document created by Microsoft Word or another word processing program.
+Drawings [JPGorPDF]
+Forms [ZIP]
+A zip archive per form, possibly containing multiple files within.
+Jamboard [PDF]
+A PDF render of the Jam doc.
+Presentations [PPTXorPDF]
+Scripts [JSON]
+A JSON script, such as those created by Google Apps Script.
+Spreadsheets [XLSXorPDF]
+An Excel spreadsheet created by Microsoft Excel or another spreadsheet program.
+Uploads [OGFormat]
+Files you have uploaded to Google Drive.
+
+[AdvancedSettings]
+Include named, published, and uploaded versions
+Include additional info for files and folders
+
 [MoreInfo]
-
 Important: Attempting to export files that exceed the maximum size limits may cause your export to fail.
-
 The following content is included in your download:
-
 Google Docs
 Document text
 Open and resolved comments, and open and resolved suggestions
@@ -269,12 +285,34 @@ User-uploaded captions
 ----------------------------------------------------------------
 
 # Fit
-Your Google Fit data, including your workouts, sleep data, and daily metrics like steps and distance.
+- Your Google Fit data, including your workouts, sleep data, and daily metrics like steps and distance.
+
+## Activities [TCX]
+- Workouts and automatically tracked activities, like running or cycling.
+- A standard script extension package used by fitness applications for exporting and importing activity data.
+
+## Daily Activity Metrics [CSV]
+- Daily totals for each activity metric, like steps and distance.
+
+## All Data [JSON]
+- All your data from Google Fit, grouped by source.
+
+## All Sessions [JSON]
+- All the sessions recorded in Journal, including activities and sleep.
+
+### Export Labels
+- **Activities**
+- **All Data**
+- **All Sessions**
+- **Daily Activity Metrics**
 
 ----------------------------------------------------------------
 
 # Google Account
-Data about registration and account activity.
+- Data about registration and account activity.
+
+## Subscriber Info [HTML]
+- Account data related to registration and IP activity information.
 
 ----------------------------------------------------------------
 
@@ -331,7 +369,6 @@ Data about registration and account activity.
 ## Tickets [JSON]
 - All tickets listed on your business profile.
 - GeoJSON format.
-
 
 ----------------------------------------------------------------
 
