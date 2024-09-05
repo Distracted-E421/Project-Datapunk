@@ -1,8 +1,8 @@
 from pathlib import Path
+from pymongo import MongoClient
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-51jbpvv20alp37&m3bka5+9c2vn&2#@4nih^u+wxk*drk#$7n3'
@@ -68,16 +68,45 @@ CACHES = {
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'datapunk_db',
-        'USER': 'your_postgres_user',
-        'PASSWORD': 'your_password',
+# MongoDB Configuration
+MONGODB_DATABASES = {
+    'mongo_test1': {
         'HOST': 'localhost',
-        'PORT': '5432',
+        'PORT': 27017,
+        'NAME': 'datapunk_test1',
+        'USER': 'dp_service',
+        'PASSWORD': '1984'
+    },
+    'mongo_test2': {
+        'HOST': 'localhost',
+        'PORT': 27017,
+        'NAME': 'datapunk_test2',
+        'USER': 'dp_service',
+        'PASSWORD': '1984'
+    },
+    'mongo_test3': {
+        'HOST': 'localhost',
+        'PORT': 27017,
+        'NAME': 'datapunk_test3',
+        'USER': 'dp_service',
+        'PASSWORD': '1984'
+    },
+    'mongo_prod1': {
+        'HOST': 'localhost',
+        'PORT': 27017,
+        'NAME': 'datapunk_prod1',
+        'USER': 'dp_service',
+        'PASSWORD': '1984'
+    },
+    'mongo_prod2': {
+        'HOST': 'localhost',
+        'PORT': 27017,
+        'NAME': 'datapunk_prod2',
+        'USER': 'dp_service',
+        'PASSWORD': '1984'
     }
 }
+
 
 
 
