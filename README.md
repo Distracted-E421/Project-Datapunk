@@ -57,3 +57,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Acknowledgments
 
 - Inspired by the need for greater control over personal data in a digital age dominated by large corporations.
+
+
+
+
+
+
+daphne -p 8000 datapunk.asgi:application
