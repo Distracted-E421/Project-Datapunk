@@ -38,7 +38,7 @@ static/
 media/
 
 # Local environment
-myenv/
+.env
 *.local
 config/settings/local.py
 
