@@ -284,8 +284,19 @@ All data related to your business, including data from your info page, your post
 ----------------------------------------------------------------
 
 # Google Cloud Search
-You can export and download your organization’s Google Cloud Search data. This includes metadata for data indexed from third-party repositories, and cloud search query history.
+- Content metadata ingested as part of Google Cloud Search indexing flow, and user search activity data.
+- You can export and download your organization’s Google Cloud Search data. This includes metadata for data indexed from third-party repositories, and cloud search query history.
 
+## Data Source [JSON]
+- Data sources created by administrator(s).
+## Schema [JSON]
+- Schema for structured data representation within a data source.
+## Identity Source [JSON]
+- Identity sources created by administrator(s) within Google Cloud Search.
+## Search Applications [JSON]
+- Search applications defined over a set of data sources and associated query configurations.
+## User Activity [HTML]
+- Search activity, homepage view data within Google Cloud Search.
 
 ----------------------------------------------------------------
 
@@ -304,22 +315,30 @@ Tip: Group messages and spaces created by users with a work or school account wo
 ----------------------------------------------------------------
 
 # Google Developers
-Records of your Developer Profile and the activity associated with it.
+- Records of your Developer Profile and the activity associated with it.
+
+## Developer Profile Info [JSON]
+- Developer Profile information and the activity associated with it.
+- JavaScript Object Notation, a data-interchange format.
 
 ----------------------------------------------------------------
 
 # Google Feedback
-Feedback reports you have submitted across Google products
+- Feedback reports you have submitted across Google products.
+- Issues/suggestions you have submitted across Google products.
+
+## Screenshots [JPEG]
+- Screenshots you have submitted along with feedback information.
 
 ----------------------------------------------------------------
 
 # Google Fi Wireless
-Your Google Fi phone number and voicemails
+- Your Google Fi phone number and voicemails.
 
-Phone number [TXT]
-Your Google Fi phone number
-Voicemails [MP3]
-Recordings of voicemails
+## Phone Number [TXT]
+- Your Google Fi phone number.
+## Voicemails [MP3]
+- Recordings of voicemails.
 
 ----------------------------------------------------------------
 
