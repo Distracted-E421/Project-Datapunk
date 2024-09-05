@@ -68,4 +68,3 @@ daphne -p 8000 datapunk.asgi:application
 D:\MongoDB\data
 D:\MongoDB\bin
 datapunk-env\Scripts\activate
-
