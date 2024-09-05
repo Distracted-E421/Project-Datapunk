@@ -35,7 +35,7 @@ This project aims to develop a software tool that empowers users to take control
 
 - **Backend:** Python with Flask or Django for data processing and API integrations.
 - **Frontend:** React for a responsive and user-friendly interface.
-- **Database:** SQLite or PostgreSQL for local storage of processed data.
+- **Database:** PostgreSQL, Mongo, 
 - **Data Visualization:** D3.js or Plotly for dynamic and interactive visualizations.
 
 ## Challenges and Considerations
