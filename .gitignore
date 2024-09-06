@@ -38,7 +38,7 @@ static/
 media/
 
 # Local environment
-datapunk-env/
+venv/
 *.local
 config/settings/local.py
 

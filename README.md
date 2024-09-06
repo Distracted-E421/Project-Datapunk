@@ -1,60 +1,189 @@
-# Personal Data Management and Analysis Tool
+# Google & Microsoft Takeout Data Parser
 
-## Project Overview
+This project aims to create a user-friendly and powerful tool for parsing and managing personal data exported through Google Takeout and Microsoft Takeout. The goal is to give users control over their data, allowing them to explore, analyze, and manage it independently of services like Google or Microsoft.
 
-This project aims to develop a software tool that empowers users to take control of their personal data by allowing them to download, analyze, and visualize data collected by services like Google and Microsoft. The tool is designed to be user-friendly while offering powerful analysis features, enabling users to gain insights and make informed decisions based on their data.
+---
 
-## Key Features
+## Project Structure
 
-### 1. Data Import and Management
-- **Data Download Integration:** Automates the downloading of personal data through integration with Google Takeout and Microsoft Privacy Dashboard.
-- **Data Parsing:** Parses raw data files into structured formats like JSON, CSV, or stores them in a local database for easy analysis.
-- **Data Storage:** Provides secure, encrypted local storage for personal data.
+The project is divided into multiple components, each handling a specific part of the data management pipeline.
 
-### 2. Data Visualization
-- **Timeline of Activities:** Visualizes user activity over time, including locations visited, searches made, and documents edited.
-- **Social Interaction Analysis:** Maps interactions with contacts, emails, and social networks, highlighting trends and communication patterns.
-- **Usage Insights:** Offers insights into time spent on different services, apps, or websites to help users improve digital well-being.
+### 1. Main Project Folder:
 
-### 3. Data Analysis
-- **Behavioral Trends:** Analyzes trends in behavior, such as daily routines, common search queries, and frequent contacts.
-- **Anomaly Detection:** Identifies unusual patterns or spikes in data usage, location visits, or communications.
-- **Data Comparison:** Allows comparison of personal data over different time periods to observe changes in habits or activities.
+CompSci-Master-Project/
+├── .gitattributes
+├── .gitignore
+├── project_structure.txt
+├── README.md
+└── Tree.py
 
-### 4. Privacy and Security Features
-- **Data Encryption:** Ensures all stored data is encrypted for user privacy.
-- **Selective Data Sharing:** Allows users to share specific insights or data points without revealing the full dataset.
-- **Data Deletion:** Provides an option for secure deletion of stored data, ensuring complete removal from the system.
+- **Config Files:** `.gitattributes`, `.gitignore`, `README.md`, and `Tree.py`.
+- `project_structure.txt` documents the project file structure.
 
-### 5. User Interface
-- **Dashboard:** A clean, intuitive dashboard where users can access data insights at a glance.
-- **Customization:** Users can customize the types of data analyzed and how it’s presented.
-- **Notifications:** Alerts users when new data is available or when significant trends are detected.
+---
 
-## Technical Stack
+### 2. `datapunk/` (Main Django App):
 
-- **Backend:** Python with Flask or Django for data processing and API integrations.
-- **Frontend:** React for a responsive and user-friendly interface.
-- **Database:** PostgreSQL, Mongo, 
-- **Data Visualization:** D3.js or Plotly for dynamic and interactive visualizations.
+datapunk/
+├── manage.py
+└── datapunk/
+    ├── asgi.py
+    ├── settings.py
+    ├── urls.py
+    ├── wsgi.py
+    └── __init__.py
+- **Main Django Project Files**: Includes settings and configurations like `settings.py`, `urls.py`, and others to run the Django backend.
 
-## Challenges and Considerations
+---
 
-- **Data Privacy:** Strong security and privacy measures are crucial due to the sensitive nature of the data.
-- **API Limitations:** Google and Microsoft APIs may have rate limits or restrictions, so handling these gracefully is important.
-- **User Adoption:** The tool must be accessible and understandable to non-technical users while providing advanced features for power users.
+### 3. `data_importer/` (Handles Data Importing):
 
-## Potential Extensions
+data_importer/
+├── data_rules.py
+├── import_manager.py
+├── parser.py
+├── __init__.py
+└── data_dump/
+    ├── bladerunner_cases.json
+    ├── bladerunner_characters.csv
+    ├── bladerunner_corporations.csv
+    ├── cyberpunk_augments.csv
+    └── ...
+└── data_logs/
+    └── import_log.txt
 
-- **Integration with Other Services:** Expand the tool to integrate with additional services like Facebook, Twitter, or Fitbit for a more comprehensive view of personal data.
-- **Mobile App:** Develop a mobile app that allows users to track and analyze their data on the go.
-- **Machine Learning Insights:** Incorporate machine learning to provide predictive insights, such as anticipating changes in behavior based on historical data.
+- **Data Importer**: Contains scripts for managing and importing Takeout data (`data_rules.py`, `import_manager.py`, `parser.py`).
+- **Data Dumps**: JSON and CSV files used as sample or processed data related to themes like "Bladerunner" and "Cyberpunk."
+- **Logs**: Stores logs of imported data.
 
-## License
-## Acknowledgments
+---
 
-- Inspired by the need for greater control over personal data in a digital age dominated by large corporations.
+### 4. `mongodb/` (MongoDB-Specific Django App):
 
+mongodb/
+├── admin.py
+├── apps.py
+├── dp-prod1.py
+├── dp-prod2.py
+├── dp-test1.py
+├── dp-test2.py
+├── dp-test3.py
+├── models.py
+├── tests.py
+├── views.py
+└── migrations/
+    └── __init__.py
+
+- **MongoDB App**: Manages connections and data storage to MongoDB with scripts for both production and testing environments (`dp-prod1.py`, `dp-test1.py`, etc.).
+
+---
+
+### 5. `visualizations/` (Handles Data Visualization):
+
+visualizations/
+├── admin.py
+├── apps.py
+├── models.py
+├── tests.py
+├── views.py
+└── migrations/
+    └── __init__.py
+- **Visualizations App**: Manages visual representation of parsed data, such as graphs or charts.
+
+---
+
+### 6. `docs/` (Documentation):
+
+docs/
+└── googleData.md
+- **Documentation**: Holds project-related documentation like `googleData.md` which explains aspects of Google Takeout data.
+
+---
+
+### 7. Environment Setup (`datapunk_env_site_packages_structure.txt`):
+The environment uses several Python packages such as:
+- **Django** for the web framework.
+- **MongoDB/PyMongo** for managing data storage.
+- **Postgres/psycopg2** for relational data storage (to be implemented).
+- **Redis** for caching (to be implemented).
+- Other packages like `asgiref`, `Twisted`, `channels`, etc., are already installed and being used.
+
+---
+
+## Project Checklist
+
+### Completed Tasks:
+- [x] Set up **MongoDB** for storing parsed data.
+- [x] Separate project into different Django apps (parsing, MongoDB, etc.).
+- [x] Create basic directory parsing of Google Takeout.
+
+### Features To Implement:
+- [ ] **Postgres Integration**: Add Postgres for additional storage (structured data).
+- [ ] **Redis Integration**: Add Redis for caching to improve performance.
+- [ ] **Data Parsing Expansion**: Expand to include file-level data (e.g., emails, location history).
+- [ ] **Data Export**: Allow users to re-download their data in useful formats.
+- [ ] **User Interface**: Build a web-based UI for easy exploration and management of the data.
+- [ ] **Data Visualization**: Add charts/graphs for easier understanding of complex data.
+- [ ] **Security**: Ensure secure access and privacy-compliant data management.
+
+---
+
+## Data Sources
+
+This tool will work with data from **Google Takeout** and **Microsoft Takeout**.
+
+### Google Takeout Data We Plan to Use:
+- **Emails**: Data from Gmail.
+- **Location History**: Location data and check-ins.
+- **Search History**: Web activity and search queries.
+- **Calendar**: Appointments and reminders.
+- **Contacts**: Address book data.
+- **Photos**: Metadata about Google Photos.
+
+### Microsoft Takeout Data We Plan to Use:
+- **Emails**: Outlook emails.
+- **Calendar Data**: Events and appointments.
+- **OneDrive**: File metadata and directory structures.
+- **Contacts**: Address book.
+
+### Data We Will Not Use:
+- **Google Ad Preferences**: Ads and marketing data.
+- **YouTube Watch History**: Not focused on YouTube-specific data.
+- **Third-party App Data**: Data not directly generated by Google or Microsoft services.
+
+---
+
+## Setup Instructions
+
+1. **MongoDB Installation**:
+   - Install MongoDB, and make sure data paths are set as follows:
+     - Data: `D:\MongoDB\data`
+     - Binaries: `D:\MongoDB\bin`
+
+2. **Django Setup**:
+   - Clone the repository.
+   - Install dependencies via `pip install -r requirements.txt`.
+   - Run the Django server: `python manage.py runserver`.
+
+3. **To-Do**: Integration of **Postgres** and **Redis** for optimized data storage and caching.
+
+---
+
+## Future Development Goals
+
+In the future, we aim to:
+1. Expand data parsing to handle larger datasets efficiently.
+2. Implement advanced data visualizations.
+3. Enable full control over data through a robust user interface.
+4. Ensure privacy and security are at the forefront of data handling.
+
+---
+
+## Contribution
+
+---
+
+This README will be continuously updated as the project evolves.
 
 
 
