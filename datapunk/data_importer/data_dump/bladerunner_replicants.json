@@ -1,0 +1,14 @@
+[
+    {
+        "model": "Nexus-6",
+        "designation": "Roy Batty",
+        "function": "Combat",
+        "lifespan": "4 years"
+    },
+    {
+        "model": "Nexus-6",
+        "designation": "Pris",
+        "function": "Pleasure",
+        "lifespan": "4 years"
+    }
+]

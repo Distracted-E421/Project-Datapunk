@@ -2,33 +2,33 @@ from pymongo import MongoClient
 from django.conf import settings
 from pymongo.errors import PyMongoError
 
-def get_mongo_client():
-    """Return a MongoDB client for the datapunk_test1 database."""
-    db_config = settings.MONGODB_DATABASES['mongo_test1']
+def get_mongo_client(db_key='mongo_test1'):
+    """Return a MongoDB client for the specified database."""
+    db_config = settings.MONGODB_DATABASES[db_key]
     client = MongoClient(
-        host=db_config['localhost'],
-        port=db_config['27017'],
-        username=db_config['dp_service'],
-        password=db_config['1984'],
-        authSource='admin'  # Change if necessary
+        host=db_config['HOST'],        
+        port=db_config['PORT'],        
+        username=db_config['USER'],    
+        password=db_config['PASSWORD'],
+        authSource='admin'             
     )
     return client[db_config['NAME']]
 
-
-def get_all_documents(collection_name):
-    """Retrieve all documents from a specified collection in datapunk_test1."""
-    db = get_mongo_client()
-    collection = db[test_collection1]  # Pass the collection name here
+def get_all_documents(collection_name, db_key='mongo_test1'):
+    """Retrieve all documents from a specified collection."""
+    db = get_mongo_client(db_key)
+    collection = db[collection_name]
     try:
-        return collection.find()# Optionally, you can specify filters
+        documents = collection.find()  # Get cursor
+        return list(documents)         # Convert cursor to list before returning
     except PyMongoError as e:
         print(f"Error retrieving documents: {e}")
         return None
 
-def insert_document(collection_name, document):
-    """Insert a document into a specified collection in datapunk_test1."""
-    db = get_mongo_client()
-    collection = db[test_collection1]  # Pass the collection name here
+def insert_document(collection_name, document, db_key='mongo_test1'):
+    """Insert a document into a specified collection."""
+    db = get_mongo_client(db_key)
+    collection = db[collection_name]
     try:
         return collection.insert_one(document).inserted_id
     except PyMongoError as e:

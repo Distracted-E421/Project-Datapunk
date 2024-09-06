@@ -108,19 +108,6 @@ MONGODB_DATABASES = {
     }
 }
 
-# Function to connect to MongoDB databases using pymongo
-def get_mongo_client(db_key):
-    db_config = MONGODB_DATABASES[db_key]
-    client = MongoClient(
-        host=db_config['HOST'],
-        port=db_config['PORT'],
-        username=db_config['USER'],
-        password=db_config['PASSWORD'],
-        authSource='admin'  # or 'admin' if using MongoDB authentication
-    )
-    return client[db_config['NAME']]
-
-
 # Password validation
 
 AUTH_PASSWORD_VALIDATORS = [

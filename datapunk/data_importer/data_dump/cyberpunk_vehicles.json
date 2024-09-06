@@ -1,0 +1,14 @@
+[
+    {
+        "make": "Quadra",
+        "model": "Type-66",
+        "type": "Car",
+        "features": ["Turbocharged", "Armored"]
+    },
+    {
+        "make": "Yaiba",
+        "model": "Kusanagi",
+        "type": "Motorcycle",
+        "features": ["High-speed", "Streamlined"]
+    }
+]

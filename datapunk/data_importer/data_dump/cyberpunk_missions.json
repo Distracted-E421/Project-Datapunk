@@ -1,0 +1,16 @@
+[
+    {
+        "mission": "The Heist",
+        "client": "Dexter DeShawn",
+        "target": "Yorinobu Arasaka",
+        "reward": "Money",
+        "difficulty": "High"
+    },
+    {
+        "mission": "Automatic Love",
+        "client": "Judy Alvarez",
+        "target": "Evelyn Parker",
+        "reward": "Information",
+        "difficulty": "Medium"
+    }
+]
