@@ -51,9 +51,6 @@ This project aims to develop a software tool that empowers users to take control
 - **Machine Learning Insights:** Incorporate machine learning to provide predictive insights, such as anticipating changes in behavior based on historical data.
 
 ## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## Acknowledgments
 
 - Inspired by the need for greater control over personal data in a digital age dominated by large corporations.
