@@ -76,3 +76,6 @@ docker-compose.override.yml
 
 # Celery
 celerybeat-schedule
+
+# Ignore takeout files
+takeout-9-5-24-1/

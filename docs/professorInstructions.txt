@@ -1,0 +1,44 @@
+Hi, everybody.
+This is just a reminder that your project idea writeups are due Sunday by 11:59pm. This is how they will be scored:
+
+Engaging, clear title: 2 points
+
+Clear, concise description of approximately 3 paragraphs: 6 points
+
+Convincing explanation of the project's value: 6 points
+
+Appropriate, complete listing of skills: 3 points
+
+Realistic estimate of personnel requirements: 2 points
+
+Quality of writing: 3 points
+
+Please remember that these project ideas aren't necessarily what you will work on this semester. You may find others' ideas more interesting and decide to team up with them instead of doing your own project. But it's important to see what all of you are interested in so that teams might form around shared interests and ideas. So please write about an idea you realistically see yourself doing and enjoying for the rest of the semester. Then, during the next two weeks, you'll have time to think further about whether that's what you want to work on or whether you want to partner with someone else instead on some other idea.
+
+
+Example for Classmate:
+Title: Calorie Counter & Nutrition Planner
+The "Calorie Counter & Nutrition Planner" is a web-based tool designed to help users track their daily calorie intake and make informed food choices. By integrating with the Nutritionix API, users can easily search for a wide range of common and branded food items, log their meals, and set personal calorie goals. The app provides real-time feedback, showing users whether they are meeting or exceeding their daily calorie targets, helping them stay aware and on track with their dietary goals.
+
+A standout feature of the app is its custom MongoDB database, which allows admins to add additional food items beyond the Nutritionix database. This ensures users have access to an even greater variety of foods, catering to various dietary preferences and needs. Built using React for a fast, interactive experience and Bootstrap for a responsive interface, the app provides users with an easy-to-navigate, efficient tool that works seamlessly across devices.
+
+The app's strength lies in its balance of simplicity and functionality. By offering users a straightforward way to manage their nutrition and calorie tracking, while also providing real-time updates and an extensive food database, it serves as a valuable tool for those looking to stay on top of their dietary habits.
+
+Skills
+
+- React.js
+
+- Axios (for API integration)
+
+- Bootstrap
+
+- MongoDB (for custom food database)
+
+- Context API (for state management)
+
+- Node.js & Express
+
+- Authentication (JWT or Firebase)
+
+Estimate
+The project can be completed by a single developer (myself) over the course of 6 to 7 weeks, covering frontend development, API integration, and backend/database setup.
