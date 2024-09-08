@@ -229,7 +229,7 @@
          401 Unauthorized – Write privileges required
          404 Not Found – Database doesn’t exist
          409 Conflict – A Conflicting Document with same ID already exists
-      Request:
+       Request:
             POST /db HTTP/1.1
             Accept: application/json
             Content-Length: 81
@@ -239,7 +239,7 @@
                 "subtitle": "Delicious with fresh bread",
                 "title": "Fish Stew"
             }
-      Response:
+       Response:
             HTTP/1.1 201 Created
             Cache-Control: must-revalidate
             Content-Length: 95
@@ -252,7 +252,7 @@
                 "ok": true,
                 "rev": "1-9c65296036141e575d32ba9c034dd3ee"
             }
-  1.3.1.1. Specifying the Document ID¶
+  1.3.1.1. Specifying the Document ID
             The document ID can be specified by including the _id field in the JSON of the submitted record. The following request will create the same document with the ID FishStew.
       Request:
             POST /db HTTP/1.1
@@ -279,13 +279,155 @@
                 "ok": true,
                 "rev": "1-9c65296036141e575d32ba9c034dd3ee"
             }
+  1.3.1.2. Batch Mode Writes
+            You can write documents to the database at a higher rate by using the batch option. This collects document writes together in memory (on a per-user basis) before they are committed to disk. This increases the risk of the documents not being stored in the event of a failure, since the documents are not written to disk immediately.
+            Batch mode is not suitable for critical data, but may be ideal for applications such as log data, when the risk of some data loss due to a crash is acceptable.
+            To use batch mode, append the batch=ok query argument to the URL of a POST /{db}, PUT /{db}/{docid}, or DELETE /{db}/{docid} request. The CouchDB server will respond with an HTTP 202 Accepted response code immediately.
+        Note:
+            Creating or updating documents with batch mode doesn’t guarantee that all documents will be successfully stored on disk. For example, individual documents may not be saved due to conflicts, rejection by validation function or by other reasons, even if overall the batch was successfully submitted.
+        Request:
 
+            POST /db?batch=ok HTTP/1.1
+            Accept: application/json
+            Content-Length: 98
+            Content-Type: application/json
+            {
+                "_id": "FishStew",
+                "servings": 4,
+                "subtitle": "Delicious with fresh bread",
+                "title": "Fish Stew"
+            }
+        Response:
 
+            HTTP/1.1 202 Accepted
+            Cache-Control: must-revalidate
+            Content-Length: 28
+            Content-Type: application/json
+             Date: Tue, 13 Aug 2013 15:19:25 GMT
+            Location: http://localhost:5984/db/FishStew
+            Server: CouchDB (Erlang/OTP)
 
-
-
-
+            {
+                "id": "FishStew",
+                "ok": true
+            }
  1.3.2. /{db}/_all_docs
+            Executes the built-in _all_docs view, returning all of the documents in the database. With the exception of the URL parameters (described below), this endpoint works identically to any other view. Refer to the view endpoint documentation for a complete description of the available query parameters and the format of the returned data.
+        Parameters:
+         db – Database name
+        Request Headers:
+         Content-Type – application/json
+        Response Headers:
+         Content-Type –
+          application/json
+        Status Codes:
+         200 OK – Request completed successfully
+         404 Not Found – Requested database not found
+      Request:
+            GET /db/_all_docs HTTP/1.1
+            Accept: application/json
+            Host: localhost:5984
+      Response:
+            HTTP/1.1 200 OK
+            Cache-Control: must-revalidate
+Content-Type: application/json
+Date: Sat, 10 Aug 2013 16:22:56 GMT
+ETag: "1W2DJUZFZSZD9K78UFA3GZWB4"
+Server: CouchDB (Erlang/OTP)
+Transfer-Encoding: chunked
+
+{
+    "offset": 0,
+    "rows": [
+        {
+            "id": "16e458537602f5ef2a710089dffd9453",
+            "key": "16e458537602f5ef2a710089dffd9453",
+            "value": {
+                "rev": "1-967a00dff5e02add41819138abb3284d"
+            }
+        },
+        {
+            "id": "a4c51cdfa2069f3e905c431114001aff",
+            "key": "a4c51cdfa2069f3e905c431114001aff",
+            "value": {
+                "rev": "1-967a00dff5e02add41819138abb3284d"
+            }
+        },
+        {
+            "id": "a4c51cdfa2069f3e905c4311140034aa",
+            "key": "a4c51cdfa2069f3e905c4311140034aa",
+            "value": {
+                "rev": "5-6182c9c954200ab5e3c6bd5e76a1549f"
+            }
+        },
+        {
+            "id": "a4c51cdfa2069f3e905c431114003597",
+            "key": "a4c51cdfa2069f3e905c431114003597",
+            "value": {
+                "rev": "2-7051cbe5c8faecd085a3fa619e6e6337"
+            }
+        },
+        {
+            "id": "f4ca7773ddea715afebc4b4b15d4f0b3",
+            "key": "f4ca7773ddea715afebc4b4b15d4f0b3",
+            "value": {
+                "rev": "2-7051cbe5c8faecd085a3fa619e6e6337"
+            }
+        }
+    ],
+    "total_rows": 5
+}
+POST /{db}/_all_docs¶
+POST _all_docs functionality supports identical parameters and behavior as specified in the GET /{db}/_all_docs API but allows for the query string parameters to be supplied as keys in a JSON object in the body of the POST request.
+
+Request:
+
+POST /db/_all_docs HTTP/1.1
+Accept: application/json
+Content-Length: 70
+Content-Type: application/json
+Host: localhost:5984
+
+{
+    "keys" : [
+        "Zingylemontart",
+        "Yogurtraita"
+    ]
+}
+Response:
+
+{
+    "total_rows" : 2666,
+    "rows" : [
+        {
+            "value" : {
+                "rev" : "1-a3544d296de19e6f5b932ea77d886942"
+            },
+            "id" : "Zingylemontart",
+            "key" : "Zingylemontart"
+        },
+        {
+            "value" : {
+                "rev" : "1-91635098bfe7d40197a1b98d7ee085fc"
+            },
+            "id" : "Yogurtraita",
+            "key" : "Yogurtraita"
+        }
+    ],
+    "offset" : 0
+}
+
+
+
+
+
+
+
+
+
+
+
+
  1.3.3. /{db}/_design_docs
   1.3.3.1. Sending multiple queries to a database
  1.3.4. /{db}/_bulk_get
