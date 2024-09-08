@@ -1,0 +1,34 @@
+Overview
+ Direct database access
+  The vast majority of your data lives in a cloudant database. You are free to consume and modify your data as you see fit, but keep in mind that you might break your Marvin or lose data. I recommend making a backup before you start as well as regular backups (perhaps using the Desktop app's auto backups).
+
+  Get started with database access. (at: couchDB-API-(1.1 , 1.2, 1.3, 1.4, 1.5, 1.6, and 1.7).txt)
+
+ Marvin's API
+  Marvin also has its own API:
+
+  access/modify data that doesn't live in the cloudant database like time tracking, habits
+  potentially easier to use than the couchdb API
+  possible from javascript/bookmarklets due to CORS
+
+  Get started with Marvin API. (at: )
+
+ Webhooks
+  Webhooks are used to notify your service that something happened in Marvin. This might be useful for creating web integrations or for starting the disco light whenever you complete a project.
+
+  Get started with Webhooks. (at: )
+
+ Stability
+  Marvin's API and data formats are subject to change. Each API endpoint is marked with a rough estimate of how stable it is. I will try not to break things, but it's hard to predict future developments!
+
+ Credentials
+  Don't share your credentials as they will give others access to your data. The apiToken is safer to share since it allows limited read/write access to your data (whereas the fullAccessToken is able to do more, and the database credentials can read/write almost all your data). But still, only share it with those you trust not to abuse it as the creation of many tasks could cause your Marvin to run very slowly, or could cause your account to be restricted due to perceived abuse.
+
+  To access your couchdb database, use the syncServer, syncDatabase, syncUser, and syncPassword credentials found in the API strategy. You can also find them here. (at: )
+
+  To access Marvin's growing API surface, use the apiToken or fullAccessToken found in the API strategy. You can also find it here. (at: MarvinAPI-Tokens.txt)
+
+ Rate limits
+  Please do not use the API to create more than 1 item per second. Please do not use the API to burst than 1 query each 3 seconds, nor 1440 queries per day (1 per minute). Please do not create 1 item every second until your database is gigantic, etc. Your API access or account may be restricted if you abuse the API.
+
+  These rate limits apply both to Marvin's public API and to direct database access. Please contact support if you have further questions about rate limits or your API usage.
