@@ -19,28 +19,73 @@
             Content-Type: application/json
             Date: Mon, 12 Aug 2013 01:27:41 GMT
             Server: CouchDB (Erlang/OTP)
-GET /{db}¶
-Gets information about the specified database.
+      GET /{db}
+            Gets information about the specified database.
+        Parameters:
+          db – Database name
+        Request Headers:
+          Accept –
+           application/json
+           text/plain
+        Response Headers:
+          Content-Type –
+           application/json
+           text/plain; charset=utf-8
+        Response JSON Object:
+            cluster.n (number) – Replicas. The number of copies of every document
+            cluster.q (number) – Shards. The number of range partitions.
+            cluster.r (number) – Read quorum. The number of consistent copies of a document that need to be read before a successful reply.
+            cluster.w (number) – Write quorum. The number of copies of a document that need to be written before a successful reply.
+            compact_running (boolean) – Set to true if the database compaction routine is operating on this database.
+            db_name (string) – The name of the database.
+            disk_format_version (number) – The version of the physical format used for the data when it is stored on disk.
+            doc_count (number) – A count of the documents in the specified database.
+            doc_del_count (number) – Number of deleted documents
+            instance_start_time (string) – Always "0". (Returned for legacy reasons.)
+            purge_seq (string) – An opaque string that describes the purge state of the database. Do not rely on this string for counting the number of purge operations.
+            sizes.active (number) – The size of live data inside the database, in bytes.
+            sizes.external (number) – The uncompressed size of database contents in bytes.
+            sizes.file (number) – The size of the database file on disk in bytes. Views indexes are not included in the calculation.
+            update_seq (string) – An opaque string that describes the state of the database. Do not rely on this string for counting the number of updates.
+            props.partitioned (boolean) – (optional) If present and true, this indicates that the database is partitioned.
+        Status Codes:
+          200 OK – Request completed successfully
+          404 Not Found – Requested database not found
+        Request:
+            GET /receipts HTTP/1.1
+            Accept: application/json
+            Host: localhost:5984
+        Response:
 
-Parameters
-:
-db – Database name
-
-Request Headers
-:
-Accept –
-
-application/json
-
-text/plain
-
-Response Headers
-:
-Content-Type –
-
-application/json
-
-text/plain; charset=utf-8
+            HTTP/1.1 200 OK
+            Cache-Control: must-revalidate
+            Content-Length: 258
+            Content-Type: application/json
+            Date: Mon, 12 Aug 2013 01:38:57 GMT
+            Server: CouchDB (Erlang/OTP)
+            {
+                "cluster": {
+                    "n": 3,
+                    "q": 8,
+                    "r": 2,
+                    "w": 2
+                },
+                "compact_running": false,
+                "db_name": "receipts",
+                "disk_format_version": 6,
+                "doc_count": 6146,
+                "doc_del_count": 64637,
+                "instance_start_time": "0",
+                "props": {},
+                "purge_seq": 0,
+                "sizes": {
+                    "active": 65031503,
+                    "external": 66982448,
+                    "file": 137433211
+                },
+                "update_seq": "292786-g1AAAAF..."
+            }
+    PUT /{db}
 
 
  1.3.2. /{db}/_all_docs
