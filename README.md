@@ -157,7 +157,7 @@ To ensure that the dashboard and visualizations are robust, responsive, and user
 - **Scan Images for Vulnerabilities**: Regularly scan Docker images (MongoDB, PostgreSQL, and your app) for vulnerabilities using tools like Clair or Anchore.
 - **Resource Limits**: Set memory and CPU limits on containers to prevent resource exhaustion in case of a denial-of-service attack.
 
-### Phase 4 Security Summary
+### Security Summary
 
 #### For Docker:
 1. **Database Security**:
