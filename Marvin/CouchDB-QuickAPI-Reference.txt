@@ -1,0 +1,130 @@
+/
+GET     /                       Returns the welcome message and version information
+
+/_active_tasks
+GET     /_active_tasks          Obtains a list of the tasks running in the server
+
+/_all_dbs
+GET     /_all_dbs               Returns a list of all the databases
+
+/_cluster_setup
+GET     /_cluster_setup         Returns the status of the cluster setup wizard
+POST    /_cluster_setup         Sets up a node as a single node or as part of a cluster
+
+/_db_updates
+GET     /_db_updates            Returns the server changes of databases
+
+/_dbs_info
+GET     /_dbs_info              Returns all databases information
+POST    /_dbs_info              Returns information of a list of specified databases
+
+/_membership
+GET     /_membership            Returns a list of nodes
+
+/_node
+GET     /_node/{node-name}                  Returns node name
+GET     /_node/{node-name}/_config          Obtains a list of the entire server configuration
+GET     /_node/{node-name}/_config/{section}Returns all configuration values for the specified section
+GET     /_node/{node-name}/_config/{section}/{key}   Returns a specific section/configuration value
+GET     /_node/{node-name}/_prometheus      Returns server statistics in prometheus format
+GET     /_node/{node-name}/_stats           Returns server statistics
+GET     /_node/{node-name}/_system          Returns system-level server statistics
+GET     /_node/{node-name}/_versions        Returns system-level server version information
+POST    /_node/{node-name}/_config/_reload  Reloads the configuration from disk
+POST    /_node/{node-name}/_restart         Restarts CouchDB application on a given node
+PUT     /_node/{node-name}/_config/{section}/{key}  Sets the specified configuration value
+DELETE  /_node/{node-name}/_config/{section}/{key}  Removes the current setting
+
+/_replicate
+POST    /_replicate            Starts or cancels the replication
+
+/_reshard
+GET     /_reshard              Retrieve summary information about resharding on the cluster
+GET     /_reshard/jobs         Retrieve information about all resharding jobs on the cluster
+GET     /_reshard/jobs/{jobid} Retrieve information about a particular resharding job
+GET     /_reshard/jobs/{jobid}/state        Retrieve the state of a single resharding job
+GET     /_reshard/state        Retrieve the state of resharding on the cluster
+POST    /_reshard/jobs         Create one or more resharding jobs
+PUT     /_reshard/jobs/{jobid}/state        Change the state of a resharding job
+PUT     /_reshard/state        Change resharding state on the cluster
+DELETE  /_reshard/jobs/{jobid} Remove a resharding job
+
+/_scheduler
+GET     /_scheduler/docs                       Retrieve information about replication documents from the _replicator database
+GET     /_scheduler/docs/{replicator_db}       Retrieve information about replication documents from a specific replicator database
+GET     /_scheduler/docs/{replicator_db}/{docid}   Retrieve information about a particular replication document
+GET     /_scheduler/jobs                      Retrieve information about replication jobs
+
+/_search_analyze
+POST    /_search_analyze        Tests the results of analyzer tokenization
+
+/_session
+GET     /_session               Returns Cookie-based login user information
+POST    /_session               Authenticates user by Cookie-based user login
+DELETE  /_session               Logout Cookie-based user
+
+/_up
+GET     /_up                    Health check endpoint
+
+/_utils
+GET     /_utils                 Redirects to /_utils/
+GET     /_utils/                CouchDB administration interface (Fauxton)
+
+/_uuids
+GET     /_uuids                 Generates a list of UUIDs from the server
+
+/favicon.ico
+GET     /favicon.ico            Returns the site icon
+
+/{db}
+HEAD    /{db}                   Checks the database existence
+HEAD    /{db}/_design/{ddoc}    Returns bare information in the HTTP Headers for the design document
+HEAD    /{db}/_design/{ddoc}/{attname}   Returns bare information in the HTTP Headers for the attachment
+HEAD    /{db}/{docid}           Returns bare information in the HTTP Headers for the document
+HEAD    /{db}/{docid}/{attname} Returns bare information in the HTTP Headers for the attachment
+GET     /{db}                   Returns the database information
+GET     /{db}/_all_docs         Returns a built-in view of all documents in this database
+GET     /{db}/_changes          Returns changes for the given database
+GET     /{db}/_design/{ddoc}    Returns the design document
+GET     /{db}/_design/{ddoc}/_info        Returns view index information for the specified design document
+GET     /{db}/_design/{ddoc}/_list/{func}/{other-ddoc}/{view}    Executes a list function against the view from other design document
+GET     /{db}/_design/{ddoc}/_list/{func}/{view}   Executes a list function against the view from the same design document
+GET     /{db}/_design/{ddoc}/_search/{index}       Returns results for the specified search index
+GET     /{db}/_design/{ddoc}/_search_info/{index}  Returns metadata for the specified search index
+GET     /{db}/_design/{ddoc}/_show/{func}          Executes a show function against null document
+GET     /{db}/_design/{ddoc}/_show/{func}/{docid}  Executes a show function against the specified document
+GET     /{db}/_design/{ddoc}/_view/{view}          Returns results for the specified stored view
+GET     /{db}/_design_docs        Returns a built-in view of all design documents in this database
+GET     /{db}/_index              Lists all indexes
+GET     /{db}/_local/{docid}      Returns the latest revision of the local document
+GET     /{db}/_local_docs         Returns a built-in view of all local (non-replicating) documents in this database
+GET     /{db}/_partition/{partition}    Returns document and size info for the given partition
+GET     /{db}/_partition/{partition}/_all_docs  Returns all docs in the specified partition
+GET     /{db}/_purged_infos_limit      Returns the limit of historical purges to store in the database
+GET     /{db}/_revs_limit             Returns the limit of historical revisions to store for a single document in the database
+GET     /{db}/_security               Returns the special security object for the database
+GET     /{db}/_shards                 Displays the shard map layout of a database
+GET     /{db}/_shards/{docid}         Returns the specific shard in which a document is stored
+GET     /{db}/{docid}                 Returns the document
+GET     /{db}/{docid}/{attname}       Gets the attachment of a document
+POST    /{db}                         Creates a new document with generated ID if _id is not specified
+POST    /{db}/_all_docs               Returns a built-in view of all documents in this database
+POST    /{db}/_bulk_docs              Inserts or updates multiple documents in to the database in a single request
+POST    /{db}/_bulk_get               Fetches several documents at the given revisions
+POST    /{db}/_changes                Returns changes for the given database for certain document IDs
+POST    /{db}/_compact                Starts a compaction for the database
+POST    /{db}/_design/{ddoc}/_list/{func}/{view}  Same as GET method for the related endpoint
+POST    /{db}/_design/{ddoc}/_update/{func}       Executes an update function against the null document
+POST    /{db}/_design/{ddoc}/_show/{func}/{docid} Same as GET method for the related endpoint
+POST    /{db}/_ensure_full_commit      Deprecated endpoint to support CouchDB versions < 3.0 replicators.
+POST    /{db}/_explain                 Identify which index is being used by a particular query
+POST    /{db}/_find                    Find documents within a given database
+POST    /{db}/_index                   Create a new index
+POST    /{db}/_purge                   Purges documents entirely from database
+POST    /{db}/_sync_shards             Trigger a synchronization of all shard replicas in the database
+POST    /{db}/_view_cleanup            Removes view files that are not used by any design document
+PUT     /{db}                          Creates a new database
+PUT     /{db}/{docid}                  Creates a new document or new version of an existing document
+DELETE  /{db}                          Deletes an existing database
+DELETE  /{db}/{docid}                  Deletes the document
+COPY    /{db}/{docid}                  Copies the document within the same database
