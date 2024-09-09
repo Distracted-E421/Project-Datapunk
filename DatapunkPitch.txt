@@ -10,10 +10,9 @@ Why This Project Matters:
 
 In an era where data privacy and ownership are critical concerns, Datapunk meets the growing need for individuals to take control of their personal information. By offering a solution for users to cultivate and maintain their own personal databases, Datapunk provides a reliable and scalable method to reclaim data from corporate giants. As AI becomes increasingly embedded in daily life, having a user-owned data store will be essential for future developments in personalized, AI-driven tools—without the risks of handing over sensitive information to external companies, especially those that may not have the user's best interests in mind.
 
-Datapunk also supports a pro-user approach, ensuring that individuals who want to manage their own data have the right tools. By starting with multiple databases - CouchDB, PostgreSQL, and PostGIS - Datapunk ensures lightweight scalability, ideal for running on personal machines or expanding as needed. The ability to visualize and analyze personal data with precision fosters a sense of ownership and long-term reliability—making Datapunk a cornerstone in the evolving conversation around digital privacy, data integrity, and the future of AI.
+Datapunk is built with a pro-user ethos, ensuring that individuals who want to manage their own data have the right tools. By utilizing multiple databases—CouchDB, PostgreSQL, and PostGIS—Datapunk ensures lightweight scalability, making it ideal for both personal use and future expansion. Its ability to visualize and analyze personal data with precision gives users a sense of ownership and long-term reliability, making Datapunk a cornerstone in the evolving conversation about digital privacy, data integrity, and the future of AI.
 
 Skills Required:
-
 Backend Development (Python/Django): For data parsing and API management.
 Database Management (CouchDB, PostgreSQL with PostGIS): For setting up and managing document-based and geospatial data storage.
 Data Parsing (Python, Pandas, JSON/CSV libraries): For ingesting and organizing user data from services like Google Takeout.
