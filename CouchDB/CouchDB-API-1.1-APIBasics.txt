@@ -209,76 +209,40 @@
   1.1.4. HTTP Status Codes
       With the interface to CouchDB working through HTTP, error codes and statuses are reported using a combination of the HTTP status code number, and corresponding data in the body of the response data.
       A list of the error codes returned by CouchDB, and generic descriptions of the related errors are provided below. The meaning of different status codes for specific request types are provided in the corresponding API call reference.
-
- 200 - OK
-
- Request completed successfully.
-
- 201 - Created
-
- Document created successfully.
-
- 202 - Accepted
-
- Request has been accepted, but the corresponding operation may not have completed. This is used for background operations, such as database compaction.
-
- 304 - Not Modified
-
- The additional content requested has not been modified. This is used with the ETag system to identify the version of information returned.
-
- 400 - Bad Request
-
- Bad request structure. The error can indicate an error with the request URL, path or headers. Differences in the supplied MD5 hash and content also trigger this error, as this may indicate message corruption.
-
- 401 - Unauthorized
-
- The item requested was not available using the supplied authorization, or authorization was not supplied.
-
- 403 - Forbidden
-
- The requested item or operation is forbidden.
-
- 404 - Not Found
-
- The requested content could not be found. The content will include further information, as a JSON object, if available. The structure will contain two keys, error and reason. For example:
-
- {"error":"not_found","reason":"no_db_file"}
- 405 - Method Not Allowed
-
- A request was made using an invalid HTTP request type for the URL requested. For example, you have requested a PUT when a POST is required. Errors of this type can also triggered by invalid URL strings.
-
- 406 - Not Acceptable
-
- The requested content type is not supported by the server.
-
- 409 - Conflict
-
- Request resulted in an update conflict.
-
- 412 - Precondition Failed
-
- The request headers from the client and the capabilities of the server do not match.
-
- 413 - Request Entity Too Large
-
- A document exceeds the configured couchdb/max_document_size value or the entire request exceeds the chttpd/max_http_request_size value.
-
- 415 - Unsupported Media Type
-
- The content types supported, and the content type of the information being requested or submitted indicate that the content type is not supported.
-
- 416 - Requested Range Not Satisfiable
-
- The range specified in the request header cannot be satisfied by the server.
-
- 417 - Expectation Failed
-
- When sending documents in bulk, the bulk load operation failed.
-
- 500 - Internal Server Error
-
- The request was invalid, either because the supplied JSON was invalid, or invalid information was supplied as part of the request.
-
- 503 - Service Unavailable
-
- The request can’t be serviced at this time, either because the cluster is overloaded, maintenance is underway, or some other reason. The request may be retried without changes, perhaps in a couple of minutes.
+    200 - OK
+       Request completed successfully.
+    201 - Created
+      Document created successfully.
+    202 - Accepted
+      Request has been accepted, but the corresponding operation may not have completed. This is used for background operations, such as database compaction.
+    304 - Not Modified
+      The additional content requested has not been modified. This is used with the ETag system to identify the version of information returned.
+    400 - Bad Request
+      Bad request structure. The error can indicate an error with the request URL, path or headers. Differences in the supplied MD5 hash and content also trigger this error, as this may indicate message corruption.
+    401 - Unauthorized
+      The item requested was not available using the supplied authorization, or authorization was not supplied.
+    403 - Forbidden
+      The requested item or operation is forbidden.
+    404 - Not Found
+      The requested content could not be found. The content will include further information, as a JSON object, if available. The structure will contain two keys, error and reason. For example:
+        {"error":"not_found","reason":"no_db_file"}
+    405 - Method Not Allowed
+      A request was made using an invalid HTTP request type for the URL requested. For example, you have requested a PUT when a POST is required. Errors of this type can also triggered by invalid URL strings.
+    406 - Not Acceptable
+      The requested content type is not supported by the server.
+    409 - Conflict
+      Request resulted in an update conflict.
+    412 - Precondition Failed
+      The request headers from the client and the capabilities of the server do not match.
+    413 - Request Entity Too Large
+      A document exceeds the configured couchdb/max_document_size value or the entire request exceeds the chttpd/max_http_request_size value.
+    415 - Unsupported Media Type
+      The content types supported, and the content type of the information being requested or submitted indicate that the content type is not supported.
+    416 - Requested Range Not Satisfiable
+      The range specified in the request header cannot be satisfied by the server.
+    417 - Expectation Failed
+      When sending documents in bulk, the bulk load operation failed.
+    500 - Internal Server Error
+      The request was invalid, either because the supplied JSON was invalid, or invalid information was supplied as part of the request.
+    503 - Service Unavailable
+      The request can’t be serviced at this time, either because the cluster is overloaded, maintenance is underway, or some other reason. The request may be retried without changes, perhaps in a couple of minutes.
