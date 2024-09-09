@@ -1,0 +1,26 @@
+1.5. Design Documents¶
+        In CouchDB, design documents provide the main interface for building a CouchDB application. The design document defines the views used to extract information from CouchDB through one or more views. Design documents are created within your CouchDB instance in the same way as you create database documents, but the content and definition of the documents is different. Design Documents are named using an ID defined with the design document URL path, and this URL can then be used to access the database contents.
+        Views and lists operate together to provide automated (and formatted) output from your database.
+ 1.5.1. /db/_design/design-doc
+ 1.5.2. /db/_design/design-doc/attachment
+ 1.5.3. /db/_design/design-doc/_info
+  1.5.3.1. View Index Information
+ 1.5.4. /db/_design/design-doc/_view/view-name
+  1.5.4.1. View Options
+  1.5.4.2. Querying Views and Indexes
+  1.5.4.3. Sorting Returned Rows
+   1.5.4.3.1. Sorting order and startkey/endkey
+   1.5.4.3.2. Raw collation
+  1.5.4.4. Using Limits and Skipping Rows
+  1.5.4.5. Sending multiple queries to a view
+ 1.5.5. /db/_design/design-doc/_search/index-name
+ 1.5.6. /db/_design/design-doc/_search_info/index-name
+ 1.5.7. /db/_design/design-doc/_show/show-name
+ 1.5.8. /db/_design/design-doc/_show/show-name/doc-id
+ 1.5.9. /db/_design/design-doc/_list/list-name/view-name
+ 1.5.10. /db/_design/design-doc/_list/list-name/other-ddoc/view-name
+ 1.5.11. /db/_design/design-doc/_update/update-name
+ 1.5.12. /db/_design/design-doc/_update/update-name/doc-id
+ 1.5.13. /db/_design/design-doc/_rewrite/path
+  1.5.13.1. Using a stringified function for rewrites
+  1.5.13.2. Using an array of rules for rewrites
