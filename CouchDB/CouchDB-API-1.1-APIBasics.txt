@@ -206,10 +206,9 @@
       On the other hand, if you actually are in a position where an IEEE-754 double is not a satisfactory data type for your numbers, then the answer as has been stated is to not pass your numbers through this representation. In JSON this is accomplished by encoding them as a string or by using integer types (although integer types can still bite you if you use a platform that has a different integer representation than normal, ie, JavaScript).
       Further information can be found easily, including the Floating Point Guide, and David Goldberg’s Reference.
       Also, if anyone is really interested in changing this behavior, we’re all ears for contributions to jiffy (which is theoretically going to replace ejson when we get around to updating the build system). The places we’ve looked for inspiration are TCL and Python. If you know a decent implementation of this float printing algorithm give us a holler.
-  1.1.4. HTTP Status Codes¶
- With the interface to CouchDB working through HTTP, error codes and statuses are reported using a combination of the HTTP status code number, and corresponding data in the body of the response data.
-
- A list of the error codes returned by CouchDB, and generic descriptions of the related errors are provided below. The meaning of different status codes for specific request types are provided in the corresponding API call reference.
+  1.1.4. HTTP Status Codes
+      With the interface to CouchDB working through HTTP, error codes and statuses are reported using a combination of the HTTP status code number, and corresponding data in the body of the response data.
+      A list of the error codes returned by CouchDB, and generic descriptions of the related errors are provided below. The meaning of different status codes for specific request types are provided in the corresponding API call reference.
 
  200 - OK
 
