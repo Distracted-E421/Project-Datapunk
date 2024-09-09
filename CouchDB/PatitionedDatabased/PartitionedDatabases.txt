@@ -1,0 +1,208 @@
+4. Partitioned Databases
+=========================
+
+A partitioned database forms documents into logical partitions by using a partition key. All documents are assigned to a partition, and many documents are typically given the same partition key. The benefit of partitioned databases is that secondary indices can be significantly more efficient when locating matching documents since their entries are contained within their partition. This means a given secondary index read will only scan a single partition range instead of having to read from a copy of every shard.
+
+As a means to introduce partitioned databases, we’ll consider a motivating use case to describe the benefits of this feature. For this example, we’ll consider a database that stores readings from a large network of soil moisture sensors.
+
+> **Note:** Before reading this document, you should be familiar with the theory of sharding in CouchDB.
+
+Traditionally, a document in this database may have the following structure:
+
+```json
+{
+    "_id": "sensor-reading-ca33c748-2d2c-4ed1-8abf-1bca4d9d03cf",
+    "_rev":"1-14e8f3262b42498dbd5c672c9d461ff0",
+    "sensor_id": "sensor-260",
+    "location": [41.6171031, -93.7705674],
+    "field_name": "Bob's Corn Field #5",
+    "readings": [
+        ["2019-01-21T00:00:00", 0.15],
+        ["2019-01-21T06:00:00", 0.14],
+        ["2019-01-21T12:00:00", 0.16],
+        ["2019-01-21T18:00:00", 0.11]
+    ]
+}
+```
+
+> **Note:** While this example uses IoT sensors, the main thing to consider is the logical grouping of documents. Similar use cases might be documents grouped by user or scientific data grouped by experiment.
+
+Along with the documents, we might expect to have two secondary indexes for querying the database:
+
+```javascript
+function(doc) {
+    if(doc._id.indexOf("sensor-reading-") != 0) {
+        return;
+    }
+    for(var r in doc.readings) {
+        emit([doc.sensor_id, r[0]], r[1]);
+    }
+}
+```
+
+```javascript
+function(doc) {
+    if(doc._id.indexOf("sensor-reading-") != 0) {
+        return;
+    }
+    emit(doc.field_name, doc.sensor_id);
+}
+```
+
+With these two indexes defined, we can easily find all readings for a given sensor or list all sensors in a given field. However, in CouchDB, when reading from these indexes, it requires querying every shard. As the database scales up, every index request performs more work than necessary. Partitioned databases solve this problem by allowing partitioned queries to be restricted to specific partitions.
+
+4.1. What is a partition?
+--------------------------
+
+In the previous section, we introduced a database containing sensor readings from an IoT field monitoring service. Grouping all documents by their `sensor_id` field would make `sensor_id` the partition key. 
+
+A good partition has two properties:
+1. **High cardinality:** Many more partitions than documents in a single partition.
+2. **Small data per partition:** Keep partitions under 10 GB.
+
+> **Note:** The `max_partition_size` under CouchDB dictates the partition limit. The default value is 10 GiB but can be changed. Setting it to `0` disables the limit.
+
+4.2. Why use partitions?
+------------------------
+
+The primary benefit of partitions is performance. Large databases often contain groups of related documents. By placing related documents within a specific partition, we ensure queries only need to access one shard, making the process faster and more efficient.
+
+4.3. Partitions By Example
+---------------------------
+
+To create a partitioned database:
+
+```bash
+curl -X PUT http://127.0.0.1:5984/my_new_db?partitioned=true
+```
+
+To confirm the database is partitioned:
+
+```bash
+curl http://127.0.0.1:5984/my_new_db
+```
+
+```json
+{
+  "cluster": {
+    "n": 3,
+    "q": 8,
+    "r": 2,
+    "w": 2
+  },
+  "db_name": "my_new_db",
+  "props": {
+    "partitioned": true
+  },
+  "update_seq": "0-g1AAAAFDeJzLYWBg4M..."
+}
+```
+
+> **Note:** Every document in a partitioned database (except `_design` and `_local` documents) must have the format `partition:docid`. The partition is everything before the first colon.
+
+To add a document with a partition:
+
+```bash
+cat doc.json
+curl -X POST -H "Content-Type: application/json" http://127.0.0.1:5984/my_new_db -d @doc.json
+```
+
+```json
+{
+    "_id": "sensor-260:sensor-reading-ca33c748-2d2c-4ed1-8abf-1bca4d9d03cf",
+    "sensor_id": "sensor-260",
+    "location": [41.6171031, -93.7705674],
+    "field_name": "Bob's Corn Field #5",
+    "readings": [
+        ["2019-01-21T00:00:00", 0.15],
+        ["2019-01-21T06:00:00", 0.14],
+        ["2019-01-21T12:00:00", 0.16],
+        ["2019-01-21T18:00:00", 0.11]
+    ]
+}
+```
+
+To get info about the partition:
+
+```bash
+curl http://127.0.0.1:5984/my_new_db/_partition/sensor-260
+```
+
+```json
+{
+  "db_name": "my_new_db",
+  "doc_count": 1,
+  "partition": "sensor-260",
+  "sizes": {
+    "active": 244,
+    "external": 347
+  }
+}
+```
+
+To list documents in a partition:
+
+```bash
+curl http://127.0.0.1:5984/my_new_db/_partition/sensor-260/_all_docs
+```
+
+```json
+{
+  "total_rows": 1,
+  "rows":[
+    {
+      "id":"sensor-260:sensor-reading-ca33c748-2d2c-4ed1-8abf-1bca4d9d03cf",
+      "key":"sensor-260:sensor-reading-ca33c748-2d2c-4ed1-8abf-1bca4d9d03cf",
+      "value": {"rev": "1-05ed6f7abf84250e213fcb847387f6f5"}
+    }
+  ]
+}
+```
+
+Next, we'll create a design document containing our index for getting all readings from a given sensor:
+
+```javascript
+function(doc) {
+    if(doc._id.indexOf(":sensor-reading-") < 0) {
+        return;
+    }
+    for(var r in doc.readings) {
+        emit([doc.sensor_id, r[0]], r[1]);
+    }
+}
+```
+
+Upload the design document:
+
+```bash
+curl -X POST -H "Content-Type: application/json" http://127.0.0.1:5984/my_new_db -d @ddoc.json
+```
+
+To query the partitioned view:
+
+```bash
+curl http://127.0.0.1:5984/my_new_db/_partition/sensor-260/_design/sensor-readings/_view/by_sensor
+```
+
+To perform a global query across multiple partitions:
+
+```bash
+curl -u adm:pass http://127.0.0.1:5984/my_new_db/_design/all_sensors/_view/by_field
+```
+
+> **Note:** Design documents that contain views for multiple partitions must have `"partitioned": false` in the "options" object.
+
+```json
+{
+  "total_rows": 1,
+  "rows":[
+    {
+      "id":"sensor-260:sensor-reading-ca33c748-2d2c-4ed1-8abf-1bca4d9d03cf",
+      "key":"Bob's Corn Field #5",
+      "value":"sensor-260"
+    }
+  ]
+}
+```
+
+> **Warning:** Global queries perform identically to non-partitioned database queries. Only partitioned queries benefit from the performance improvements.
