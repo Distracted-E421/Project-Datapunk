@@ -14,12 +14,18 @@ Datapunk is built with a pro-user ethos, ensuring that individuals who want to m
 
 Skills Required:
 Backend Development (Python/Django): For data parsing and API management.
+
 Database Management (CouchDB, PostgreSQL with PostGIS): For setting up and managing document-based and geospatial data storage.
+
 Data Parsing (Python, Pandas, JSON/CSV libraries): For ingesting and organizing user data from services like Google Takeout.
+
 Data Visualization (D3.js, Plotly, or similar): For interactive visualizations of personal data trends, patterns, and history.
+
 Basic Frontend Development (React, Vue.js, or similar): For building a user-friendly dashboard interface.
+
 Security: Ensuring secure data handling and storage, including local and networked environments.
+
 Under consideration: Cloud infrastructure experience for future scalability and AI integration expertise.
 
 Personnel Requirements:
-This project is designed for a solo developer with a strong backend focus, particularly in database management and data parsing, to complete within 6-8 weeks. However, this has been in my head for over a year, and there is room for additional features and contributors, such as frontend developers to refine the dashboard interface or developers with cloud expertise to help scale the project for more users. If you have any intrest in any part of this, your experties could be usful. 
+This project is designed to be completed by a solo developer with a strong focus on backend development, database management, and data parsing over a 6-8 week period. However, this proposal represents a stripped-down, barebones version of a concept I’ve been working on for the past year. There are numerous ways to expand it and take it much further. Frontend developers could help refine the dashboard interface, and cloud infrastructure experts could assist in scaling the project for broader user adoption. If you’re interested in these areas or simply like the idea, your expertise could be incredibly valuable to the project’s growth.
