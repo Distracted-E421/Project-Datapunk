@@ -1,0 +1,241 @@
+2. JSON Structure Reference
+===========================
+
+The following appendix provides a quick reference to all the JSON structures that you can supply to CouchDB, or get in return to requests.
+
+2.1. All Database Documents
+----------------------------
+
+Field               Description
+-----               -----------
+total_rows          Number of documents in the database/view
+offset              Offset where the document list started
+update_seq (opt.)   Current update sequence for the database
+rows [array]        Array of document objects
+
+2.2. Bulk Document Response
+---------------------------
+
+Field               Description
+-----               -----------
+docs [array]        Bulk Docs Returned Documents
+id                  Document ID
+error               Error type
+reason              Error string with extended reason
+
+2.3. Bulk Documents
+-------------------
+
+Field               Description
+-----               -----------
+docs [array]        Bulk Documents Document
+_id (opt.)          Document ID
+_rev (opt.)         Revision ID (when updating an existing document)
+_deleted (opt.)     Whether the document should be deleted
+
+2.4. Changes information for a database
+---------------------------------------
+
+Field               Description
+-----               -----------
+last_seq            Last update sequence
+pending             Count of remaining items in the feed
+results [array]     Changes made to a database
+seq                 Update sequence
+id                  Document ID
+changes [array]     List of changes, field-by-field, for this document
+
+2.5. CouchDB Document
+---------------------
+
+Field               Description
+-----               -----------
+_id (opt.)          Document ID
+_rev (opt.)         Revision ID (when updating an existing document)
+
+2.6. CouchDB Error Status
+-------------------------
+
+Field               Description
+-----               -----------
+id                  Document ID
+error               Error type
+reason              Error string with extended reason
+
+2.7. CouchDB Database Information Object
+----------------------------------------
+
+Field                     Description
+-----                     -----------
+db_name                   The name of the database
+committed_update_seq       The number of committed updates
+doc_count                 The number of documents in the database
+doc_del_count             The number of deleted documents
+compact_running           Set to true if database compaction is running
+disk_format_version       Version of the physical format used for the data
+disk_size                 Size in bytes of the data stored on disk
+instance_start_time       Timestamp when the database was opened (in microseconds since the epoch)
+purge_seq                 Number of purge operations on the database
+update_seq                Current update sequence for the database
+
+2.8. Design Document
+--------------------
+
+Field               Description
+-----               -----------
+_id                 Design Document ID
+_rev                Design Document Revision
+views               View
+viewname            View Definition
+map                 Map Function for View
+reduce (opt.)       Reduce Function for View
+
+2.9. Design Document Information
+--------------------------------
+
+Field                     Description
+-----                     -----------
+name                      Name/ID of Design Document
+view_index                View Index
+compact_running           Indicates if compaction is running on the view
+disk_size                 Size of the view as stored on disk
+language                  Language for the defined views
+purge_seq                 Purge sequence that has been processed
+signature                 MD5 signature of the views for the design document
+update_seq                Update sequence of the database that has been indexed
+updater_running           Indicates if the view is being updated
+waiting_clients           Number of clients waiting on views from this document
+waiting_commit            Indicates if there are outstanding commits to process
+
+2.10. Document with Attachments
+-------------------------------
+
+Field               Description
+-----               -----------
+_id (opt.)          Document ID
+_rev (opt.)         Revision ID (when updating)
+_attachments (opt.) Document Attachment
+filename            Attachment information
+content_type        MIME Content type string
+data                File attachment content, Base64 encoded
+
+2.11. List of Active Tasks
+--------------------------
+
+Field               Description
+-----               -----------
+tasks [array]       Active Tasks
+pid                 Process ID
+status              Task status message
+task                Task name
+type                Operation Type
+
+2.12. Replication Settings
+--------------------------
+
+Field                      Description
+-----                      -----------
+source                     Source database name or URL
+target                     Target database name or URL
+cancel (opt.)              Cancels replication
+checkpoint_interval (opt.) Checkpoint interval in ms
+continuous (opt.)          Continuous replication
+create_target (opt.)       Creates the target database
+doc_ids (opt.)             Array of document IDs to sync
+filter (opt.)              Filter function (ddoc/myfilter)
+source_proxy (opt.)        Source proxy address
+target_proxy (opt.)        Target proxy address
+query_params (opt.)        Query parameters for the filter
+selector (opt.)            Select documents for replication
+since_seq (opt.)           Starting sequence for replication
+use_checkpoints (opt.)     Use replication checkpoints
+winning_revs_only (opt.)   Replicate only winning revisions
+use_bulk_get (opt.)        Use _bulk_get for fetching revisions
+
+2.13. Replication Status
+------------------------
+
+Field               Description
+-----               -----------
+ok                  Replication status
+session_id          Unique session ID
+source_last_seq     Last sequence from source database
+history [array]     Replication History
+session_id          Replication session ID
+recorded_seq        Last recorded sequence
+docs_read           Number of documents read
+docs_written        Number of documents written to target
+doc_write_failures  Number of document write failures
+start_time          Replication start time
+start_last_seq      First sequence in changes stream
+end_time            Replication completion time
+end_last_seq        Last sequence in changes stream
+missing_checked     Number of missing documents checked
+missing_found       Number of missing documents found
+bulk_get_attempts   Number of _bulk_get attempts
+bulk_get_docs       Number of documents fetched with _bulk_get
+
+2.14. Request Object
+--------------------
+
+Field               Description
+-----               -----------
+body                Request body data (as string)
+cookie              Cookies object
+form                Form data object (key-value pairs)
+headers             Request headers object
+id                  Requested document ID
+info                Database information
+method              Request method (HEAD, GET, POST, PUT, DELETE, etc.)
+path                List of requested path sections
+peer                Request source IP address
+query               URL query parameters object
+requested_path      Actual requested path section
+raw_path            Raw requested path string
+secObj              Security Object
+userCtx             User Context Object
+uuid                Generated UUID
+
+2.15. Response Object
+---------------------
+
+Field               Description
+-----               -----------
+code                HTTP status code
+json                JSON encodable object
+body                Raw response string
+base64              Base64 encoded string
+headers             Response headers object
+stop                Boolean signal to stop iteration (for list functions)
+
+2.16. Returned CouchDB Document with Detailed Revision Info
+-----------------------------------------------------------
+
+Field               Description
+-----               -----------
+_id (opt.)          Document ID
+_rev (opt.)         Revision ID
+_revs_info [array]  Extended revision info
+rev                 Full revision string
+status              Revision status
+
+2.17. Security Object
+---------------------
+
+Field               Description
+-----               -----------
+admins              Roles/Users with admin privileges
+roles [array]       List of roles with parent privileges
+names [array]       List of users with parent privileges
+members             Roles/Users with non-admin privileges
+roles [array]       List of roles with parent privileges
+names [array]       List of users with parent privileges
+
+2.18. User Context Object
+-------------------------
+
+Field               Description
+-----               -----------
+db                  Database name
+name                User name
+roles               List of user roles
