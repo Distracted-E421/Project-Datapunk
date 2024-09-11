@@ -1,67 +1,140 @@
 openapi: 3.1.0
 info:
-  title: Marvin Task API
-  description: A GPT action to retrieve tasks from Marvin's API using a Bearer token for authentication.
+  title: Marvin API
+  description: API for managing tasks in Marvin, using token-based authentication via Full Access Token only.
   version: 1.0.0
 servers:
-  - url: https://brown-ghosts-buy.loca.lt  # Updated to your LocalTunnel URL
-    description: Marvin API local server (via LocalTunnel)
-paths:
-  /tasks:
-    get:
-      operationId: getMarvinTasks
-      summary: Retrieve tasks from Marvin's API
-      description: Fetches a list of tasks from Marvin's local API using Bearer token authentication.
-      responses:
-        "200":
-          description: A list of tasks retrieved from Marvin API
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Task'  # Reference to Task schema
-        "401":
-          description: Unauthorized due to missing or invalid API token
-        "500":
-          description: Internal server error
-  /marvin_tasks:
-    get:
-      operationId: getCouchDBTasks
-      summary: Retrieve tasks from Marvin API (CouchDB endpoint)
-      description: Fetches a list of tasks from a Marvin API endpoint that accesses CouchDB tasks, using Bearer token
-        authentication.
-      responses:
-        "200":
-          description: A list of tasks retrieved from CouchDB (via Marvin API)
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Task'  # Reference to Task schema
-        "401":
-          description: Unauthorized due to missing or invalid API token
-        "500":
-          description: Internal server error
+  - url: https://hungry-eels-type.loca.lt
+    description: Marvin API Server exposed through LocalTunnel
 components:
+  securitySchemes:
+    Full_Access_Token:
+      type: apiKey
+      in: header
+      name: X-Full-Access-Token
+      description: Full Access Token for all operations.
   schemas:
     Task:
       type: object
       properties:
-        _id:https://loca.lt/mytunnelpassword
-          type: string
-          description: Task ID
         title:
           type: string
-          description: Task title
-        completed:
-          type: boolean
-          description: Whether the task is completed
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+          description: The title of the task.
+          example: New Task
+paths:
+  /api/addTask:
+    post:
+      operationId: createTask
+      summary: Create a new task in Marvin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Task"
+      responses:
+        "200":
+          description: Task created successfully
+        "401":
+          description: Unauthorized - Invalid or missing token
+      security:
+        - Full_Access_Token: []
+  /api/doc/delete:
+    post:
+      operationId: deleteDocument
+      summary: Delete a document from the Marvin database
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                itemId:
+                  type: string
+                  description: The ID of the document to delete.
+                  example: xy12n3i123
+      responses:
+        "200":
+          description: Document deleted successfully
+        "401":
+          description: Unauthorized - Invalid or missing token
+        "404":
+          description: Document not found
+      security:
+        - Full_Access_Token: []
+  /api/addProject:
+    post:
+      operationId: createProject
+      summary: Create a new project in Marvin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: The title of the project.
+                  example: New Project
+                dueDate:
+                  type: string
+                  format: date
+                  description: When the project is due.
+                  example: 2024-09-20
+      responses:
+        "200":
+          description: Project created successfully
+        "401":
+          description: Unauthorized - Invalid token
+      security:
+        - Full_Access_Token: []
+  /api/children:
+    get:
+      operationId: listAllTasks
+      summary: Retrieve a list of all tasks in Marvin
+      parameters:
+        - in: query
+          name: parentId
+          schema:
+            type: string
+          required: true
+          description: The parent ID to retrieve all tasks from. Use "unassigned" for tasks without a parent.
+      responses:
+        "200":
+          description: A list of tasks was successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                      description: The unique ID of the task.
+                      example: task123
+                    title:
+                      type: string
+                      description: The title of the task.
+                      example: Complete project documentation
+                    done:
+                      type: boolean
+                      description: Whether the task is marked as done.
+                      example: false
+                    dueDate:
+                      type: string
+                      format: date
+                      description: The due date of the task, if applicable.
+                      example: 2024-09-20
+                    parentId:
+                      type: string
+                      description: The ID of the parent project or category, if applicable.
+                      example: project456
+        "401":
+          description: Unauthorized - Invalid or missing token
+      security:
+        - Full_Access_Token: []
 security:
-  - BearerAuth: []
+  - Full_Access_Token: []
