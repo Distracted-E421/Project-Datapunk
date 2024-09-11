@@ -1,0 +1,67 @@
+openapi: 3.1.0
+info:
+  title: Marvin Task API
+  description: A GPT action to retrieve tasks from Marvin's API using a Bearer token for authentication.
+  version: 1.0.0
+servers:
+  - url: https://brown-ghosts-buy.loca.lt  # Updated to your LocalTunnel URL
+    description: Marvin API local server (via LocalTunnel)
+paths:
+  /tasks:
+    get:
+      operationId: getMarvinTasks
+      summary: Retrieve tasks from Marvin's API
+      description: Fetches a list of tasks from Marvin's local API using Bearer token authentication.
+      responses:
+        "200":
+          description: A list of tasks retrieved from Marvin API
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'  # Reference to Task schema
+        "401":
+          description: Unauthorized due to missing or invalid API token
+        "500":
+          description: Internal server error
+  /marvin_tasks:
+    get:
+      operationId: getCouchDBTasks
+      summary: Retrieve tasks from Marvin API (CouchDB endpoint)
+      description: Fetches a list of tasks from a Marvin API endpoint that accesses CouchDB tasks, using Bearer token
+        authentication.
+      responses:
+        "200":
+          description: A list of tasks retrieved from CouchDB (via Marvin API)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'  # Reference to Task schema
+        "401":
+          description: Unauthorized due to missing or invalid API token
+        "500":
+          description: Internal server error
+components:
+  schemas:
+    Task:
+      type: object
+      properties:
+        _id:https://loca.lt/mytunnelpassword
+          type: string
+          description: Task ID
+        title:
+          type: string
+          description: Task title
+        completed:
+          type: boolean
+          description: Whether the task is completed
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - BearerAuth: []
