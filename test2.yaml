@@ -15,115 +15,114 @@ components:
       description: Full Access Token for all operations.
   schemas:
     Subtask:
-    type: object
-    properties:
-      _id:
-        type: string
-        description: The unique ID of the subtask.
-        example: "subtask123"
-      title:
-        type: string
-        description: The title of the subtask.
-        example: "Write introduction section"
-      done:
-        type: boolean
-        description: Whether the subtask is marked as done.
-        example: false
-      timeEstimate:
-        type: integer
-        description: The estimated time to complete the subtask, in milliseconds.
-        example: 1800000
-      rank:
-        type: integer
-        description: The subtask's sort order within the parent task.
-        example: 1
-
-    Task:
-    type: object
-    properties:
-      _id:
-        type: string
-        description: The unique ID of the task.
-        example: task123
-      title:
-        type: string
-        description: The title of the task.
-        example: "Complete project documentation"
-      done:
-        type: boolean
-        description: Whether the task is marked as done.
-        example: false
-      parentId:
-        type: string
-        description: The ID of the parent project or category.
-        example: project123
-      labelIds:
-        type: array
-        items:
+      type: object
+      properties:
+        _id:
           type: string
-        description: List of IDs for labels attached to this task.
-        example: ["label1", "label2"]
-      timeEstimate:
-        type: integer
-        description: The estimated time to complete the task, in milliseconds.
-        example: 3600000
-      dueDate:
-        type: string
-        format: date
-        description: When the task is due.
-        example: "2024-09-20"
-      firstScheduled:
-        type: string
-        format: date
-        description: The first date the task was scheduled for.
-        example: "2024-09-18"
-      priority:
-        type: string
-        description: Priority level of the task, such as "low", "mid", or "high".
-        example: "high"
-      isStarred:
-        type: boolean
-        description: Whether the task is starred (important).
-        example: true
-      note:
-        type: string
-        description: A note attached to the task.
-        example: "Finish by 5 PM"
-      rank:
-        type: integer
-        description: The sort rank within the parent.
-        example: 999
-      subtasks:
-        type: array
-        items:
-          $ref: "#/components/schemas/Subtask"
-        description: An array of subtasks associated with this task.
-      day:
-        type: string
-        description: The scheduled day for the task, formatted as "YYYY-MM-DD".
-        example: "2024-09-18"
-      plannedWeek:
-        type: string
-        description: The week the task is planned for, formatted as "YYYY-MM-DD".
-        example: "2024-09-16"
-      plannedMonth:
-        type: string
-        description: The month the task is planned for, formatted as "YYYY-MM".
-        example: "2024-09"
-      rewardPoints:
-        type: number
-        description: Reward points for completing the task.
-        example: 1.5
-      backburner:
-        type: boolean
-        description: Whether the task is manually placed on the backburner.
-        example: false
-      isFrogged:
-        type: integer
-        description: Frog prioritization level for tasks.
-        example: 2
-
-
+          description: The unique ID of the subtask.
+          example: subtask123
+        title:
+          type: string
+          description: The title of the subtask.
+          example: Write introduction section
+        done:
+          type: boolean
+          description: Whether the subtask is marked as done.
+          example: false
+        timeEstimate:
+          type: integer
+          description: The estimated time to complete the subtask, in milliseconds.
+          example: 1800000
+        rank:
+          type: integer
+          description: The subtask's sort order within the parent task.
+          example: 1
+    Task:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: The unique ID of the task.
+          example: task123
+        title:
+          type: string
+          description: The title of the task.
+          example: Complete project documentation
+        done:
+          type: boolean
+          description: Whether the task is marked as done.
+          example: false
+        parentId:
+          type: string
+          description: The ID of the parent project or category.
+          example: project123
+        labelIds:
+          type: array
+          items:
+            type: string
+          description: List of IDs for labels attached to this task.
+          example:
+            - label1
+            - label2
+        timeEstimate:
+          type: integer
+          description: The estimated time to complete the task, in milliseconds.
+          example: 3600000
+        dueDate:
+          type: string
+          format: date
+          description: When the task is due.
+          example: 2024-09-20
+        firstScheduled:
+          type: string
+          format: date
+          description: The first date the task was scheduled for.
+          example: 2024-09-18
+        priority:
+          type: string
+          description: Priority level of the task, such as "low", "mid", or "high".
+          example: high
+        isStarred:
+          type: boolean
+          description: Whether the task is starred (important).
+          example: true
+        note:
+          type: string
+          description: A note attached to the task.
+          example: Finish by 5 PM
+        rank:
+          type: integer
+          description: The sort rank within the parent.
+          example: 999
+        subtasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Subtask"
+          description: An array of subtasks associated with this task.
+        day:
+          type: string
+          description: The scheduled day for the task, formatted as "YYYY-MM-DD".
+          example: 2024-09-18
+        plannedWeek:
+          type: string
+          description: The week the task is planned for, formatted as "YYYY-MM-DD".
+          example: 2024-09-16
+        plannedMonth:
+          type: string
+          description: The month the task is planned for, formatted as "YYYY-MM".
+          example: 2024-09
+        rewardPoints:
+          type: number
+          description: Reward points for completing the task.
+          example: 1.5
+        backburner:
+          type: boolean
+          description: Whether the task is manually placed on the backburner.
+          example: false
+        isFrogged:
+          type: integer
+          description: Frog prioritization level for tasks.
+          example: 2
     Project:
       type: object
       properties:
@@ -134,7 +133,7 @@ components:
         title:
           type: string
           description: The title of the project.
-          example: "New Project"
+          example: New Project
         done:
           type: boolean
           description: Whether the project is marked as done.
@@ -143,13 +142,15 @@ components:
           type: string
           format: date
           description: The due date of the project, formatted as "YYYY-MM-DD".
-          example: "2024-09-20"
+          example: 2024-09-20
         labelIds:
           type: array
           items:
             type: string
           description: List of IDs for labels attached to this project.
-          example: ["label1", "label2"]
+          example:
+            - label1
+            - label2
         timeEstimate:
           type: integer
           description: Estimated time to complete the project, in milliseconds.
@@ -161,15 +162,15 @@ components:
         plannedWeek:
           type: string
           description: The week the project is planned for, formatted as "YYYY-MM-DD".
-          example: "2024-09-16"
+          example: 2024-09-16
         plannedMonth:
           type: string
           description: The month the project is planned for, formatted as "YYYY-MM".
-          example: "2024-09"
+          example: 2024-09
         priority:
           type: string
           description: Priority level of the project, such as "low", "mid", or "high".
-          example: "high"
+          example: high
         recurring:
           type: boolean
           description: Whether the project is recurring.
@@ -177,19 +178,19 @@ components:
         reviewDate:
           type: string
           description: The date when the project is set for review, formatted as "YYYY-MM-DD".
-          example: "2024-10-01"
+          example: 2024-10-01
         timeBlockSection:
           type: string
           description: The ID of the time block section assigned to the project.
-          example: "timeBlock123"
+          example: timeBlock123
         rewardPoints:
           type: number
           description: Reward points available for completing the project.
-          example: 2.0
+          example: 2
         note:
           type: string
           description: A note attached to the project.
-          example: "Work on this project gradually"
+          example: Work on this project gradually
         rank:
           type: integer
           description: The sort rank within the parent.
@@ -202,7 +203,6 @@ components:
           type: integer
           description: Frog prioritization level for projects.
           example: 3
-
 paths:
   /api/addTask:
     post:
@@ -221,7 +221,6 @@ paths:
           description: Unauthorized - Invalid or missing token
       security:
         - Full_Access_Token: []
-
   /api/doc/delete:
     post:
       operationId: deleteDocument
@@ -246,7 +245,6 @@ paths:
           description: Document not found
       security:
         - Full_Access_Token: []
-
   /api/addProject:
     post:
       operationId: createProject
@@ -264,7 +262,6 @@ paths:
           description: Unauthorized - Invalid token
       security:
         - Full_Access_Token: []
-
   /api/children:
     get:
       operationId: listAllTasks
@@ -289,6 +286,5 @@ paths:
           description: Unauthorized - Invalid or missing token
       security:
         - Full_Access_Token: []
-
 security:
   - Full_Access_Token: []
