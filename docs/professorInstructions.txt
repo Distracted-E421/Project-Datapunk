@@ -1,43 +1,36 @@
-Hi, everybody.
-This is just a reminder that your project idea writeups are due Sunday by 11:59pm. This is how they will be scored:
+<Project Deliverables>
+1. Title:
+- Engaging, clear title (2 points).
 
-Engaging, clear title: 2 points
+2. Project Narrative:
+- Description (6 points):
+    Three-paragraph summary of the project:
+    - What the project will produce.
+    - Overview of main features.
+    - Key benefits.
+- Goals (Bullet points):
+    - List the main goals of the project clearly.
+- Value Proposition (6 points):
+    - Explain the significance of the project and why it should be done.
+    - Discuss the impact and uniqueness of the project compared to existing solutions.
+    - Cite references and relevant literature to show how your approach borrows from or improves on previous methods.
 
-Clear, concise description of approximately 3 paragraphs: 6 points
-
-Convincing explanation of the project's value: 6 points
-
-Appropriate, complete listing of skills: 3 points
-
-Realistic estimate of personnel requirements: 2 points
-
-Quality of writing: 3 points
-
-Please remember that these project ideas aren't necessarily what you will work on this semester. You may find others' ideas more interesting and decide to team up with them instead of doing your own project. But it's important to see what all of you are interested in so that teams might form around shared interests and ideas. So please write about an idea you realistically see yourself doing and enjoying for the rest of the semester. Then, during the next two weeks, you'll have time to think further about whether that's what you want to work on or whether you want to partner with someone else instead on some other idea.
+3. Team and Skills:
+- Skills Required (3 points):
+    - Include a full list of required technical skills needed for the project.
+    - Example: React.js, MongoDB, Node.js, etc.
+- Team Member Overview:
+    - Introduce each member.
+    - Summarize each person’s qualifications and outline what they will be responsible for.
 
 
-Example for Classmate:
-Title: Calorie Counter & Nutrition Planner
-The "Calorie Counter & Nutrition Planner" is a web-based tool designed to help users track their daily calorie intake and make informed food choices. By integrating with the Nutritionix API, users can easily search for a wide range of common and branded food items, log their meals, and set personal calorie goals. The app provides real-time feedback, showing users whether they are meeting or exceeding their daily calorie targets, helping them stay aware and on track with their dietary goals.
+4. Personnel Requirements:
+- Provide a realistic estimate of personnel needs (2 points).
 
-A standout feature of the app is its custom MongoDB database, which allows admins to add additional food items beyond the Nutritionix database. This ensures users have access to an even greater variety of foods, catering to various dietary preferences and needs. Built using React for a fast, interactive experience and Bootstrap for a responsive interface, the app provides users with an easy-to-navigate, efficient tool that works seamlessly across devices.
+5. Writing Quality:
+- Ensure clarity, coherence, and quality in writing (3 points).
 
-The app's strength lies in its balance of simplicity and functionality. By offering users a straightforward way to manage their nutrition and calorie tracking, while also providing real-time updates and an extensive food database, it serves as a valuable tool for those looking to stay on top of their dietary habits.
-
-Skills
-
-- React.js
-
-- Axios (for API integration)
-
-- Bootstrap
-- MongoDB (for custom food database)
-
-- Context API (for state management)
-
-- Node.js & Express
-
-- Authentication (JWT or Firebase)
-
-Estimate
-The project can be completed by a single developer (myself) over the course of 6 to 7 weeks, covering frontend development, API integration, and backend/database setup.
+[Deadlines & Other Information]:
+- Due Date: Sunday by 11:59pm.
+- Purpose: These submissions help form ideas that could later turn into team projects, but you can team up with others based on shared interests.
+- Flexibility: The project idea you submit isn’t necessarily the one you’ll work on throughout the semester.
