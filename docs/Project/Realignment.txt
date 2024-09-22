@@ -325,59 +325,39 @@ Core Features (MVP)
         - Test responsiveness and interactivity of charts and maps.
 
         Document Visualization Process [ ]
-        Document the steps for generating and displaying visuals.
-        Include examples of charts and maps for various datasets.
+        - Document the steps for generating and displaying visuals.
+        - Include examples of charts and maps for various datasets.
 
 
-3. Visualization & User Dashboard:
+5. Visualization & User Dashboard:
    - Interactive Visuals: Heatmaps (location history), time-series graphs (search trends), charts (media usage). Powered by Leaflet/Mapbox, Plotly/D3.js.
    - Dashboard Features: Filters for customized insights and data export (CSV/JSON). Built with React/Vue.js.
 
----
-
-Security & Simplified Setup (Phase 2)
-
-1. Data Security:
+6. Data Security:
    - Use TLS/SSL encryption for secure data transmission and storage.
    - Basic file encryption and user authentication for database access (CouchDB, PostgreSQL).
    - Docker containerization to isolate services and avoid root access.
 
----
+7. Cloud Scalability:
+   - Future-proof architecture for possible cloud deployment with frontend and cloud infrastructure collaboration.
+   -Primarily, docker should be used whereever possible, as it will provide the most replicable environment to work on, as this will be designed in the long term to be a cross platform app 
 
-Future Directions (Phase 3)
 
-1. AI Integration (Post-MVP):
+8. AI Integration (Post-MVP):
    - Long-term goal to add AI-driven recommendations based on user data.
    - Start with basic summarization and clustering, deferring complex AI to later releases.
 
-2. Cloud Scalability:
-   - Future-proof architecture for possible cloud deployment with frontend and cloud infrastructure collaboration.
 
----
 
 MVP Deliverables (6-8 Weeks)
 
-1. Data Parsing & Storage: Successfully parse and store one dataset (e.g., location history).
-2. Visualization: Build an interactive dashboard with basic visualizations (e.g., heatmaps, time-series graphs).
-3. Security: Implement TLS/SSL and containerization using Docker for secure local data handling.
-
----
+????
 
 Skills Required
 
-1. Backend Development (Python/Django): Data parsing, database management, API creation.
-2. Database Management (CouchDB, PostgreSQL/PostGIS): Efficient data storage and querying.
-3. Data Visualization (D3.js, Plotly): Building interactive visuals for user insights.
-4. Security: Implement encryption and secure storage.
-5. Frontend Development (React): Build a responsive, user-friendly dashboard.
+????
 
 ---
 
-Criticism Adjustments:
-- Keep security simple for MVP using libraries (e.g., HTTPS, file encryption).
-- Eliminate AI and decentralized features from MVP; focus on parsing, storing, and visualizing data first.
-- Scope the project down to core deliverables: data parsing, storage, and basic visualizations.
 
----
-
-Datapunk: Take Back What is Yours, On Your Own Terms
+Project Datapunk: Take Back What's Yours, On Your Own Terms
