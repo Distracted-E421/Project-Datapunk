@@ -31,7 +31,6 @@ Skills
 - Axios (for API integration)
 
 - Bootstrap
-
 - MongoDB (for custom food database)
 
 - Context API (for state management)
