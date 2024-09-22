@@ -27,4 +27,35 @@ Security: Expertise in ensuring secure handling of user data, both locally and i
 Under consideration: Cloud infrastructure experience to help future-proof the project, allowing for scalability and AI integration while maintaining the project’s decentralized ethos.
 
 Personnel Requirements:
-This project is designed to be completed by a solo developer with a strong focus on backend development, database management, and data parsing over a 6-8 week period. However, this proposal represents a stripped-down, barebones version of a concept I’ve been working on for the past year. There are numerous ways to expand it and take it much further. Frontend developers could help refine the dashboard interface, and cloud infrastructure experts could assist in scaling the project for broader user adoption. If you’re interested in these areas or simply like the idea, your expertise could be incredibly valuable to the project’s growth.
+This project is designed to be completed by a solo developer with a strong focus on backend development, database management, and data parsing over a 6-8 week period. However, this proposal represents a stripped-down, barebones version of a concept I’ve been working on for the past year. There are numerous ways to expand it and take it much further. Frontend developers could help refine the dashboard interface, and cloud infrastructure experts could assist in scaling the project for broader user adoption. If you’re interested in these areas or simply like the idea, your expertise could be incredibly valuable to the project’s growth. 
+
+
+
+true
+false
+null
+    fdadfq
+    adffads
+        adljfajf
+        adffads
+            akjkfjkl
+                ajl;fkdjal;kj
+                    fjklajd
+adffads
+ dfd
+  ddfdf
+   ddfdf
+    ddfdf
+     dkafkaj
+      adfaa
+       adfafd 
+             sdfasf
+                    AFasdf
+adfaa
+    dfafa
+        adfffadf
+            adfasdfdasf 
+                adfadafsadf 
+                    adfasdfdas
+                    adfadafsadf
+                        adfadfdaf 
