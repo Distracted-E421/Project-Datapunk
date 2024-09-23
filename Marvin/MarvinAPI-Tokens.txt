@@ -1,8 +1,0 @@
-All Marvin API Tokens---
- APIToken: 91pMZku3D7MMshI/VMSxGnfNFfc=
- Full-AccessToken: ENEEv/q52Vr849dfkUWZ8TFqCZg=
- SyncServer: https://512940bf-6e0c-4d7b-884b-9fc66185836b-bluemix.cloudant.com
- SyncDatabase: u6303005229973504
- SyncUser: apikey-7fa5ec308d514ab9a394729b3c54dd21
- SyncPassword: 835b0955ea8af1738ff1b6ba61e40a11f4eb31ba
-
