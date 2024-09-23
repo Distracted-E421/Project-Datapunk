@@ -1,0 +1,36 @@
+<Project Deliverables>
+1. Title:
+- Engaging, clear title (2 points).
+
+2. Project Narrative:
+- Description (6 points):
+    Three-paragraph summary of the project:
+    - What the project will produce.
+    - Overview of main features.
+    - Key benefits.
+- Goals (Bullet points):
+    - List the main goals of the project clearly.
+- Value Proposition (6 points):
+    - Explain the significance of the project and why it should be done.
+    - Discuss the impact and uniqueness of the project compared to existing solutions.
+    - Cite references and relevant literature to show how your approach borrows from or improves on previous methods.
+
+3. Team and Skills:
+- Skills Required (3 points):
+    - Include a full list of required technical skills needed for the project.
+    - Example: React.js, MongoDB, Node.js, etc.
+- Team Member Overview:
+    - Introduce each member.
+    - Summarize each person’s qualifications and outline what they will be responsible for.
+
+
+4. Personnel Requirements:
+- Provide a realistic estimate of personnel needs (2 points).
+
+5. Writing Quality:
+- Ensure clarity, coherence, and quality in writing (3 points).
+
+[Deadlines & Other Information]:
+- Due Date: Sunday by 11:59pm.
+- Purpose: These submissions help form ideas that could later turn into team projects, but you can team up with others based on shared interests.
+- Flexibility: The project idea you submit isn’t necessarily the one you’ll work on throughout the semester.

@@ -1,0 +1,41 @@
+1.2. Server
+        The CouchDB server interface provides the basic interface to a CouchDB server for obtaining CouchDB information and getting and setting configuration information.\
+ 1.2.1. /
+ 1.2.2. /_active_tasks
+ 1.2.3. /_all_dbs
+ 1.2.4. /_dbs_info
+ 1.2.5. /_cluster_setup
+ 1.2.6. /_db_updates
+ 1.2.7. /_membership
+ 1.2.8. /_replicate
+  1.2.8.1. Replication Operation
+  1.2.8.2. Specifying the Source and Target Database
+  1.2.8.3. Single Replication
+  1.2.8.4. Continuous Replication
+  1.2.8.5. Canceling Continuous Replication
+ 1.2.9. /_scheduler/jobs
+ 1.2.10. /_scheduler/docs
+ 1.2.11. /_node/{node-name}
+ 1.2.12. /_node/{node-name}/_stats
+ 1.2.13. /_node/{node-name}/_prometheus
+ 1.2.14. /_node/{node-name}/_system
+ 1.2.15. /_node/{node-name}/_restart
+ 1.2.16. /_node/{node-name}/_versions
+ 1.2.17. /_search_analyze
+ 1.2.18. /_utils
+ 1.2.19. /_up
+ 1.2.20. /_uuids
+ 1.2.21. /favicon.ico
+ 1.2.22. /_reshard
+ 1.2.23. Authentication
+  1.2.23.1. Basic Authentication
+  1.2.23.2. Cookie Authentication
+   1.2.23.2.1. /_session
+  1.2.23.3. Proxy Authentication
+  1.2.23.4. JWT Authentication
+ 1.2.24. Configuration
+  1.2.24.1. Accessing the local node’s configuration
+  1.2.24.2. /_node/{node-name}/_config
+  1.2.24.3. /_node/{node-name}/_config/{section}
+  1.2.24.4. /_node/{node-name}/_config/{section}/{key}
+  1.2.24.5. /_node/{node-name}/_config/_reload
