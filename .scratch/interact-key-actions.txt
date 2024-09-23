@@ -1,0 +1,129 @@
+Get Repository Content (already done)
+Description: Fetches the contents of a file or directory in a specific repository.
+Endpoint: /repos/{owner}/{repo}/contents/{path}
+
+List Repository Files/Directories
+Description: Retrieves the list of files and directories in the root (or a specified folder) of the repository.
+Endpoint: /repos/{owner}/{repo}/contents/{path} (similar to getting repo content but focusing on listing directories).
+
+Create an Issue
+Description: Creates a new issue in a repository.
+Endpoint: /repos/{owner}/{repo}/issues
+
+List Issues in a Repository
+Description: Retrieves all open or closed issues from the repository.
+Endpoint: /repos/{owner}/{repo}/issues
+
+Get Issue Details
+Description: Fetches details of a specific issue by issue number.
+Endpoint: /repos/{owner}/{repo}/issues/{issue_number}
+
+Comment on an Issue
+Description: Adds a comment to an issue or pull request.
+Endpoint: /repos/{owner}/{repo}/issues/{issue_number}/comments
+
+Create a Pull Request
+Description: Opens a new pull request from one branch to another in the same repository.
+Endpoint: /repos/{owner}/{repo}/pulls
+
+List Pull Requests
+Description: Retrieves a list of all open and closed pull requests in the repository.
+Endpoint: /repos/{owner}/{repo}/pulls
+
+Get Pull Request Details
+Description: Fetches details of a specific pull request by number.
+Endpoint: /repos/{owner}/{repo}/pulls/{pull_number}
+
+Merge a Pull Request
+Description: Merges a pull request into the base branch.
+Endpoint: /repos/{owner}/{repo}/pulls/{pull_number}/merge
+
+Get Repository Detail
+Description: Retrieves metadata about the repository, such as its name, description, and owner.
+Endpoint: /repos/{owner}/{repo}
+
+List Commits
+Description: Lists commits in a repository or for a specific branch.
+Endpoint: /repos/{owner}/{repo}/commits
+
+Get Commit Details
+Description: Fetches details for a specific commit.
+Endpoint: /repos/{owner}/{repo}/commits/{commit_sha}
+
+Create a New Commit
+Description: Creates a new commit with specified changes (requires Git tree and blob creation).
+Endpoint: /repos/{owner}/{repo}/git/commits
+
+Get Branch Details
+Description: Retrieves details of a specific branch, including the latest commit.
+Endpoint: /repos/{owner}/{repo}/branches/{branch}
+
+List Repository Branches
+Description: Retrieves a list of branches in the repository.
+Endpoint: /repos/{owner}/{repo}/branches
+
+Create a New Branch
+Description: Creates a new branch based on an existing commit.
+Endpoint: /repos/{owner}/{repo}/git/refs
+
+Delete a Branch
+Description: Deletes a branch from the repository.
+Endpoint: /repos/{owner}/{repo}/git/refs/heads/{branch}
+
+Get a Repository’s Contributors
+Description: Retrieves a list of contributors to the repository.
+Endpoint: /repos/{owner}/{repo}/contributors
+
+Star a Repository
+Description: Stars (favorites) the repository.
+Endpoint: /user/starred/{owner}/{repo}
+
+Fork a Repository
+Description: Creates a fork of the specified repository under your account.
+Endpoint: /repos/{owner}/{repo}/forks
+
+Delete a Repository
+Description: Permanently deletes a repository owned by the authenticated user.
+Endpoint: /repos/{owner}/{repo}
+
+
+2. Advanced or Optional Actions
+Get Repository Topics
+
+Description: Retrieves topics (tags) associated with the repository.
+Endpoint: /repos/{owner}/{repo}/topics
+Set Repository Topics
+
+Description: Sets topics (tags) for the repository.
+Endpoint: /repos/{owner}/{repo}/topics
+Manage Repository Collaborators
+
+Description: Adds, removes, or checks the permission of a collaborator on the repository.
+Endpoints:
+Add: /repos/{owner}/{repo}/collaborators/{username}
+Remove: /repos/{owner}/{repo}/collaborators/{username}
+Check: /repos/{owner}/{repo}/collaborators/{username}
+List Repository Tags
+
+Description: Retrieves a list of tags in the repository.
+Endpoint: /repos/{owner}/{repo}/tags
+Get a File's Git Blob (Raw Content)
+
+Description: Retrieves the raw content of a file using its blob SHA.
+Endpoint: /repos/{owner}/{repo}/git/blobs/{file_sha}
+Create a Release
+
+Description: Publishes a new release in the repository.
+Endpoint: /repos/{owner}/{repo}/releases
+List Releases
+
+Description: Retrieves all releases published in the repository.
+Endpoint: /repos/{owner}/{repo}/releases
+Get Repository Webhooks
+
+Description: Retrieves all webhooks configured for the repository.
+Endpoint: /repos/{owner}/{repo}/hooks
+Create a Webhook
+
+Description: Creates a new webhook for the repository.
+Endpoint: /repos/{owner}/{repo}/hooks
