@@ -7,14 +7,19 @@
 ---
 
 **Ethan Epperson-Jones / <distracted.e421@gmail.com>**  
-**Date submitted:** 10.6.24
+**Date submitted:** 10/6/24
 
 ---
 
 ### Introduction (3 points)
 
 - The goal of this project is to **empower users to reclaim the data that large corporations collect and profit from**, allowing them to gain insights and control over their personal information. This will be done by providing users with a platform to import, analyze, visualize, and leverage their own data. Unlike the data analysis systems used by corporations, Datapunk is user-centric, meaning the user has full control over what is analyzed and how it is used.
+  - **User-Controlled Analysis**: Datapunk will allow users to define their own metrics and parameters for data analysis, rather than relying on predefined corporate algorithms. Users will be able to customize the insights they generate, ensuring that the analysis is relevant to their personal goals. For instance, a user interested in understanding their digital habits can set specific parameters to see how often they interact with different types of content or how their usage patterns change over time.
+  - **Transparent Data Processing**: Unlike corporate systems that are often black boxes, Datapunk will provide transparency into how the data is processed and analyzed. Users will be able to see exactly which algorithms are used, adjust them, or even replace them with their own. This ensures that there are no hidden motives or unintended biases in the analysis.
+  - **Focus on Personal Empowerment**: The platform will include tools that help users derive insights for self-improvement, such as identifying time sinks, evaluating their communication patterns, or understanding their physical movement habits. These insights are tailored for personal growth rather than for optimizing ad targeting or monetization, as is common in corporate data systems.
+
 - The reason this project is important is because **modern data practices are often exploitative, focusing on how companies can extract value from users without returning the benefits**. With Datapunk, we seek to turn this imbalance around by giving individuals the tools to learn from and use their own data in their best interest. By reclaiming ownership, individuals can have honest insights about themselves and potentially integrate AI tools for self-improvement without the invasive practices of big tech companies.
+
 - The beneficiaries of this project are **individual users who want to take control of their personal data**, including **privacy advocates, tech-savvy individuals interested in the quantified self movement, and people curious about how they are profiled by tech giants**. It also has potential applications for **small organizations** that want an in-house way to manage and leverage data without external interference or data privacy risks.
 
 ---
@@ -37,6 +42,7 @@ The final product will offer the following features:
 
 - **Interactive Visualizations**: Datapunk will include a customizable dashboard where users can visualize different aspects of their data. These visualizations will include **timeline charts**, **geolocation maps**, **activity graphs**, and **relationship networks**. The goal is to make large datasets easy to understand and explore, helping users identify patterns, trends, and anomalies in their behavior.
 - **Customizable Insights**: Users can create and save custom visualizations or queries to understand specific parts of their data. For example, they might visualize how their movement patterns have changed over time, or see an overview of their interactions with certain people or services.
+- **User-Defined Metrics**: Users will have the option to define custom metrics for analysis. For example, a user could create a metric to measure the time spent on different categories of activities, such as work, leisure, or exercise, allowing for highly personalized insights.
 
 #### Data Export and API Integration
 
