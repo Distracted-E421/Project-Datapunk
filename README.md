@@ -6,16 +6,16 @@
 
 ---
 
-**Ethan Epperson-Jones / <ethan@example.com>**  
-**Date submitted:** (Add your submission date)
+**Ethan Epperson-Jones / <distracted.e421@gmail.com>**  
+**Date submitted:** 10.6.24
 
 ---
 
 ### Introduction (3 points)
 
-- The goal of this project is to **empower users to reclaim the data that large corporations collect and profit from**, allowing them to gain insights and control over their personal information.
-- The reason this project is important is because **it provides transparency, ownership, and control over personal data** that is otherwise collected by tech giants like Google and Microsoft, who often use this data without clear user benefit.
-- The beneficiaries of this project are **individual users who want to take control of their personal data**, as well as **privacy-conscious individuals looking for better insights and AI integration without corporate exploitation**.
+- The goal of this project is to **empower users to reclaim the data that large corporations collect and profit from**, allowing them to gain insights and control over their personal information. This will be done by providing users with a platform to import, analyze, visualize, and leverage their own data. Unlike the data analysis systems used by corporations, Datapunk is user-centric, meaning the user has full control over what is analyzed and how it is used.
+- The reason this project is important is because **modern data practices are often exploitative, focusing on how companies can extract value from users without returning the benefits**. With Datapunk, we seek to turn this imbalance around by giving individuals the tools to learn from and use their own data in their best interest. By reclaiming ownership, individuals can have honest insights about themselves and potentially integrate AI tools for self-improvement without the invasive practices of big tech companies.
+- The beneficiaries of this project are **individual users who want to take control of their personal data**, including **privacy advocates, tech-savvy individuals interested in the quantified self movement, and people curious about how they are profiled by tech giants**. It also has potential applications for **small organizations** that want an in-house way to manage and leverage data without external interference or data privacy risks.
 
 ---
 
@@ -25,21 +25,28 @@ The final product will offer the following features:
 
 #### Data Import and Parsing
 
-- Users will be able to import their personal data from various sources (e.g., Google Takeout, Microsoft, or other platforms) and have it parsed into manageable formats for analysis and insights.
+- **Custom Data Import Tools**: Users will be able to import their personal data from various sources, such as Google Takeout, Microsoft exports, social media archives, and other digital platforms. The data import tools will support multiple file formats (JSON, CSV, XML, etc.) and will automate data parsing into structured forms that can be analyzed or visualized.
+- **Data Parser**: Datapunk will automatically parse these files into specific data categories such as locations, communication logs, search history, and more, allowing users to understand the scope and content of the data that companies hold on them.
 
 #### Secure Storage and Encryption
 
-- All imported data will be securely stored and encrypted using existing libraries, ensuring user privacy and protection from unauthorized access.
+- **End-to-End Data Encryption**: All imported data will be encrypted both at rest and in transit. We will leverage robust, well-established encryption libraries to protect user privacy. No data will leave the user's local storage without explicit permission, emphasizing control and data security.
+- **User-Controlled Storage**: Users will be able to choose where their data is stored—whether locally, on a personal server, or in a cloud storage solution—giving flexibility according to user comfort and security requirements.
 
 #### Data Visualization Dashboard
 
-- The project will feature interactive visualizations, enabling users to explore their personal data, recognize patterns, and derive meaningful insights in an accessible and user-friendly interface.
+- **Interactive Visualizations**: Datapunk will include a customizable dashboard where users can visualize different aspects of their data. These visualizations will include **timeline charts**, **geolocation maps**, **activity graphs**, and **relationship networks**. The goal is to make large datasets easy to understand and explore, helping users identify patterns, trends, and anomalies in their behavior.
+- **Customizable Insights**: Users can create and save custom visualizations or queries to understand specific parts of their data. For example, they might visualize how their movement patterns have changed over time, or see an overview of their interactions with certain people or services.
 
 #### Data Export and API Integration
 
-- Users will have the ability to export their data or connect the platform with other services through custom APIs, allowing for further analysis or integration with third-party tools.
+- **Data Export Tools**: Users will be able to export their parsed and enriched data in various formats. This allows them to make use of the data for other purposes, whether for research, integration into other software, or archiving purposes.
+- **API Access**: A core feature will be the provision of **API endpoints** for accessing parsed data, allowing users or developers to integrate the data with other applications, automation tools, or personal projects. This will make Datapunk a central hub for personal data management that other tools can connect to.
 
-*If additional features arise during development, they will be integrated following the same security and user-friendly principles.*
+#### Data Enrichment and AI Integration (Planned for Future)
+
+- **Data Enrichment**: Datapunk will eventually offer basic enrichment options like clustering data into categories (e.g., travel, work, social) and summarizing trends. This might involve tagging data, providing context to different entries, and recognizing repeated patterns.
+- **AI-Powered Recommendations**: In the long term, AI integration is envisioned to provide personalized recommendations based on the user's own data, such as habit improvement suggestions, potential time-saving patterns, or content curation—all controlled by the user, without external data exploitation.
 
 ---
 
