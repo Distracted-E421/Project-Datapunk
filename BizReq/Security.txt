@@ -1,0 +1,68 @@
+**Datapunk Security Features**
+
+Running Datapunk locally on a user's desktop, likely within a Docker container, requires a tailored approach to security. Here’s how we can ensure that user data remains secure and protected within this setup, especially with a preference for NixOS in mind:
+
+### **1. Data Encryption**
+
+- **Encryption at Rest**: Since the data is stored on the user’s machine, encryption remains essential to protect against local threats. For a NixOS or Linux-based environment, we recommend using **LUKS (Linux Unified Key Setup)** for encrypting the partition where Docker volumes are stored. LUKS is well-supported on NixOS, integrates seamlessly with Linux filesystems, and allows for full partition encryption, ensuring all data is secure at rest. LUKS can be used alongside PostgreSQL’s **pgcrypto** to encrypt specific sensitive fields in the database for an additional layer of protection.
+  - **Alternatives**: **eCryptfs** is another option that encrypts individual files instead of whole partitions, which can be useful for more granular encryption needs. However, LUKS is generally preferable for simplicity and security when encrypting large datasets.
+  - **Disk Mounting for Docker**: The LUKS-encrypted partition can be mounted and configured as a Docker volume to ensure that data used by Datapunk remains encrypted.
+
+- **Encryption in Transit**: Even locally, securing internal communications is vital, especially if there is a local web interface. Implement **TLS** for any local API or UI endpoint. Tools like **Caddy** or **NGINX** can be used to set up a self-signed certificate for encrypted communications.
+
+### **2. OAuth 2.0 and Access Controls**
+
+- **OAuth for Third-Party Integrations**: OAuth tokens are required to access services like Google, Microsoft, or Spotify. These tokens need to be stored securely on the local system. For Datapunk running on NixOS, tokens can be stored using **pgcrypto** within the PostgreSQL database or managed with secure storage tools like **Pass** (the standard Unix password manager) or **Gnome Keyring**.
+  - **Token Encryption**: Encrypt OAuth tokens at rest using PostgreSQL's **pgcrypto**. This ensures that tokens are secure even if unauthorized users access the local database files. Encrypting these tokens with a secure passphrase adds an extra layer of security, minimizing the risk of unauthorized data access.
+  - **Refresh Tokens**: OAuth refresh tokens should also be securely managed and encrypted to maintain continuous access without repeated reauthorization. Implement mechanisms to regularly rotate tokens to further secure access, minimizing the exposure of compromised tokens.
+  - **Access Management**: Ensure users have visibility into which services are connected. Provide a settings page within the Datapunk UI that lists all active integrations and allows users to revoke access if needed.
+
+- **Local Access Controls**: Since Datapunk is designed for use on a local machine by a single user, the complexity of access control is reduced. However, it’s still essential to manage which components interact with the database and application.
+  - **PostgreSQL Role Management**: Use PostgreSQL roles and permissions to restrict database access to only the necessary components. The default database user should only have the minimum permissions needed to operate.
+  - **Docker Namespace Isolation**: Leverage **Docker’s user namespaces** to isolate the Docker container environment from the host system. This ensures that even if the Docker container is compromised, the host remains protected.
+  - **File and Process Permissions**: Limit access to key files and processes using standard Linux permissions. Sensitive files (e.g., configuration files, OAuth credentials) should only be accessible by the specific user running the Docker container.
+
+### **3. Data Anonymization and Masking**
+
+- **Masking for Sharing**: Anonymization is primarily needed when users wish to share reports or outputs. We can provide an optional masking feature to obfuscate PII when exporting insights. This “Prepare for Sharing” function will strip identifiable data before export.
+
+### **4. Secure Token Management**
+
+- **Local Token Storage**: Tokens for third-party access can be stored securely within the local PostgreSQL database using **pgcrypto** or Docker’s secrets management. Alternatively, use **Pass** or **Gnome Keyring** on NixOS to securely store tokens and minimize risks.
+
+### **5. Secure APIs and Backend**
+
+- **API Security**: Although local, APIs exposed by Datapunk should still be protected. Use **JWT** tokens to authenticate API requests and **parameterized queries** to prevent SQL injection.
+  - **Rate Limiting**: While abuse is less likely, implementing basic rate limiting with **NGINX** or another lightweight solution can help manage resource usage and prevent accidental overload.
+
+### **6. Secure Storage and Backup**
+
+- **Local Backup**: Users should be able to back up and restore data easily. Use **pg_dump** to create encrypted backups with **GPG** for additional protection. Provide instructions for backing up Docker volumes directly to ensure persistence.
+  - **NixOS Integration**: On NixOS, automation tools like **systemd** can be used to schedule regular encrypted backups, ensuring that data remains secure and recoverable.
+
+- **Audit Logs**: Locally store audit logs in a PostgreSQL table to track user actions within the application for transparency and troubleshooting. Provide a UI option for users to view their activity logs.
+
+### **7. User Privacy and Transparency**
+
+- **Data Handling Transparency**: Users should have full control over their data. A UI should provide a clear breakdown of what data is accessed, where it is stored, and why it is needed. Transparency builds trust and allows users to understand how Datapunk operates with their data.
+  - **Permissions Overview**: Provide users with an easy-to-understand permissions overview that clearly states what data each integration accesses. Allow users to selectively enable or disable data points (e.g., choosing to only share calendar events but not contacts).
+  - **Access Logs**: Users should be able to see detailed logs of data access. This feature ensures they can track what data has been accessed, when, and by which component or integration. This transparency helps build confidence in the security and privacy of their data.
+
+- **Data Deletion**: Users should be able to delete their data entirely, including Docker containers, volumes, and backups, ensuring complete removal of all sensitive information. Offer users a **"Secure Delete"** option that ensures data is overwritten and cannot be recovered.
+  - **Granular Deletion**: Users should also have the ability to delete specific datasets or integrations. For example, users may want to delete their Google Calendar data while retaining Spotify data.
+  - **Data Retention Policies**: Allow users to configure automatic data retention policies—such as deleting specific datasets after a defined period—to further control how long their data is stored.
+
+- **User Control and Consent**: Users must have the ability to easily connect or disconnect integrations and modify permissions. A consent-based approach ensures users always have the final say on what data is being used.
+  - **Consent Management UI**: Provide a simple UI for users to manage their consent preferences. Users should be able to review what permissions they have granted and make changes easily.
+  - **Notifications for Data Changes**: Whenever there is a significant change in how data is accessed or processed, notify users to keep them informed and give them the option to opt-in or opt-out of the change.
+
+### **Summary of Security Considerations for Local Setup**
+1. **Encryption**: Use **LUKS** for partition encryption in NixOS and **pgcrypto** for sensitive database fields.
+2. **OAuth and Access Controls**: Store OAuth tokens securely using **Pass** or other secure storage options available in NixOS, and use Docker's namespaces for access isolation.
+3. **Data Masking**: Provide an optional masking feature when exporting data.
+4. **Token Management**: Store tokens securely with Docker secrets or **Pass**.
+5. **API Security**: Use **JWT** for local API access and validate input.
+6. **Backup and Audit**: Provide encrypted local backup options using **GPG** and track actions with audit logs.
+7. **Privacy and Transparency**: Ensure users have visibility and control over their data, including deletion capabilities, granular permissions, and access logs.
+
+These measures provide comprehensive security for users running Datapunk locally on NixOS, giving them confidence in the privacy and safety of their sensitive information.
