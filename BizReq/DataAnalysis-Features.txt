@@ -3,16 +3,50 @@ Data Analysis & Parsing
 1. Data Parsing Methods:
 
    - **Pre-Built Parsers**:
-     - Create **parsers for common data formats** from popular platforms like Google, Microsoft, and Meta. For example, parsing JSON data to extract contacts, events, social interactions, etc.
-     - **Example**: A pre-built parser for Google Calendar data that automatically extracts event details (title, location, time, participants) and stores them for further analysis.
+     - Leverage **pre-built parsers for common data formats** from popular platforms like Google, Microsoft, Spotify, and Meta. These parsers can automatically extract key information from structured data, simplifying the process for users and allowing them to immediately begin analysis without manual intervention.
+     - **Google Data Parsers**:
+       - Use pre-built tools like the `google_takeout_parser` to handle various Google Takeout data, including Location History, Chrome History, YouTube activity, and Search History. These parsers are capable of extracting data from JSON and HTML files, making it easy to work with the information in a structured form.
+       - **Example**: The Google Location Utility (`GoogleLocationUtility`) can parse and enrich location history data from Google Takeout, providing insights like visited places, time spent at locations, and even generating maps.
+       - **Supported Tools**:
+         - [Google Takeout Parser](https://github.com/seanbreckenridge/google_takeout_parser)
+         - [Google Location Utility](https://pypi.org/project/GoogleLocationUtility/)
+         - [Location History Parsers by DovarFalcone](https://github.com/DovarFalcone/google-takeout-location-parser)
+         - [Google Search History Parser by DietSquid](https://github.com/DietSquid/Google-Takeout-Parser)
+     
+     - **Microsoft Data Parsers**:
+       - Utilize Microsoft's **Power Platform connectors** for services like Outlook, OneDrive, and Teams. These connectors enable seamless extraction of data from calendars, contacts, and shared files, which can be formatted into CSV or JSON files for easier processing in Datapunk.
+       - **Example**: Extract Outlook Calendar events and automatically transform the data to analyze productivity and time management trends.
 
-   - **Custom Parsing Scripts**:
-     - Allow users to **upload or write custom parsing scripts** in a scripting language (e.g., Python) for niche data formats.
+     - **Spotify Data Parsers**:
+       - Use tools like **API Connector for Google Sheets** to extract Spotify music data. This tool enables direct connection to Spotify's API, making it easy to pull recent listening history, playlists, and user top tracks. The data is formatted in a structured way that is easy to import into Datapunk for further analysis.
+       - **Example**: Automatically parse Spotify listening history to determine top genres and trends over time.
+
+     - **Meta (Facebook & Instagram) Data Parsers**:
+       - There are multiple **open-source scrapers** available for Facebook and Instagram that can extract posts, comments, likes, and media. Tools like **Facebook-Scraper** and **Instagram-Automation** are capable of converting this data into structured JSON or CSV formats.
+       - **Example**: Extract posts and user interactions from Facebook pages to analyze social engagement and detect content preferences.
+       - **Supported Tools**:
+         - [Facebook-Scraper](https://github.com/shaikhsajid1111/facebook-scraper)
+         - [Instagram-Automation](https://github.com/dhohirpradana/Instagram-Automation)
+
+   - **Custom Parsing Scripts & Future Custom Implementations**:
+     - Allow users to **upload or write custom parsing scripts** in a scripting language (e.g., Python) for niche data formats. This enables flexibility in dealing with data that is not covered by pre-built parsers.
+     - Custom parsing solutions will also be required for several niche scenarios where pre-built options may not exist:
+       - **Financial Data Imports**: Financial records from various banks or budgeting applications often come in unique CSV or JSON formats. Each institution may use different headers or formatting conventions, necessitating custom scripts to normalize and standardize this data for analysis.
+       - **Wearable Device Data**: Data from wearable fitness devices such as FitBit or Apple Watch may require custom parsing due to proprietary formats. A custom parser could convert raw activity data into standard metrics such as steps, calories burned, or heart rate trends, and correlate it with other datasets.
+       - **Manual File Uploads**: Users may upload manually exported files from niche services that aren't covered by existing parsers, such as smaller social media platforms or proprietary CRM systems. Custom parsing scripts can help identify the structure and extract relevant data fields from such diverse sources.
+       - **Email Parsing**: While pre-built parsers may handle some standard email formats, forwarded emails from various services may need custom parsing logic. This will ensure that only relevant information from report-style emails is extracted and imported, discarding unnecessary metadata and formatting.
+       - **Cross-Source Data Correlation**: Parsing data to establish correlations between heterogeneous data sources, like matching calendar events with Spotify listening habits or correlating wearable data with travel locations, often requires custom transformation and integration logic.
      - **Example**: A user uploads a script that extracts custom fields from their financial data in CSV format, categorizing transactions based on custom rules.
 
-   - **Data Cleaning Tools**:
-     - Offer **data cleaning features** like handling missing values, data normalization, and removing outliers. This ensures that the data quality is maintained for accurate analysis.
-     - **Example**: Automatically flag incomplete records (e.g., contacts missing an email address) and offer options to either remove or fill in missing data.
+   - **Data Cleaning Tools & Considerations**:
+     - Custom data cleaning tools will be necessary to ensure consistency and usability of the imported data, especially considering the variability of sources.
+     - **Edge Cases for Data Cleaning**:
+       - **Inconsistent Formats**: Handling inconsistencies in data formats across different sources (e.g., different contact formats from Google and Microsoft). Tools for renaming headers, standardizing field types, and merging similar records will be essential.
+       - **Handling Redundant Data**: When dealing with bulk imports like Google Takeout, redundant entries are common. Implementing deduplication logic to automatically detect and merge duplicate records will be necessary to ensure data quality.
+       - **Missing Values and Errors**: Many imported datasets may have missing or malformed values (e.g., missing timestamps or location coordinates). Custom data cleaning methods should provide mechanisms to either fill in these gaps intelligently or flag them for user review.
+       - **Token and Authentication Data**: Properly parsing and cleaning sensitive information related to OAuth tokens or API keys to ensure security and avoid any unauthorized use.
+       - **Privacy Considerations**: Implement tools to help users redact or anonymize sensitive information before or during import. This could involve removing email addresses, names, or any PII (Personally Identifiable Information) that users do not want in their datasets.
+     - **Example**: Automatically flag incomplete records (e.g., contacts missing an email address) and offer options to either remove or fill in missing data based on user input.
 
 2. Data Enrichment:
 
