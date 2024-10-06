@@ -188,7 +188,7 @@ Data Analysis & Parsing
        - **Python Analysis**: Extract cross-referenced data from PostgreSQL and use Python for detailed analysis, such as applying linear regression to quantify relationships between activity levels and productivity.
        - **Example**: Correlate work meetings from Google Calendar with listening habits to determine whether music influences productivity or relaxation during different types of events.
 
-6. Custom User Queries:
+6. Custom User Queries (future implementation):
 
    - **Query Interface**:
      - Allow users to **run custom queries** on their data using a query language (e.g., SQL-like or a simpler, guided query builder).
