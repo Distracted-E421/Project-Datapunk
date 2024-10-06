@@ -1,0 +1,107 @@
+**Datapunk UI Features**
+
+### **1. User Dashboard**
+
+The user dashboard serves as the main hub for users, providing key insights and access to core functionality at a glance. The goal is to include essential information to keep the dashboard full without overwhelming users.
+
+- **Overview Panel**: Provide users with a high-level summary of their data, including key metrics, recent activities, and quick insights. The overview should be customizable, allowing users to select which metrics or widgets they want to prioritize.
+  - **Key Metrics Widgets**:
+    - **Total Imported Data Summary**: Show the total data imported, categorized by source (e.g., "Google Data: 5GB, Spotify: 2GB").
+    - **Recent Activity Timeline**: Display recent events across all data sources in chronological order, acting as an activity feed to give users a snapshot of their latest interactions.
+    - **Data Import Status**: Show the status of the latest imports, detailing successful imports, errors, and ongoing imports, with a schedule for the next sync.
+  - **Important Features to Showcase**:
+    - **Upcoming Events**: A calendar widget displaying upcoming events from Google Calendar, helping users keep track of important dates.
+    - **Recent Spotify Activity**: A small widget summarizing recent Spotify activity, such as top played songs or recent playlists, making the dashboard more engaging.
+    - **Custom Alerts Summary**: Highlight recent alerts or insights, such as detected anomalies or significant patterns, ensuring users are informed of key data events.
+  - **Visual Indicators**:
+    - **Activity Trends Chart**: Include a small chart showing trends over time, such as recent productivity or physical activity trends.
+    - **Data Source Breakdown**: A pie chart to visualize the breakdown of data by source or category, providing users with a quick overview.
+
+- **Customizable Layout**: Allow users to drag and drop different widgets to customize their dashboard, ensuring it fits their personal needs. By default, the dashboard should be filled with curated widgets to keep it informative but not crowded.
+  - **Expandable Widgets**: Let users expand widgets for more detail. For instance, the **Activity Timeline** widget could expand to show individual events with more context.
+  - **Save Layout Preferences**: Allow users to save customized layouts so that they can switch between different views, such as a "Workweek" layout vs. a "Weekend" layout.
+
+- **Quick Actions Section**: Include a **Quick Actions** section with buttons like "**Import Data Now**," "**Run Analysis**," or "**Connect New Source**," giving users direct access to frequently used functions and a sense of control over their data.
+
+### **2. Data Import Management**
+- **Data Sources Page**: The Data Sources page provides a central location where users can manage all their data integrations, including both connected and available services. This page should offer a comprehensive overview of data sources, integration statuses, configuration options, and manual uploads.
+  - **Integration Overview**: Display a list of all available integrations, divided into categories like "Connected Sources," "Available Integrations," and "Requires Reauthorization." Users should be able to see the type of data being accessed (e.g., calendar, music, fitness) and the volume of data imported for each source.
+  - **Integration Status**: For each service, indicate the connection status clearly with icons or color-coded labels (e.g., a green checkmark for connected, a red exclamation mark for disconnected, or a yellow icon for reauthorization needed). Include last synced timestamps and the option to trigger manual re-syncs.
+  - **Configuration Settings**: Allow users to configure settings for each connected service, such as selecting which types of data to import (e.g., events, contacts, playlists) or adjusting data permissions. Users should also be able to rename integrations for easier identification (e.g., "Work Google Account" vs. "Personal Google Account").
+  - **Manual Data Uploads**: Provide an interface for users to manually upload files (e.g., CSVs, JSON). Include a progress tracker for each import, with a clear status (e.g., "In Progress," "Completed," "Failed"). Offer users the option to map uploaded data to the appropriate fields or use pre-defined templates.
+  - **Error Resolution**: If an import fails, provide detailed error messages and suggestions for resolution (e.g., "Invalid file format. Please use CSV or JSON format." or "Missing required field: 'date'"). Users should have an option to retry the import after correcting the issue.
+
+- **Import Scheduling**: Allow users to manage how frequently their data is imported from each source.
+  - **Automatic Syncing**: Offer scheduling options such as daily, weekly, or custom intervals. Users should be able to view and edit schedules for each data source separately. A calendar interface or dropdown selector can make it easy to adjust these schedules.
+  - **Manual Import Triggers**: Users should have the ability to manually trigger imports whenever needed, with a "Sync Now" button next to each integration. This gives users control over data updates, especially for sources that aren't updated frequently.
+  - **Import History**: Provide an import history log that allows users to see previous sync attempts, their outcomes (success or failure), and any errors encountered. This helps users understand when their data was last updated and troubleshoot any issues that arise.
+
+### **3. Permissions and Privacy Settings**
+- **Permissions Management**: The Permissions and Privacy Settings page allows users to have complete control over the data being accessed by Datapunk. This page is designed to provide a comprehensive overview of each connected integration, the permissions granted, and user options to modify these settings.
+  - **Overview Section**: At the top of the page, provide a summary of all connected services and their permissions. This overview helps users quickly understand what data is being accessed without diving into each integration. Use cards for each integration, showing:
+    - **Integration Name** (e.g., Google, Spotify).
+    - **Status** (Connected/Disconnected).
+    - **Data Types Being Accessed** (e.g., Calendar, Contacts).
+    - A quick link to "Manage Permissions."
+
+  - **Granular Permission Controls**: Allow users to adjust permissions for each integration individually by expanding integration cards. Permissions are broken down into categories such as:
+    - **Personal Data** (e.g., Contacts, Messages).
+    - **Activity Data** (e.g., Calendar Events, Fitness Data).
+    - **Media Data** (e.g., Playlists, Listening History).
+    - Use toggle switches for each permission type to enable or disable access easily.
+    - **Explanation Tooltips**: Each permission toggle should have an info icon next to it, which provides a brief explanation of why the permission is needed and what it allows Datapunk to do.
+
+  - **Custom Labels for Integrations**: Allow users to rename integrations for easier identification (e.g., "Personal Spotify Account" vs. "Family Spotify Account").
+
+- **Consent Updates**: Keeping users informed and in control of their data access is crucial.
+  - **Change Requests**: Display a notification bar at the top of the page when a connected service requests additional permissions. Explain:
+    - **What new permissions are being requested**.
+    - **Why these permissions are needed**.
+    - Provide an "Approve" or "Deny" button directly within the notification.
+
+  - **Consent History**: Include a section for **Consent History**, where users can see a timeline of permissions granted, modified, or revoked. This provides transparency about when and how permissions have changed.
+
+  - **Clear Reauthorization Prompts**: If an integration's permissions expire or are revoked, prompt the user to reauthorize with a clear explanation of why reauthorization is needed and what data will be accessed.
+
+- **Privacy Settings**:
+  - **Data Sharing Preferences**: Users should have full control over how their data is shared within Datapunk. Provide options to enable or disable data sharing features, and allow users to choose which datasets can be included in exports.
+  - **Anonymization Options**: For users who wish to export data for sharing, offer anonymization options to mask personally identifiable information (PII), such as names, email addresses, and location data, while retaining aggregate insights.
+  - **Data Retention Control**: Allow users to set retention policies for each type of data. For example, users may choose to delete imported location data after six months while retaining calendar events indefinitely. Include options for automatic data deletion based on user-defined schedules.
+  - **Visibility Settings for Insights**: Provide visibility settings for generated insights, letting users decide whether certain insights are displayed in the dashboard or kept private. Insights related to personal productivity, for instance, could be marked as private, accessible only after entering a PIN.
+
+- **User-Friendly Design**:
+  - **Expandable Integration Cards**: Each integration should have an expandable card that shows a summary of the permissions granted. Users can expand these cards to see more detailed information and adjust settings as needed.
+  - **Help and Explanations**: Include tooltips or info buttons next to each permission type, providing simple explanations of what each permission entails and why it might be useful. This helps users make informed decisions without needing to navigate away from the page.
+  - **Centralized Control**: Provide a single, centralized page for all privacy and permission-related settings, ensuring users don’t need to navigate between multiple pages to manage their data.
+  - **Search and Filter**: Include a search bar to help users quickly find a specific integration or permission setting.
+  - **Default and Custom Profiles**: Offer default permission profiles like "Minimal Access," "Full Access," and "Custom" to make setup easier, allowing users to customize further if needed.
+
+
+### **4. User Notifications**
+- **Data Change Alerts**: Notify users of significant changes in their data, such as new insights, anomalies, or integration issues.
+- **Import Errors**: Provide notifications if a data import fails, including details about the error and suggestions for resolution.
+- **Custom Alerts**: Let users configure custom alerts for specific types of changes, such as unusual spending activity or a significant increase in screen time.
+
+### **5. Data Exploration Tools**
+- **Search Functionality**: Implement a robust search bar that allows users to search across all their imported data. Users should be able to find specific events, messages, transactions, or other types of data quickly.
+- **Data Filtering**: Provide filtering options to narrow down results based on data type, date range, or integration source. Allow users to easily explore their data by applying these filters.
+- **Custom Queries**: Offer an advanced interface for users to create and run custom SQL-like queries against their data for deeper exploration.
+
+### **6. Integration Hub**
+- **Integration Marketplace**: Display all available integrations in a marketplace-style interface, with descriptions of what data each integration can provide and how it can be used within Datapunk.
+- **Integration Walkthroughs**: Provide step-by-step guides for connecting services, explaining what permissions are needed and why. Make these guides user-friendly, potentially including video demos or interactive elements.
+
+### **7. Settings and Customization**
+- **Theme Customization**: Allow users to customize the UI theme (e.g., dark mode, color schemes) to match their personal preferences.
+- **Data Retention Settings**: Let users set data retention policies, including specifying how long to keep certain datasets or when to automatically delete old records.
+- **Backup and Restore Options**: Provide options for users to easily back up their data or restore it from a previous backup.
+
+### **8. User Assistance and Onboarding**
+- **Interactive Onboarding**: When first setting up Datapunk, guide users through an interactive onboarding process that helps them connect services, understand permissions, and customize their dashboard.
+- **Help Center**: Include a help center that provides documentation, FAQs, and contact support options. Users should be able to search the help center for specific questions.
+- **Tooltips and Guides**: Include tooltips throughout the UI that explain various features, especially during the onboarding process, to make it easier for new users to understand how to navigate and use Datapunk effectively.
+
+### **9. Accessibility Features**
+- **Keyboard Navigation**: Ensure that all parts of the UI can be navigated using a keyboard for users with accessibility needs.
+- **Screen Reader Support**: Make sure that the interface is fully compatible with screen readers by providing proper ARIA labels and ensuring meaningful descriptions for all interactive elements.
+- **Font Size Adjustments**: Allow users to adjust the font size for better readability, ensuring that the UI remains comfortable for a wide range of visual abilities.
