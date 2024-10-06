@@ -1,0 +1,37 @@
+Project Launch Proposals Graded; Next Assignment is Requirements Document
+Hi, everyone.
+You all did really well on the Project Launch Proposals. You should be proud of yourselves. I am excited to see what you are all able to accomplish to bring your excellent ideas to life.
+Our next assignment - which is due October 6 at 11:59pm, is the requirements document. This is where you'll bring your idea much closer to reality because you'll formally itemize all the different tasks you'll have to perform to get it there.
+To complete the requirements document assignment, please fill in the businessrequirments template
+What's very important to remember as you complete the document is the need to be very detailed. Make sure you provide lots and lots of details about what you will build by December of this semester. Please do not write a business pitch, as you've already done that in the previous assignment. I need you to tell me very specifically what you are going to implement.
+For example, if you are your project is going to give HR an opportunity to see employee data, you can't say this:
+"The product will give HR representatives access to reports."
+You have to say this instead:
+"The product will enable HR representatives to view upcoming time off for employees. They will see a table listing each person and the dates of their upcoming time off. For each person, the total number of hours requested and the number of hours of vacation they have left will be displayed. The user will be able to sort employees by their last name as well as by the amount of time off they have left."
+"The product will enable HR representatives to review sick leave totals for their employees. They will see a table listing each person and the amount of sick leave they have used and how much they have left. The user will be able to sort employees by their names as well as by how much sick leave they have remaining."
+Do you see what I mean? I need very firm details on what the product will offer its users. You have to provide that level of detail. When you do, you might end up scaling back what you promise to deliver by December because you'll see how much work it will require. That's ok. I want these to be realistic accounts of what you will build.
+Obviously, this document will require a lot of work and time to complete. So, work on it a little every day. You will not be able to complete it well if you wait until the last day or two to write it.
+Please let me know if you have questions.
+Ray
+
+---
+
+Business Requirements document due October 6
+Hi, everyone.
+I hope you have had a good week.
+Please be working on your next assignment a little every day. Remember that you need to complete this document:
+You have to think deeply and carefully about what you are intending to build. You need to do a good job on this so that you have a solid plan for what you'll spend the rest of the semester making. So, please put a lot of thought into this and carefully consider what you are going to build.
+Please let me know when you have questions.
+Ray
+
+---
+
+Reminder: Business Requirements due Sunday
+Hi, everyone.
+Just a reminder about what is due Sunday at 11:59pm: a DETAILED business requirements document. The document must be something like what you would submit to your department head at work. It must give sufficient detail that supervisors would know from reading it precisely what your project will do and how it will achieve its aims.
+Just fill in the template.
+Details are important. For example, if you say that the user will be able to manage their insurance expenses, say something like this: "When the user requests a list of insurance expenses, they will specify a date range. The program will respond with a detailed list of their covered medical expenses that includes the date, the place they received care, the billed cost, a summary of what was done, and the amount covered by insurance. All columns in this display will be sortable, and the customer may filter by place of care." Do you see how the reader will gain an extremely detailed picture of what this feature of the application will do? I need you to be that detailed!
+Or, let's say you are working on a project involving machine learning. I need to know exactly where your data will be coming from, ideally with a link to where I can get the data. I need you to describe the contents of the data, when it was published, how it will be used, what its limitations or assumptions are, and whether there is any personally identifiable information concerns regarding it. 
+Again - PROVIDE DETAIL! Your boss would ask you questions about your project; provide answers to as many of the questions you anticipate you could be asked.
+Please let me know when you have questions.
+Ray
