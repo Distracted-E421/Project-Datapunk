@@ -78,18 +78,117 @@ The user dashboard serves as the main hub for users, providing key insights and 
 
 
 ### **4. User Notifications**
-- **Data Change Alerts**: Notify users of significant changes in their data, such as new insights, anomalies, or integration issues.
-- **Import Errors**: Provide notifications if a data import fails, including details about the error and suggestions for resolution.
-- **Custom Alerts**: Let users configure custom alerts for specific types of changes, such as unusual spending activity or a significant increase in screen time.
+
+The User Notifications system should be designed to provide timely and relevant alerts without overwhelming users. Notifications will cover various areas, such as data changes, import errors, and custom alerts, ensuring users are always informed and in control.
+
+- **Data Change Alerts**:
+  - **Purpose**: Keep users informed about significant changes in their data.
+  - **Types of Alerts**:
+    - **New Insights**: When Datapunk generates a new insight (e.g., a pattern in their productivity data or a spending trend), users should receive a notification to review this insight.
+    - **Anomalies Detected**: If any anomalies are detected in the user's data (e.g., unusual spending or spikes in physical activity), notify the user so they can take action if necessary.
+    - **Integration Changes**: Alert users when an integration has new data available or when there's a change in the status of an integration (e.g., reauthorization is required).
+
+- **Import Errors**:
+  - **Purpose**: Ensure users are aware when data imports fail, so they can address issues promptly.
+  - **Error Details**:
+    - Notifications should provide **detailed information** about why an import failed (e.g., "Failed to import Google Calendar data: authentication expired").
+    - Include **Suggestions for Resolution**: Provide users with actionable steps to resolve the error (e.g., "Click here to reauthorize Google Calendar access").
+  - **Retry Option**: Allow users to retry the data import directly from the notification, making it easy to correct issues.
+
+- **Custom Alerts**:
+  - **User-Defined Alerts**:
+    - Allow users to **set custom alert conditions** based on their data. For example, users might want an alert if their screen time exceeds a set limit or if there’s a significant increase in spending on entertainment.
+    - Custom alerts should be configured from the **Settings** section, allowing users to tailor the system to their needs.
+  - **Notification Frequency**:
+    - Users should be able to control how often they receive notifications—immediate alerts, daily summaries, or weekly overviews—based on their preferences.
+
+- **Notification Management**:
+  - **Notification Center**: Create a **Notification Center** where users can see all recent notifications, organized by date or type. This helps users keep track of what’s been happening with their data and integrations.
+  - **Priority and Categories**:
+    - Divide notifications into categories such as **Insights**, **Errors**, **General Updates**, and **User Alerts**.
+    - Use **priority indicators** to differentiate between critical notifications (e.g., data import failure) and low-priority ones (e.g., new data insights).
+  - **Settings for Notification Preferences**:
+    - Allow users to configure which notifications they want to receive and through what channels (e.g., in-app only, email, or push notifications).
+    - Users should have the option to **mute specific notifications** or reduce notification frequency if they find it overwhelming.
+
+- **Visual Cues and Icons**:
+  - Use **icons and colors** to distinguish different types of notifications:
+    - **Red Icons** for errors or issues needing immediate attention.
+    - **Green Icons** for positive insights or successful imports.
+    - **Yellow Icons** for warnings or requests for reauthorization.
+
+- **User Interaction**:
+  - **Expandable Notifications**: Notifications should be **expandable** to provide more information. For example, a data change alert might show a summary initially, but users can click to view a more detailed report or trend analysis.
+  - **Actionable Buttons**:
+    - Provide buttons like **"Resolve Issue," "View Insight,"** or **"Retry Import"** within each notification so users can quickly act on the information provided.
+  - **Linking to Relevant Sections**:
+    - Notifications should link directly to the relevant part of the UI. For example, an error with an integration should include a link to the **Data Sources** page to fix it directly.
 
 ### **5. Data Exploration Tools**
-- **Search Functionality**: Implement a robust search bar that allows users to search across all their imported data. Users should be able to find specific events, messages, transactions, or other types of data quickly.
-- **Data Filtering**: Provide filtering options to narrow down results based on data type, date range, or integration source. Allow users to easily explore their data by applying these filters.
-- **Custom Queries**: Offer an advanced interface for users to create and run custom SQL-like queries against their data for deeper exploration.
+
+The Data Exploration Tools provide users with multiple ways to interact with and derive meaning from their personal data. This section includes search functionality, data filtering, and a custom query builder, which allow users to analyze and understand their data effectively.
+
+- **Search Functionality**:
+  - Implement a robust search bar that allows users to search across all their imported data, including events, messages, transactions, or activity logs from various sources.
+  - **Indexing for Fast Retrieval**: To ensure efficiency, build indexes on key fields like dates, text content, or unique identifiers.
+  - **Autocomplete and Suggestions**: Include autocomplete and suggestion features to help users find what they’re looking for quickly, even if they’re unsure of exact phrases. This feature can also highlight available data types, guiding users to explore different data points.
+  - **Search Categories**: Provide filtering capabilities within the search bar itself, allowing users to refine results by data type (e.g., calendar events, financial transactions), source (e.g., Google, Spotify), or date range.
+
+- **Data Filtering**:
+  - **Purpose**: Data filtering is essential for narrowing down information, enabling users to focus on specific datasets that match their interests or needs.
+  - **Filtering Options**:
+    - **Data Type**: Enable users to filter by data type, such as messages, events, activity logs, financial records, etc.
+    - **Date Range**: Provide options to filter by specific timeframes (e.g., custom date ranges or pre-set options like "last week" or "last month").
+    - **Integration Source**: Users can filter data based on the source it came from, such as Google, Microsoft, or Spotify.
+    - **Advanced Filtering**: Allow users to apply multiple filters simultaneously for more nuanced searches, such as filtering events by both date range and participants.
+  - **User Interface**: Display filters in an accessible panel where users can apply, combine, and remove them seamlessly, with the UI updating results in real time.
+
+- **Custom Queries**:
+  - **Guided Query Builder**:
+    - Offer a guided query builder to help users create custom queries visually. This tool is designed for users who may not be familiar with SQL, allowing them to build queries by selecting fields, conditions, and functions from dropdown menus.
+    - **Pre-Built Query Examples**: Include common pre-built query examples that users can modify to suit their needs, such as identifying spending trends over time or analyzing music listening habits.
+  - **Future Expansion**: For post-MVP development, consider adding a full SQL editor for power users, allowing them to directly write and execute more advanced queries.
 
 ### **6. Integration Hub**
-- **Integration Marketplace**: Display all available integrations in a marketplace-style interface, with descriptions of what data each integration can provide and how it can be used within Datapunk.
-- **Integration Walkthroughs**: Provide step-by-step guides for connecting services, explaining what permissions are needed and why. Make these guides user-friendly, potentially including video demos or interactive elements.
+
+The Integration Hub is designed to make connecting third-party services to Datapunk seamless, enabling users to pull in data from multiple sources for analysis and insights.
+
+- **Integration Marketplace**:
+  - **Purpose**: The Integration Marketplace provides a central location for users to explore and connect various services. It should be visually intuitive, allowing users to easily discover integrations that can enrich their Datapunk experience.
+  - **Categories and Filters**: Organize integrations into categories like "Productivity," "Health and Fitness," and "Media and Entertainment." Include filters so users can quickly find relevant integrations.
+  - **Integration Cards**: Each integration is represented by a card displaying:
+    - **Name and Icon**: Clearly indicate the integration's brand for easy recognition.
+    - **Short Description**: Explain the type of data it provides and the benefits of connecting it.
+    - **Permissions Summary**: Outline required permissions, such as access to calendar events or listening history.
+    - **Connect Button**: Include a prominent "Connect" button for easy integration.
+  - **Highlight Popular Integrations**: Display popular or featured integrations prominently to help new users see which services are commonly used by others, such as Google, Spotify, and Microsoft.
+
+- **Integration Walkthroughs**:
+  - **Step-by-Step Guides**:
+    - Provide simple, visual step-by-step instructions to guide users through the process of connecting an integration. Use progress indicators to show users where they are in the process.
+    - **Explain Permissions**: Clearly explain why each permission is required and how it benefits the user. For example, "We need access to your Google Calendar to help analyze productivity trends and identify peak focus hours."
+    - **Interactive Elements**: Use tooltips or question marks next to fields where users might need additional assistance, providing instant clarification.
+  - **Error Handling**:
+    - Provide a troubleshooting section to help users handle common errors during integration (e.g., authentication issues).
+    - **Fallback Options**: If users repeatedly face issues connecting, suggest alternative ways to manually add data or direct them to customer support.
+
+- **Integration Status and Management**:
+  - **Connected Integrations Dashboard**: Display all connected services in a "Connected Integrations" section, allowing users to manage their connections easily.
+  - **Status Indicators**: Use clear indicators such as green for "Connected," yellow for "Requires Attention," and red for "Disconnected" to convey the current status of each integration.
+  - **Data Overview**: Show users a summary of data being imported, including metrics like "Last Synced" or data volume. This provides users with transparency into the data flow.
+  - **Manage Permissions**: Allow users to adjust permissions or disconnect an integration at any time, giving them full control over their data.
+  - **Reauthorization and Alerts**: Automatically notify users when an integration needs reauthorization (e.g., due to expired tokens) and provide a clear guide for reconnection.
+
+- **Security Considerations for Integrations**:
+  - **User Consent and Transparency**: Ensure users have a full understanding of the data being accessed. Permissions should be transparently outlined during setup, explaining what is accessed and why.
+  - **Scopes and Permissions**: Display detailed information about each **OAuth scope** being requested, such as `calendar.readonly`, and provide a clear explanation of its purpose.
+  - **Granular Control**: After connecting a service, allow users to toggle permissions for specific data types, giving them precise control over what data flows into Datapunk.
+
+- **Use Cases and User Assistance**:
+  - **Highlight Benefits of Integration**: Provide use case descriptions to help users understand the value of each integration. For example, linking Spotify could help track mood trends through music preferences, while Google Calendar could provide insights into productivity habits.
+  - **Recommendation Engine**: Suggest integrations based on existing connected services. If a user has linked Google Calendar, suggest Microsoft To-Do for deeper task management analysis.
+  - **FAQs and Support**: Include a FAQ section within each integration's page to answer common questions, such as "How often does this sync?" or "How do I revoke permissions?"
+  - **Direct Support Links**: Offer a direct link to customer support for users encountering issues that cannot be resolved through FAQs or guides.
 
 ### **7. Settings and Customization**
 - **Theme Customization**: Allow users to customize the UI theme (e.g., dark mode, color schemes) to match their personal preferences.
