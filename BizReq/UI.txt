@@ -191,16 +191,80 @@ The Integration Hub is designed to make connecting third-party services to Datap
   - **Direct Support Links**: Offer a direct link to customer support for users encountering issues that cannot be resolved through FAQs or guides.
 
 ### **7. Settings and Customization**
-- **Theme Customization**: Allow users to customize the UI theme (e.g., dark mode, color schemes) to match their personal preferences.
-- **Data Retention Settings**: Let users set data retention policies, including specifying how long to keep certain datasets or when to automatically delete old records.
-- **Backup and Restore Options**: Provide options for users to easily back up their data or restore it from a previous backup.
+
+The Settings and Customization features of Datapunk are designed to provide users with the flexibility to personalize the UI, manage their data retention, and ensure data security through backups and restores.
+
+- **Theme Customization**:
+  - **Light/Dark Mode**: Allow users to switch between a light and dark theme, depending on their visual preferences or environment (e.g., dark mode for low-light settings).
+  - **Custom Color Schemes**: Provide options for users to customize accent colors throughout the UI to match their personal preferences, giving the application a personalized feel.
+  - **Font Customization**: Offer a selection of easy-to-read fonts, allowing users to choose the one that they find most comfortable. This helps improve readability and accessibility.
+
+- **Data Retention Settings**:
+  - **Retention Policies by Data Type**: Users can define how long different types of data are retained. For instance, they might choose to keep financial data for 12 months while deleting location history after 3 months.
+  - **Automatic Deletion**: Allow users to enable automatic data deletion once the specified retention period expires. This helps users manage storage and ensure that outdated data is not retained unnecessarily.
+  - **Custom Schedules**: Users can set custom schedules for data deletion. For example, workout data may be automatically deleted every 6 months, while calendar data can be kept indefinitely. Provide reminders to review these schedules periodically.
+
+- **Backup and Restore Options**:
+  - **Manual Backups**: Allow users to create manual backups of their data that they can export and store securely. This provides peace of mind and ensures users always have a personal copy of their data.
+  - **Scheduled Backups**: Provide scheduled backup options, where users can set automatic backups at regular intervals (e.g., daily, weekly). This ensures that data is continuously saved and recoverable.
+  - **One-Click Restore**: Users should be able to restore data from a backup with a single click. Provide clear prompts to warn about any data overwrites to avoid accidental data loss.
+  - **Backup Versioning**: Maintain multiple versions of backups so users can choose which version to restore, helping them revert to a previous state if needed.
+
+- **User-Friendly Interface**:
+  - **Settings Organization**: Organize settings into categories like "Appearance," "Data Management," and "Backups" to make navigation intuitive and allow users to quickly find and adjust settings.
+  - **Tooltips and Explanations**: Include brief explanations for each customization option, so users understand what each setting does and how it impacts their experience.p.
 
 ### **8. User Assistance and Onboarding**
-- **Interactive Onboarding**: When first setting up Datapunk, guide users through an interactive onboarding process that helps them connect services, understand permissions, and customize their dashboard.
-- **Help Center**: Include a help center that provides documentation, FAQs, and contact support options. Users should be able to search the help center for specific questions.
-- **Tooltips and Guides**: Include tooltips throughout the UI that explain various features, especially during the onboarding process, to make it easier for new users to understand how to navigate and use Datapunk effectively.
+
+The User Assistance and Onboarding features are designed to make the setup process easy and to provide ongoing support to ensure users feel comfortable using Datapunk. This section covers interactive onboarding, a comprehensive help center, and in-app guidance to assist users throughout their journey.
+
+- **Interactive Onboarding**:
+  - **Step-by-Step Guidance**: Guide users through the initial setup with clear, sequential steps such as "Connect Services," "Review Permissions," and "Customize Dashboard." Each step should include brief explanations of what needs to be done and why it is important.
+  - **Progress Tracker**: Include a visual progress bar or step indicator to let users know how far along they are in the onboarding process and what steps remain.
+  - **Quick Start Options**: Offer an option to "Skip Detailed Onboarding" for advanced users who are familiar with data integration tools and want to set up Datapunk quickly.
+  - **Inline Explanations**: Provide explanations for each permission request during onboarding, so users understand how their data will be used and the benefits of connecting specific services.
+
+- **Help Center**:
+  - **Searchable Documentation**: Provide a searchable Help Center that includes detailed documentation on various features. Users should be able to type keywords to quickly find answers.
+  - **FAQs**: Include a Frequently Asked Questions section to address common queries such as "How do I connect my Google account?" or "What data does Datapunk collect?".
+  - **Guided Tutorials**: Offer step-by-step tutorials for common tasks, such as setting up integrations or configuring privacy settings, to help users get started without confusion.
+  - **Support Contact Options**: Provide options for users to contact support directly, such as a support ticket system or live chat for real-time help.
+
+- **Tooltips and Guides**:
+  - **Contextual Tooltips**: Use tooltips to provide instant guidance whenever users hover over specific features or buttons. This helps users understand functions without needing to leave the current page.
+  - **Feature Highlights**: When new features are introduced, highlight them with a brief walkthrough to explain what they do and how users can benefit from them.
+  - **On-Demand Walkthroughs**: Allow users to initiate mini walkthroughs for complex features like data visualization tools or custom queries. These walkthroughs can be accessed on-demand for additional guidance.
+
+- **User-Friendly Language**: Ensure that all onboarding and guidance content is written in non-technical, user-friendly language to make Datapunk accessible even for those without a technical background.
+- **Flexible Onboarding Flow**: Allow users to pause the onboarding process and return to it later, giving them the flexibility to complete setup at their own pace.
+
 
 ### **9. Accessibility Features**
-- **Keyboard Navigation**: Ensure that all parts of the UI can be navigated using a keyboard for users with accessibility needs.
-- **Screen Reader Support**: Make sure that the interface is fully compatible with screen readers by providing proper ARIA labels and ensuring meaningful descriptions for all interactive elements.
-- **Font Size Adjustments**: Allow users to adjust the font size for better readability, ensuring that the UI remains comfortable for a wide range of visual abilities.
+
+Ensuring accessibility within Datapunk is essential for creating an inclusive experience for all users, regardless of their physical abilities or preferences. This section outlines features that enhance accessibility, including keyboard navigation, screen reader support, and font customization options.
+
+- **Keyboard Navigation**:
+  - **Tab Indexing**: Ensure that all actionable elements in the UI (e.g., buttons, links, input fields) can be accessed using the **Tab** key, following a logical order based on the visual layout.
+  - **Shortcut Keys**: Implement **keyboard shortcuts** for frequently used actions, such as saving progress or creating new entries, to provide an efficient experience for users who rely on keyboards.
+  - **Focus Indicators**: Provide clear visual indicators to show which element is currently in focus when users navigate via keyboard, making it easy for them to understand where they are within the interface.
+
+- **Screen Reader Support**:
+  - **ARIA Labels**: Implement **ARIA (Accessible Rich Internet Applications) labels** for all interactive elements to ensure screen readers can accurately describe the purpose and function of each element.
+  - **Descriptive Text**: Use clear and descriptive text for buttons and links. For example, use labels like "Submit Form" instead of generic labels like "Click Here" to provide better context for users relying on screen readers.
+  - **Skip to Content Links**: Include a "Skip to Content" link at the top of each page, allowing users to bypass repetitive navigation links and go directly to the main content, improving usability for screen reader users.
+
+- **Font Size Adjustments**:
+  - **Adjustable Font Size**: Allow users to adjust the font size for better readability. Include several options such as small, medium, and large, which can be selected through the settings page to enhance the user experience.
+  - **Zoom Compatibility**: Ensure that the Datapunk interface remains fully functional and readable when users use browser-based zoom features. The layout should adjust gracefully without cutting off content or breaking UI elements.
+
+- **Color Contrast and Visibility**:
+  - **High Contrast Mode**: Offer a high contrast mode to improve readability for users with visual impairments. Ensure sufficient contrast between text and background to meet **WCAG (Web Content Accessibility Guidelines)** standards.
+  - **Color Blind-Friendly Palette**: Design the UI using a color palette that accommodates users with color blindness. Avoid relying solely on color to convey information, and provide text labels or patterns as additional indicators.
+
+- **Accessible Error Messages**:
+  - **Clear Descriptions**: Make error messages descriptive and easy to understand. Avoid using vague phrases like "Invalid input" and instead provide specific guidance, such as "Please enter a valid email address."
+  - **ARIA Alerts**: Use **ARIA alerts** to notify users of errors immediately, allowing screen readers to announce the issue as soon as it occurs. This ensures that users can quickly address any issues without searching for error details.
+
+- **Testing with Assistive Technologies**:
+  - **Screen Readers**: Regularly test the Datapunk interface with popular screen readers like **NVDA** and **JAWS** to ensure compatibility.
+  - **Magnifiers and Speech Recognition Tools**: Test the interface with magnifiers and speech recognition software to identify and address accessibility challenges, ensuring a seamless experience for all users.
