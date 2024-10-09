@@ -35,3 +35,10 @@ Or, let's say you are working on a project involving machine learning. I need to
 Again - PROVIDE DETAIL! Your boss would ask you questions about your project; provide answers to as many of the questions you anticipate you could be asked.
 Please let me know when you have questions.
 Ray
+
+
+
+
+
+If you have additional features 
+List them here, following the same format as you did for the previous ones (with a heading that specifies the name of the feature followed by a detailed description)
