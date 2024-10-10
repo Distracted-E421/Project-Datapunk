@@ -1,5 +1,7 @@
 # Ignore environment files
 *.env
+backend.env
+database.env
 
 # Python
 *.pyc
