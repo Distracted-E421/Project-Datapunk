@@ -2,6 +2,8 @@
 services:
   backend:
     build: .
+    ports:
+      - "2049:8000  # Backend port, inspired by the year Blade Runner 2049 takes place"
     volumes:
       - ./data:/app/data:ro  # Mount the data folder for parsing (read-only access to enhance security)
     depends_on:
@@ -10,7 +12,7 @@ services:
       - ./backend.env
     restart: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://database:5432"]
+      test: ["CMD", "curl", "-f", "http://backend:8000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,6 +29,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  frontend:
+    build:
+      context: ./datapunk-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "2077:3000  # Frontend port, inspired by the Cyberpunk 2077 setting"
+    restart: always
 
 volumes:
   datapunk_db_data:
