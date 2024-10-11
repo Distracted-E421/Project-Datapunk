@@ -27,4 +27,4 @@ USER e421
 ENV PYTHONUNBUFFERED 1
 
 # Set the default command to run
-CMD ["python", "scripts/run_parser.py"]
+CMD rm -rf /app/data/* && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
