@@ -1,9 +1,35 @@
+# SQL toolkit and Object-Relational Mapping (ORM) library for Python
 SQLAlchemy
+
+# PostgreSQL adapter for Python to interact with the database
 psycopg2-binary
+
+# Data analysis and manipulation tool
 pandas
+
+# Extension to support geographic objects for PostgreSQL (useful for geospatial data)
 PostGIS
+
+# ASGI server for serving FastAPI applications
 uvicorn
+
+# Web framework for building APIs, used for backend services
 fastapi
+
+# Extension of SQLAlchemy to support spatial databases (PostGIS integration)
 geoalchemy2
+
+# Testing framework for Python
 pytest
+
+# Coverage plugin for pytest
 pytest-cov
+
+# Required for handling file uploads in FastAPI
+python-multipart
+
+# Data validation and serialization library used by FastAPI
+pydantic
+
+# Library for making HTTP requests (useful for interacting with external APIs)
+requests
