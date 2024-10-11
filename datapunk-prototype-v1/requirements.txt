@@ -1,0 +1,9 @@
+SQLAlchemy
+psycopg2-binary
+pandas
+PostGIS
+uvicorn
+fastapi
+geoalchemy2
+pytest
+pytest-cov
