@@ -1,0 +1,141 @@
+Your next assignment for your project involves coming up with a task estimation and
+set up test plans for the work that you're doing to develop your project or product
+For this work, I want you to complete a spreadsheet The spreadsheet consists of four
+tabs or I want to create a workbook It consists of four sheets or four tabs.
+They're called team, features, task estimation, and test plans.
+On the team page, I want you to list who's involved in the work. For example,
+if I was doing a project by myself, I put in my name and I put in my email
+address.
+You need to list each team member and their email address on this first page.
+Then in the features section, you'll notice a description of what you're supposed to
+include there is off to the right. You need to repeat the work that you did in
+the previous assignment, but hopefully improve on it if I made comments that you
+needed to be more specific. Here you are supposed to identify the features your
+product will deliver and a description of each. The description does not have to be
+and probably shouldn't be as detailed as what you provided last time.
+Last time you were supposed to write paragraphs about each feature. Here you don't
+have to write nicely written paragraphs, you just need to describe enough to indicate
+what each feature is about. Remember, it is really important to be extremely specific
+about what your product is going to deliver. And when we're talking about features,
+the mindset that you should take is that you need to explain what your product is
+going to give to customers, users. How will the user or customer experience the
+product you are delivering to them. How will they interact with it? What will they
+see? What will they be able to do and use?
+In other words, you should take the perspective, you should try to gain the
+perspective of the user who is experiencing what your product is delivering to them.
+For example, let's suppose that I'm creating a website for a customer and a customer
+needs to manage a list of people who are in their organization. Maybe it's a
+retirement system that I'm creating for a customer. One of the features and I can
+give it a unique ID for example. Maybe I'm going to label each feature just by a
+number. One, two, three, etc. You can come up with your own way of identifying
+features. Let's suppose I take the very simple approach of identifying each feature
+just by a single number. The feature name might be list people in the retirement
+database.
+on a link in the left sidebar of the webpage.
+Doing so will open a page that has a table showing the first name,
+last name, date, retired,
+and years worked for each retiree.
+Maybe I'll have another feature. Feature two will be add person to retirement
+database. And a feature description will be the user will click a link on the page
+that shows the list of retirees.
+When they do so,
+a form will open that has space for them to enter the first name,
+last name,
+date retired,
+and years worked for each retiree.
+See how the description is concise and explains exactly what the user is going to
+be doing when they interact with the thing that you're building? That's what you
+need to do here. Now, if you can be that specific, Then it's going to be pretty
+easy to come up with the tasks needed to support each. And that's what the next
+worksheet is for, the task estimation. So for the task estimation what we do is we
+look at these features and we break down those features into the tasks that are
+needed to complete them. So if under task estimation you'll notice that there is a
+feature ID, task ID, task name, task description, estimated hours,
+ID of the task that this depends on and who's assigned to work on it. So for
+example, if I want to implement feature one, feature one was over here, list people
+in the retirement database, if I want to implement that, maybe the first task that
+I use and maybe I'll have the task ID be a combination of the your ID and a
+letter. You can come up with your own way of identifying each task,
+assigning a unique identifier to each task. Here what I've chosen to do is combine
+a feature ID with a letter to form the task
+has
+That that has a table Let's call it.
+This is a task name. So let's make it concise build the retiree table
+So the task description is
+We will so build an HTML table that has
+columns for
+the first name, last name, date retired, and years worked for each retiree.
+Maybe I estimate that that's going to take four hours. It doesn't depend on any
+other tasks, so I'll leave that blank and I'm working on it. Maybe another task for
+this feature. So again, feature one. This is 1b
+Connect the retiree table to
+the database
+So Write the code that will query the database for
+the list of retirees.
+Once retrieved,
+encapsulate the returns data and html tags to display in the table maybe
+this requires uh six hours of work in terms of what it depends on it's probably
+going to depend on something that isn't directly related to a project or a feature
+maybe i give that a feature id of zero or i leave the feature ID blank, but the
+task that's involved in this is, maybe database one,
+build the database, build the back end database,
+and
+the task description for this is that we design, develop an ERD for our database
+that includes tables for retirees
+company branches
+job assignments and other things The estimated hours for this might be 12.
+This doesn't depend on tasks, and I'm responsible for it But the reason reason why
+I'm bringing up this task DB1 is because in order to connect the retiree table to
+the database, the database actually has to exist, right? So the task that it depends
+on is DB1, the database has to be built first and again I'm assigned to it.
+So, do feel free to add in tasks that aren't necessarily directly tied to a
+feature. You can give them whatever unique ID you wish to give them. The purpose of
+these IDs is just so that you can refer to them easily. So I don't care what
+approach you use to give a unique identifier to each task as long as it makes
+sense to you.
+Finally, under test plans you have to describe how each feature the aspect of each
+feature, various aspects of each feature are going to be tested. For example, we saw
+that feature one was to list people in the retirement database.
+What we could do with that, first test plans, feature one, we'll give this a test
+ID of maybe one dot A) The test name would be "confirm retirees are listed"
+The test description would be "click on link in left sidebar"
+A new page will open up listing all the retirees in a table that occupies the main
+part of the page the
+table will have headings that show which columns correspond to
+first name last name years date retired and years worked
+I'll be the tester and successful outcome will be that all retirees listed in the
+database table of retirees appear on the web page.
+So that's how you would do a test plan. You specify very specifically the actions
+that you are taking and what outcome you expect to see. You're also indicating who's
+doing the testing. Now one thing that I forgot to mention is under task estimation,
+you should always include for each feature testing time,
+time to perform the tests. So for example, I might include under feature ID 1,
+a 1 .C
+test retirees are listed and
+so the test description is to perform perhaps test
+1 .a and
+might take one hour to do this maybe maybe far less But the tasker that depends on
+is probably that 1 .b is completed You can't you won't be able to do this unless
+you actually are connecting the retiree table to the database And the person who's
+doing it is Ray in other words You should include your testing, the testing you're
+going to be doing in your task estimation because that is going to take up some
+time as well. If you want to be more general about it and not list individual
+tests that are supposed to be performed but instead wanted to just use a blanket
+term of testing and you want to say maybe all together it's going to take two
+hours to test the product to test that particular feature that's that's fine you
+could do that we'll make sure you include testing in your task estimation because
+it's actually a pretty important part of your overall development time so that's what
+I'm expecting you to do for this assignment that is due next Sunday at 1159 p .m.
+clearly you have to have a very specific goal in mind for your product.
+You have to have a very clear vision of how the user is going to be interacting
+with it and what they're going to see and what they're going to do with it. So
+please make sure that you give serious thought to the user's experience.
+If you can't do that at this point You need to work extremely hard this week to
+get to the point where you have a very clear vision of what it is that you're
+building and what it's going to look like. Okay, we're at the midpoint of the
+semester. You definitely at this point should be equipped to and prepare to describe
+specifically how the user is going to be interacting with what you're building. It's
+really important. As always, let me know when you have questions. Again, be specific.
+Work really hard this week to come up with a very clear vision of what you're
+building. It's really important that you get to that point this week, okay? All
+right, good luck.

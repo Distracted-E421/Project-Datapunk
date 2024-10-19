@@ -1,0 +1,12 @@
+Feature ID,Test ID,Test Name,Test Description,Tester,Successful Outcome
+F1,1.A,Verify JSON Data Import Functionality,Test the ability of the system to import JSON data without errors.,Ethan E.,JSON data is imported successfully with all fields validated.
+F1,1.B,Validate CSV Data Import Accuracy,Ensure CSV data can be imported accurately into the database.,Ethan E.,CSV data is imported without data loss or errors.
+F1,1.C,Check GeoJSON Data Import Process,Verify that GeoJSON data imports correctly including geospatial fields.,Ethan E.,GeoJSON data is imported with correct geospatial properties.
+F1,1.D,Verify Google API Sync - Initial Connection,Test the OAuth connection to Google's API.,Ethan E.,OAuth connection is successfully established and token is retrieved.
+F1,1.E,Verify Google Data Extraction Logic,Check that data can be correctly extracted from Google API.,Ethan E.,Data from Google API is extracted and stored in the database.
+F1,1.F,Verify Error Handling for Google Sync,Test error handling during Google API synchronization.,Ethan E.,All errors are logged and appropriate error messages are shown.
+F1,1.G,Validate Error Detection for Invalid File Formats,Ensure system can detect invalid file formats during import.,Ethan E.,Invalid file formats are detected and the user is notified.
+F1,1.H,Ensure User-Friendly Error Messages for Invalid Files,Check that error messages for invalid file formats are understandable to the user.,Ethan E.,User receives clear and actionable error messages.
+F1,1.I,Verify Spotify API Authentication,Test OAuth authentication for Spotify API access.,Ethan E.,Successful OAuth connection and token management for Spotify API.
+F1,1.J,Verify Spotify Data Retrieval Process,Ensure data retrieval from Spotify API works as expected.,Ethan E.,Data from Spotify API is retrieved and stored without errors.
+F1,1.K,Validate Microsoft Manual Data Sync,Test manual synchronization of data from Microsoft services.,Ethan E.,Data from Microsoft services is manually imported correctly and stored.

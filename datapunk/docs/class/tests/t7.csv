@@ -1,0 +1,6 @@
+Feature ID,Test ID,Test Name,Test Description,Tester,Successful Outcome
+F7,7.A,Test Google Takeout Data Upload,Verify that users can manually upload Google Takeout data without issues.,Ethan E.,Google Takeout data is successfully uploaded and processed without errors.
+F7,7.B,Verify Error Feedback for Incomplete Data Uploads,Ensure that users receive proper feedback when attempting to upload incomplete data.,Ethan E.,Users receive clear and actionable error messages when attempting to upload incomplete data.
+F7,7.C,Validate File Format During Data Upload,Verify that the system checks and validates file formats during manual uploads.,Ethan E.,Only files with supported formats are accepted and incorrect formats are flagged with appropriate error messages.
+F7,7.D,Ensure Proper Data Mapping for Google Takeout,Verify that users can map fields from Google Takeout data during the upload process.,Ethan E.,Users can successfully map fields ensuring data accuracy during the upload process.
+F7,7.E,Test Data Privacy Compliance for Manual Uploads,Ensure that manual uploads comply with data privacy guidelines.,Ethan E.,Data privacy compliance is maintained during manual uploads with transparency to users.
