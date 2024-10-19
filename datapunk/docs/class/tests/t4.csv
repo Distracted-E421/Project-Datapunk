@@ -1,6 +1,0 @@
-Feature ID,Test ID,Test Name,Test Description,Tester,Successful Outcome
-F4,4.A,Test OAuth Authentication for Google,Verify that OAuth 2.0 authentication for Google is working properly.,Ethan E.,OAuth connection is successfully established allowing secure access to Google services.
-F4,4.B,Test OAuth Authentication for Spotify,Ensure that OAuth 2.0 authentication for Spotify works as expected.,Ethan E.,OAuth connection is successfully established allowing secure access to Spotify services.
-F4,4.C,Verify LUKS Encryption Setup,Check that LUKS encryption is set up correctly for local storage.,Ethan E.,LUKS encryption is successfully configured and protects local data.
-F4,4.D,Ensure LUKS Encryption Testing and Verification,Verify that LUKS encryption is functioning as intended by testing data accessibility.,Ethan E.,All encryption tests pass confirming that data is secure and accessible only when decrypted properly.
-F4,4.E,Verify TLS Encryption for Data in Transit,Ensure that data in transit is encrypted using TLS to protect against unauthorized access.,Ethan E.,Data transmissions are securely encrypted with TLS verified by passing all connection security tests.

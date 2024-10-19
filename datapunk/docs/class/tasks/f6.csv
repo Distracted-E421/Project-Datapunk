@@ -1,5 +1,0 @@
-Feature ID,Task ID,Task Name,Task Description,Estimated Hours,Dependent Task IDs,Success Criteria,Assigned Team Member
-F6,6.1,Develop General Data Correlation Mechanism - Define Correlation Parameters,Define the parameters for correlating data across different sources (e.g. time / user behavior).,5,N/A,Correlation parameters are clearly defined and documented.,Ethan E.
-F6,6.2,Develop General Data Correlation Mechanism - Implement Correlation Logic,Implement the logic to perform correlations based on the defined parameters.,6,6.1,Correlation mechanism works effectively providing accurate results.,Ethan E.
-F6,6.3,Implement Cross-Source Correlation for Different Data Types,Develop a system to correlate data from different sources such as Google Spotify and Microsoft.,7,6.2,Data from multiple sources is successfully correlated providing holistic insights.,Ethan E.
-F6,6.4,Create User-Defined Correlation Rules,Allow users to define their own correlation rules making the analysis customizable.,6,6.2,Users are able to define and save custom correlation rules.,Ethan E.

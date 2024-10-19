@@ -1,5 +1,0 @@
-Feature ID,Test ID,Test Name,Test Description,Tester,Successful Outcome
-F6,6.A,Verify Correlation Parameters for Data Sources,Verify that parameters for correlating data across different sources are correctly defined.,Ethan E.,Correlation parameters are accurately defined and documented.
-F6,6.B,Test Data Correlation Logic Across Sources,Ensure that data from different sources is correlated correctly based on defined parameters.,Ethan E.,Data from multiple sources is successfully correlated providing meaningful combined insights.
-F6,6.C,Ensure Cross-Source Data Correlation Functionality,Verify that cross-source correlation works effectively for all supported data types.,Ethan E.,Data correlation across various sources works without any issues providing comprehensive insights.
-F6,6.D,Verify User-Defined Correlation Rules,Check that users can define and save their own custom correlation rules.,Ethan E.,Users are able to define and save custom correlation rules and the system uses them correctly in analysis.

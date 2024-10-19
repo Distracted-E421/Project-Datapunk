@@ -1,7 +1,0 @@
-Feature ID,Test ID,Test Name,Test Description,Tester,Successful Outcome
-F2,2.A,Test Widget Drag-and-Drop Functionality,Verify that widgets can be dragged smoothly around the dashboard without glitches.,Ethan E.,Widgets are smoothly draggable with no lag or visual errors.
-F2,2.B,Verify Snap-to-Grid Alignment for Widgets,Test if widgets snap correctly to the grid when being moved.,Ethan E.,Widgets snap accurately to predefined grid positions.
-F2,2.C,Test Line Chart Visualization Accuracy,Ensure that line charts correctly visualize the given data.,Ethan E.,Line charts display accurate data values without any visual discrepancies.
-F2,2.D,Verify Heatmap Visualization Data Display,Check that the heatmap displays data correctly with appropriate color scaling.,Ethan E.,Heatmap visualization reflects accurate data values with consistent color scaling.
-F2,2.E,Test User Dashboard Layout Persistence,Verify that the dashboard layout is saved and restored correctly after changes.,Ethan E.,Dashboard layout persists between sessions without loss of changes.
-F2,2.F,Verify Widget Resizing and Position Saving,Test that widgets can be resized and their positions are saved.,Ethan E.,Widgets can be resized and their new size and position are retained between sessions.

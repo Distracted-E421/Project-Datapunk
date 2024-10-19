@@ -1,6 +1,0 @@
-Feature ID,Task ID,Task Name,Task Description,Estimated Hours,Dependent Task IDs,Success Criteria,Assigned Team Member
-F7,7.1,Develop Manual Upload of Google Takeout Data,Create a system for users to manually upload their Google Takeout data.,6,N/A,Google Takeout data is successfully uploaded and processed.,Ethan E.
-F7,7.2,Implement Error Feedback for Incomplete Data,Develop feedback mechanisms to alert users about incomplete or missing data during upload.,4,N/A,Users receive clear notifications about any incomplete data.,Ethan E.
-F7,7.3,Validate Data Format During Manual Upload,Implement validation to ensure that uploaded files are in the correct format before processing.,5,7.1,All uploaded files are validated and improperly formatted files are flagged.,Ethan E.
-F7,7.4,Add Data Mapping Interface for Google Takeout Uploads,Develop a user-friendly interface that allows users to map fields from their Google Takeout data during the upload process.,6,7.1,Users are able to map data fields during the upload ensuring accuracy.,Ethan E.
-F7,7.5,Ensure Data Privacy Compliance for Manual Uploads,Review and ensure that manual uploads comply with data privacy guidelines and provide transparency to users.,4,N/A,Data privacy compliance for all manual uploads is documented and followed.,Ethan E.

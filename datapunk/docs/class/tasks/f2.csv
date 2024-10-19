@@ -1,7 +1,0 @@
-Feature ID,Task ID,Task Name,Task Description,Estimated Hours,Dependent Task IDs,Success Criteria,Assigned Team Member
-F2,2.1,Develop Widget Drag-and-Drop Functionality - Basic Dragging Mechanism,Develop basic functionality for dragging widgets around the dashboard.,5,N/A,Widgets can be dragged smoothly around the dashboard without lag or disruption.,Ethan E.
-F2,2.2,Develop Widget Drag-and-Drop Functionality - Snap-to-Grid Implementation,Implement a snap-to-grid feature for widget alignment during drag-and-drop operations.,4,2.1,Widgets snap correctly to grid points after being dragged.,Ethan E.
-F2,2.3,Create Line Chart Visualization Component,Develop a component that visualizes data using line charts.,6,N/A,Line chart component is created and displays data accurately.,Ethan E.
-F2,2.4,Create Heatmap Visualization Component,Create a component to visualize geospatial or tabular data using heatmaps.,8,N/A,Heatmap displays data with appropriate color scaling based on values.,Ethan E.
-F2,2.5,Implement Dashboard Layout Customization - User Layout Persistence,Add functionality to save and restore user-specific dashboard layouts.,5,2.1,Dashboard layout is retained after closing and reopening the application.,Ethan E.
-F2,2.6,Add Widget Resizing and Position Saving Features,Implement resizing for widgets and ensure that their positions are saved.,4,N/A,Widgets can be resized and positions are saved correctly.,Ethan E.
