@@ -1,4 +1,3 @@
-Hi.
 Thank you for registering for CPSC 69100: Master's Project.
 Since you're taking this course, that means you must be really close to graduating. Congratulations on what you have accomplished so far.
 Please take a moment to read the syllabus. The syllabus is the very first link you'll see in Blackboard.
@@ -8,10 +7,7 @@ The first step toward forming groups is to make each other aware of our skills a
 The assignment after that will be due the following Sunday night. There you will describe an idea you have for a project. It won't be your final idea necessarily, but it will be something you think you'd like to work on. Even though that's two weeks away, start thinking about what projects you'd like to work on this semester. That will make figuring out what you want to do easier.
 Please let me know if you have any questions or concerns about the course. It may seem like a lot of work, but if we work a little bit each day on our projects, we'll make the slow, steady progress required for this to be a relatively stress-free success.
 So again, read the syllabus, and let me know if you have questions about it. Also, start working on your resume.
-Have a nice weekend. 
-Ray
 -----
-Hi, everyone.
 I hope you doing well as we start the semester.
 This is just a reminder that your resume is due by 11:59pm this Sunday. Per the syllabus, this is how it will be graded:
 Lists / explains specific skills - 3 points 
@@ -23,10 +19,7 @@ Is written well - 3 points
 So, make sure you tailor your resume to meet these requirements.
 Also, be thinking this week about a project that you'd be interested in doing. Describing a project is not due this week, but it will be due next Sunday, September 8. You might as well spend some time this weekend thinking about good ideas for a project you'd like to pursue.
 Let me know when you have questions or concerns.
-Ray
 -----
-Hi, everyone. 
-I hope you are enjoying the course so far.
 I graded everyone's resume. Together, you have a very strong set of skills in diverse technologies. I was happy to see that.
 For this week's assignment, which is due September 8 at 11:59pm, you'll post a description of an idea you have for a project. It isn't necessarily going to be the project you pursue this semester. Instead, it will advertise to your colleagues something that you are interested in working on for the next 13 weeks or so, and then you will team up with colleagues who have similar interests to take your ideas and come up with a joint group project idea that matches all of your interests. Of course, some of you might choose to work alone on something, and that is fine. My point is, though, that the project idea you have to submit on 9/8 is not necessarily your final project proposal. Your final project proposal, whether group or individual in nature, is due 9/22.
 This is how your proposal that is due on September 8 will be graded:
@@ -38,9 +31,7 @@ Realistic estimate of personnel requirements: 2 points
 Quality of writing: 3 points
 I will be in Room AS106A on campus on Wednesday at noon if you'd like to meet with me to talk about your idea. This is not a mandatory meeting, but it is an opportunity for you to meet with me face-to-face. Remember that you must meet with me at least 2 times this semester to satisfy the in-person class requirement. Please email me to let me know you will be there at noon on Wednesday if you plan to attend. There will be other opportunities to fulfill your in-person requirement if you can't make it this week.
 Please let me know if you do not understand or if you have questions about anything in the course so far.
-Ray
 -----
-Hi, everybody.
 This is just a reminder that your project idea writeups are due Sunday by 11:59pm. This is how they will be scored:
 Engaging, clear title: 2 points
 Clear, concise description of approximately 3 paragraphs: 6 points
@@ -49,16 +40,11 @@ Appropriate, complete listing of skills: 3 points
 Realistic estimate of personnel requirements: 2 points
 Quality of writing: 3 points
 Please remember that these project ideas aren't necessarily what you will work on this semester. You may find others' ideas more interesting and decide to team up with them instead of doing your own project. But it's important to see what all of you are interested in so that teams might form around shared interests and ideas. So please write about an idea you realistically see yourself doing and enjoying for the rest of the semester. Then, during the next two weeks, you'll have time to think further about whether that's what you want to work on or whether you want to partner with someone else instead on some other idea.
-Ray
 -----
-Good morning, everyone.
 If you've already submitted your project idea for tonight, I've graded it, and you don't have to be concerned with this email.
 For those of you who haven't submitted yet, please type or paste your description of your idea directly into Blackboard. I want everyone to have a chance to read each other's ideas so that groups can form easily. While everyone can download each other's pdf's or word documents, it would be easier for everyone just to read the descriptions in Blackboard. So, instead of posting an attached document, please enter your description directly into Blackboard.
 If you've already started typing a Word document, just paste its text into Word and, if necessary, fix the formatting in Blackboard if it got messed up.
-Thank you.
-Ray
 -----
-Hi, everyone.
 I have graded your individual project proposals and left comments. I was really impressed by the quality of your ideas. The most common problem was too much ambition, as some of you described a project that could not be completed in six to eight weeks of development because it was too broad or too complicated. In those cases, I recommended that you narrow your focus significantly to an aspect of your proposed project.
 You now have two weeks to read through each other's proposals and resumes and determine what projects you want to pursue for the remainder of the course and with whom. Use this week to become acquainted with each other's projects and skills. If you really like your own idea but need a partner to work with, look at other student's resumes to see who has the skills you need to complete your team. If you are open to work with someone else on their project rather than the one you proposed, seek out those that interest you that need someone with your specific skills to join the team.
 You can certainly work on your own on the project you proposed this week if that's what you prefer, provided you are confident you could complete it on your own.
@@ -72,6 +58,32 @@ Comparison of your approach to previous approaches - 3 points
 Summary of personnel - 5 points
 Will not be able to do this in just a few hours the night it is due. You must get started on it now in order to have a good proposal to turn in on the 22nd.
 I will be in AS106A on 9/11 and on 9/16 at 11:50am. If you want to meet with me in person, please be there at 11:50am and we can talk about your proposal. Also, feel free to reach out to me anytime by email or by scheduling an online meeting using the Schedule a Meeting link in Blackboard.
-Have a good day.
-Ray
 -----
+Hi, everyone.
+This is a reminder that your next assignment is the formal project launch document. It is due Sunday, September 22, at 11:59pm. For that assignment, you must describe in detail the project you are going to work on for the rest of the semester. As part of that proposal, you must also announce the members of your team. I know some of you prefer to work alone, but many of you indicated you wanted to work with others on a project because your project required more people with diverse skills. If that is the case, you must take these days now to read each other's resumes and idea posts and try to find people to team up with to form your project group. You can't put that off because then you'll run out of time to complete your project proposal. So, if you haven't been reviewing your classmates' resumes and idea posts, do that this weekend and reach out to people you think you might like to team up with. And, do respect the decision of some who wish to work alone. Not everyone is going to work in a team, and that is totally fine.
+------
+Just a reminder that your written project launch is due Sunday by 11:59pm.
+Remember to address these points in your project proposal:
+Clear, engaging title - 2 points
+Paragraph description of what the project will achieve - 3 points
+Summary of main goals - 3 points
+Explanation of the project's value - 3 points
+Description of other approaches including citations - 6 points
+Comparison of your approach to previous approaches - 3 points
+Summary of personnel - 5 points
+If you are going to work in a group, please limit your group to no more than 3 students. In rare, exceptional cases, I will approve a group of 4, but it will have to be a very large project for me to approve it. So, please limit your groups to 3 people or fewer. Working alone is fine too.
+Please use the "Written Project Launch" link to submit your proposal. Please post only one submission per group, but clearly indicate everyone's name on the title page.
+------
+You all did really well on the Project Launch Proposals. You should be proud of yourselves. I am excited to see what you are all able to accomplish to bring your excellent ideas to life.
+Our next assignment - which is due October 6 at 11:59pm, is the requirements document. This is where you'll bring your idea much closer to reality because you'll formally itemize all the different tasks you'll have to perform to get it there.
+To complete the requirements document assignment, please fill in this template:
+https://www.dropbox.com/scl/fi/64ck0xu8ti997dx9jtzil/requirements_document_template.docx?rlkey=7b29e3mwblulp0sml1w7c8pe3&st=sy9qd9j1&dl=0
+What's very important to remember as you complete the document is the need to be very detailed. Make sure you provide lots and lots of details about what you will build by December of this semester. Please do not write a business pitch, as you've already done that in the previous assignment. I need you to tell me very specifically what you are going to implement.
+For example, if you are your project is going to give HR an opportunity to see employee data, you can't say this:
+"The product will give HR representatives access to reports."
+You have to say this instead:
+"The product will enable HR representatives to view upcoming time off for employees. They will see a table listing each person and the dates of their upcoming time off. For each person, the total number of hours requested and the number of hours of vacation they have left will be displayed. The user will be able to sort employees by their last name as well as by the amount of time off they have left."
+"The product will enable HR representatives to review sick leave totals for their employees. They will see a table listing each person and the amount of sick leave they have used and how much they have left. The user will be able to sort employees by their names as well as by how much sick leave they have remaining."
+Do you see what I mean? I need very firm details on what the product will offer its users. You have to provide that level of detail. When you do, you might end up scaling back what you promise to deliver by December because you'll see how much work it will require. That's ok. I want these to be realistic accounts of what you will build.
+Obviously, this document will require a lot of work and time to complete. So, work on it a little every day. You will not be able to complete it well if you wait until the last day or two to write it.
+------
