@@ -87,3 +87,94 @@ You have to say this instead:
 Do you see what I mean? I need very firm details on what the product will offer its users. You have to provide that level of detail. When you do, you might end up scaling back what you promise to deliver by December because you'll see how much work it will require. That's ok. I want these to be realistic accounts of what you will build.
 Obviously, this document will require a lot of work and time to complete. So, work on it a little every day. You will not be able to complete it well if you wait until the last day or two to write it.
 ------
+I hope you have had a good week.
+Please be working on your next assignment a little every day. Remember that you need to complete this document:
+requirements_document_template.docx (dropbox.com)
+You have to think deeply and carefully about what you are intending to build. You need to do a good job on this so that you have a solid plan for what you'll spend the rest of the semester making. So, please put a lot of thought into this and carefully consider what you are going to build.
+Please let me know when you have questions.
+------
+I have graded your Business Requirements document. Several of you did well, and I was pleased. A few of you need to add a lot more detail on your features and development needs.
+I have revised the syllabus to have the next assignment - Task Estimation and Testing - due in two weeks - October 20, 11:59pm. It was originally going to be split into two parts, with one due next Sunday and the other due the Sunday after that, but I wanted to give you more time for the task estimation part. Please make good use of the extra time. Do not procrastinate. Instead, start immediately while the work you did on the requirements document is still fresh in mind.
+This assignment combines two important deliverables:
+Task estimation: a very detailed account of the tasks you will perform to deliver a product with the features you identified in the previous assignment.
+Test plans: once your initial development on your project is complete, how will you test it to make sure it works?
+These two tasks must be completed by filling in this spreadsheet:
+https://www.dropbox.com/scl/fi/opj63v8g223j4h7fi9klz/task_estimation_and_testing_spreadsheet.xlsx?rlkey=c7le7t5jpwp12gtfbi5gyxsiy&st=h9cddo5k&dl=0
+Just download the xlsx file and begin filling it in. Submit it to complete this assignment.
+I have recorded a video to help you understand how to complete it:
+https://www.dropbox.com/scl/fi/d1nz8rzc406q1xwgrnql8/task_estimation_and_testing.mp4?rlkey=3q8i871mr23oqbit3o34ri7o6&st=21an3cgy&dl=0
+Please watch it and let me know if you have questions.
+This is due Sunday, October 20 by 11:59pm.
+Some of you will have to work on your Business Requirements document more before trying to itemize tasks and write test plans. You need to have a very clear and focused accounting of the features you will deliver, with every detail envisioned from the user's or customer's perspective. What features will the user make use of, and how will you deliver these features to the user? If you aren't clear on those details at a very precise level - and some of you were but some of you weren't on the last assignment - you can't come up with a schedule of tasks you will complete nor how to test the features you deliver. You must be very clear in your understanding of what features you will deliver or you can't estimate tasks and create test plans. So make sure you spend the first part of this week working on refining your requirements document if I indicated you need to. Then watch the video I linked above and begin filling in the spreadsheet.
+Again, this is due October 20 at 11:59pm.
+As always, let me know when you have questions.
+------
+I hope you are doing well.
+I wrote you last week to inform you of the next assignment - Task Estimation and Testing. 
+This assignment combines two important deliverables:
+Task estimation: a very detailed account of the tasks you will perform to deliver a product with the features you identified in the previous assignment.
+Test plans: once your initial development on your project is complete, how will you test it to make sure it works?
+These two tasks must be completed by filling in this spreadsheet:
+https://www.dropbox.com/scl/fi/opj63v8g223j4h7fi9klz/task_estimation_and_testing_spreadsheet.xlsx?rlkey=c7le7t5jpwp12gtfbi5gyxsiy&st=l2ycy0g4&dl=0
+Just download the xlsx file and begin filling it in. Submit it to complete this assignment. Only one submission per group is required, but make sure you clearly identify your team's members in the spreadsheet where it asks you to do so.
+I have recorded a video to help you understand how to complete it:
+https://www.dropbox.com/scl/fi/d1nz8rzc406q1xwgrnql8/task_estimation_and_testing.mp4?rlkey=3q8i871mr23oqbit3o34ri7o6&st=i8b2h9hu&dl=0
+Please watch it and let me know if you have questions.
+This is due Sunday, October 20 by 11:59pm.
+Please remember that you can't do this task effectively if you haven't updated your Business Requirements document from last week to be very specific and detailed. Some of you did very well on that assignment and were extremely detailed in your descriptions of what your project would achieve. Others of you were not. All of you need to be super-detailed in your descriptions of your requirements or else you won't be able to estimate tasks correctly and prescribe test plans. So make sure you refine your business requirements for yourself first.
+Also, please don't put this assignment off. You need to think long and hard about what tasks are involved in developing what you have proposed to make and how to test it. You will not be able to do this in just an afternoon or a day. You need to think about this over several days, write some content down, and refine it over time. You need to use these days to do that.
+Again, this is due October 20 at 11:59pm.
+As always, let me know when you have questions.
+------
+Hopefully you've been spending some quality time working thoughtfully on your task estimation and test plans. Please make sure you complete these items on the Excel spreadsheet and submit the Excel spreadsheet to Blackboard. Please clearly identify the names of the team members on the first sheet of the Excel document. Note that you need to turn in only one Excel document per team.
+Please watch the video I posted to ensure that you are doing it correctly. It will not be sufficient to have only one task listed per feature. You have to be very clear about how you will build each feature and how long each task will take. There is no way you can implement a feature by doing just one task. Instead, you have to be very detailed in describing exactly how you will deliver what you promise, and that means listing probably several tasks. 
+Likewise, your test plans have to be detailed as well.
+Perhaps one way to make sure you have the right amount of detail is to read your list of tasks and ask yourself whether you think the feature they support would actually be ready for the user to use if you performed all those tasks successfully. Similarly, a way to gauge whether you've sufficiently documented a test plan is to ask yourself if carrying out that test will help you assess conclusively whether the feature is working as it should.
+Remember that you've had two weeks to do this task, so it should represent two weeks of your serious effort and demonstrate your detailed understanding of what you will be doing to implement your features during the next seven weeks. What you include in the spreadsheet is your plan for what you will do for the remainder of the course to deliver what you've promised. So doing a good job sets you up to succeed. Doing a poor or half-hearted job will make it very difficult for you to achieve your goals.
+Please don't wait until the last couple of hours to complete this. You should have started it over a week ago, so you probably are pretty close to being done.
+Let me know if you have any qeustions.
+------
+Hi, everyone.
+Most of you did very well on this week's assignment. A few of you did not include enough detail for your task estimations and test plans, so you should definitely go back and add that detail so that you can know how to proceed on your project.
+You are now in the part of the course where you need to work on your project. Your goal, of course, is to implement the features you've proposed before the end of the semester. That is why I had you estimate tasks the past two weeks. Now that you know in detail what tasks are needed and how long they will likely take and how they depend on each other, you can work a little every day to implement them.
+Each week, you'll be keeping track of your work and submitting a summary of it. This is what is due next Sunday by 11:59pm:
+Describe in detail what you accomplished during the week. Your weekly log should begin with a title block in which you show the title of your project and the names of all your team members. Then, the log should present what you did related to the tasks you put on your task estimate. Here is how each entry should look:
+Name of Feature: ________
+
+Name of Task (from the Task Estimate spreadsheet you turned in 10/20): ________
+
+Amount of Time: __________ hrs
+
+Performed By: ____________________
+
+Description (include screen shots if it is helpful): ____________________________
+
+________________________________________________________________________________
+
+________________________________________________________________________________
+Include entries like this for each task you accomplished this week. Make sure you include screen shots.
+So, for example, your weekly log might look like this:
+***
+Implementing a Secure Online Room Reservation System
+Joe Smith and Mary Jones
+Here is what was done this week.
+Name of Feature: Secure login page
+Name of Task (from the Task Estimate spreadsheet you turned in 10/20): Built user interface
+Amount of Time: 2 hours
+Performed By: Joe Smith, Mary Jones
+Description: We built the login page in HTML. We used Bootstrap to style it. The page includes warning messages when the user forgets to supply a username or password. Here is a screenshot
+<include screenshot here as evidence that you did this)
+Name of Feature: Secure login page
+Name of Task (from the Task Estimate spreadsheet you turned in 10/20): Implement login logic
+Amount of Time: 2 hours
+Performed by: Mary Jones
+Description: The login logic was implemented in PHP. When the user enters a username and password and clicks submit, we query the MySQL database looking for a match, applying SHA1 to the password first. If there is a match, we redirect to the start page. If they don't enter a valid username and password, we show an error message. Here is a screenshot of the code:
+<include screenshot of the code here as evidence of what you did>
+Name of Feature: Secure login page
+Name of Task (from the Task Estimate spreadsheet you turned in 10/20): Build user table
+Amount of Time: 1 hour
+Performed by: Joe Smith
+Description: Added User table to MySQL database. It has columns for username and password, and the primary key is auto-generated. Here is a screenshot of the table:
+<include screeenshot of the table here>
+***
+Please note that you must provide details and screenshots that convince me that you actually accomplished what you claim. If you do not include details and screenshots that show that you did the work, you will not receive credit.
