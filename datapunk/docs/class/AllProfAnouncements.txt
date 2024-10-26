@@ -1,0 +1,180 @@
+Thank you for registering for CPSC 69100: Master's Project.
+Since you're taking this course, that means you must be really close to graduating. Congratulations on what you have accomplished so far.
+Please take a moment to read the syllabus. The syllabus is the very first link you'll see in Blackboard.
+My goal in designing this course is to give you a real-world IT project experience. Whether your project involves writing an application, setting up a network, examining forensic data, instituting cybersecurity controls, designing control algorithms for autonomous devices, or some mix thereof, you should be able to work through the deliverables listed in the syllabus as you complete your project. By the end of the semester, you will have created a project from its inception to its final delivery, and you'll be really proud of the result.
+My hope is you'll work as part of a group. I know some of you might want to work alone, and I'll allow that, but I'd prefer you work in teams because that's how the working world operates. I won't penalize you either way, however.
+The first step toward forming groups is to make each other aware of our skills and interests. That is why the first assignment, which is due next Sunday by 11:59pm, is to post your resume. Make sure you highlight your skills, interests, and other things listed in the syllabus's description of this assignment in your resume. You'll find the place to submit your resume in the Deliverables folder.
+The assignment after that will be due the following Sunday night. There you will describe an idea you have for a project. It won't be your final idea necessarily, but it will be something you think you'd like to work on. Even though that's two weeks away, start thinking about what projects you'd like to work on this semester. That will make figuring out what you want to do easier.
+Please let me know if you have any questions or concerns about the course. It may seem like a lot of work, but if we work a little bit each day on our projects, we'll make the slow, steady progress required for this to be a relatively stress-free success.
+So again, read the syllabus, and let me know if you have questions about it. Also, start working on your resume.
+-----
+I hope you doing well as we start the semester.
+This is just a reminder that your resume is due by 11:59pm this Sunday. Per the syllabus, this is how it will be graded:
+Lists / explains specific skills - 3 points 
+Lists / explains specific interests - 3 points 
+Describes past work and educational experiences - 3 points 
+Includes contact information - 2 points 
+Is formatted well 2 points 
+Is written well - 3 points 
+So, make sure you tailor your resume to meet these requirements.
+Also, be thinking this week about a project that you'd be interested in doing. Describing a project is not due this week, but it will be due next Sunday, September 8. You might as well spend some time this weekend thinking about good ideas for a project you'd like to pursue.
+Let me know when you have questions or concerns.
+-----
+I graded everyone's resume. Together, you have a very strong set of skills in diverse technologies. I was happy to see that.
+For this week's assignment, which is due September 8 at 11:59pm, you'll post a description of an idea you have for a project. It isn't necessarily going to be the project you pursue this semester. Instead, it will advertise to your colleagues something that you are interested in working on for the next 13 weeks or so, and then you will team up with colleagues who have similar interests to take your ideas and come up with a joint group project idea that matches all of your interests. Of course, some of you might choose to work alone on something, and that is fine. My point is, though, that the project idea you have to submit on 9/8 is not necessarily your final project proposal. Your final project proposal, whether group or individual in nature, is due 9/22.
+This is how your proposal that is due on September 8 will be graded:
+Engaging, clear title: 2 points
+Clear, concise description of approximately 3 paragraphs: 6 points
+Convincing explanation of the project's value: 6 points
+Appropriate, complete listing of skills: 3 points
+Realistic estimate of personnel requirements: 2 points
+Quality of writing: 3 points
+I will be in Room AS106A on campus on Wednesday at noon if you'd like to meet with me to talk about your idea. This is not a mandatory meeting, but it is an opportunity for you to meet with me face-to-face. Remember that you must meet with me at least 2 times this semester to satisfy the in-person class requirement. Please email me to let me know you will be there at noon on Wednesday if you plan to attend. There will be other opportunities to fulfill your in-person requirement if you can't make it this week.
+Please let me know if you do not understand or if you have questions about anything in the course so far.
+-----
+This is just a reminder that your project idea writeups are due Sunday by 11:59pm. This is how they will be scored:
+Engaging, clear title: 2 points
+Clear, concise description of approximately 3 paragraphs: 6 points
+Convincing explanation of the project's value: 6 points
+Appropriate, complete listing of skills: 3 points
+Realistic estimate of personnel requirements: 2 points
+Quality of writing: 3 points
+Please remember that these project ideas aren't necessarily what you will work on this semester. You may find others' ideas more interesting and decide to team up with them instead of doing your own project. But it's important to see what all of you are interested in so that teams might form around shared interests and ideas. So please write about an idea you realistically see yourself doing and enjoying for the rest of the semester. Then, during the next two weeks, you'll have time to think further about whether that's what you want to work on or whether you want to partner with someone else instead on some other idea.
+-----
+If you've already submitted your project idea for tonight, I've graded it, and you don't have to be concerned with this email.
+For those of you who haven't submitted yet, please type or paste your description of your idea directly into Blackboard. I want everyone to have a chance to read each other's ideas so that groups can form easily. While everyone can download each other's pdf's or word documents, it would be easier for everyone just to read the descriptions in Blackboard. So, instead of posting an attached document, please enter your description directly into Blackboard.
+If you've already started typing a Word document, just paste its text into Word and, if necessary, fix the formatting in Blackboard if it got messed up.
+-----
+I have graded your individual project proposals and left comments. I was really impressed by the quality of your ideas. The most common problem was too much ambition, as some of you described a project that could not be completed in six to eight weeks of development because it was too broad or too complicated. In those cases, I recommended that you narrow your focus significantly to an aspect of your proposed project.
+You now have two weeks to read through each other's proposals and resumes and determine what projects you want to pursue for the remainder of the course and with whom. Use this week to become acquainted with each other's projects and skills. If you really like your own idea but need a partner to work with, look at other student's resumes to see who has the skills you need to complete your team. If you are open to work with someone else on their project rather than the one you proposed, seek out those that interest you that need someone with your specific skills to join the team.
+You can certainly work on your own on the project you proposed this week if that's what you prefer, provided you are confident you could complete it on your own.
+Your final proposal will be due on September 22 at 11:59pm. It will be graded per the rubric in the syllabus, which I've reprinted here:
+Clear, engaging title - 2 points
+Paragraph description of what the project will achieve - 3 points
+Summary of main goals - 3 points
+Explanation of the project's value - 3 points
+Description of other approaches including citations - 6 points
+Comparison of your approach to previous approaches - 3 points
+Summary of personnel - 5 points
+Will not be able to do this in just a few hours the night it is due. You must get started on it now in order to have a good proposal to turn in on the 22nd.
+I will be in AS106A on 9/11 and on 9/16 at 11:50am. If you want to meet with me in person, please be there at 11:50am and we can talk about your proposal. Also, feel free to reach out to me anytime by email or by scheduling an online meeting using the Schedule a Meeting link in Blackboard.
+-----
+Hi, everyone.
+This is a reminder that your next assignment is the formal project launch document. It is due Sunday, September 22, at 11:59pm. For that assignment, you must describe in detail the project you are going to work on for the rest of the semester. As part of that proposal, you must also announce the members of your team. I know some of you prefer to work alone, but many of you indicated you wanted to work with others on a project because your project required more people with diverse skills. If that is the case, you must take these days now to read each other's resumes and idea posts and try to find people to team up with to form your project group. You can't put that off because then you'll run out of time to complete your project proposal. So, if you haven't been reviewing your classmates' resumes and idea posts, do that this weekend and reach out to people you think you might like to team up with. And, do respect the decision of some who wish to work alone. Not everyone is going to work in a team, and that is totally fine.
+------
+Just a reminder that your written project launch is due Sunday by 11:59pm.
+Remember to address these points in your project proposal:
+Clear, engaging title - 2 points
+Paragraph description of what the project will achieve - 3 points
+Summary of main goals - 3 points
+Explanation of the project's value - 3 points
+Description of other approaches including citations - 6 points
+Comparison of your approach to previous approaches - 3 points
+Summary of personnel - 5 points
+If you are going to work in a group, please limit your group to no more than 3 students. In rare, exceptional cases, I will approve a group of 4, but it will have to be a very large project for me to approve it. So, please limit your groups to 3 people or fewer. Working alone is fine too.
+Please use the "Written Project Launch" link to submit your proposal. Please post only one submission per group, but clearly indicate everyone's name on the title page.
+------
+You all did really well on the Project Launch Proposals. You should be proud of yourselves. I am excited to see what you are all able to accomplish to bring your excellent ideas to life.
+Our next assignment - which is due October 6 at 11:59pm, is the requirements document. This is where you'll bring your idea much closer to reality because you'll formally itemize all the different tasks you'll have to perform to get it there.
+To complete the requirements document assignment, please fill in this template:
+https://www.dropbox.com/scl/fi/64ck0xu8ti997dx9jtzil/requirements_document_template.docx?rlkey=7b29e3mwblulp0sml1w7c8pe3&st=sy9qd9j1&dl=0
+What's very important to remember as you complete the document is the need to be very detailed. Make sure you provide lots and lots of details about what you will build by December of this semester. Please do not write a business pitch, as you've already done that in the previous assignment. I need you to tell me very specifically what you are going to implement.
+For example, if you are your project is going to give HR an opportunity to see employee data, you can't say this:
+"The product will give HR representatives access to reports."
+You have to say this instead:
+"The product will enable HR representatives to view upcoming time off for employees. They will see a table listing each person and the dates of their upcoming time off. For each person, the total number of hours requested and the number of hours of vacation they have left will be displayed. The user will be able to sort employees by their last name as well as by the amount of time off they have left."
+"The product will enable HR representatives to review sick leave totals for their employees. They will see a table listing each person and the amount of sick leave they have used and how much they have left. The user will be able to sort employees by their names as well as by how much sick leave they have remaining."
+Do you see what I mean? I need very firm details on what the product will offer its users. You have to provide that level of detail. When you do, you might end up scaling back what you promise to deliver by December because you'll see how much work it will require. That's ok. I want these to be realistic accounts of what you will build.
+Obviously, this document will require a lot of work and time to complete. So, work on it a little every day. You will not be able to complete it well if you wait until the last day or two to write it.
+------
+I hope you have had a good week.
+Please be working on your next assignment a little every day. Remember that you need to complete this document:
+requirements_document_template.docx (dropbox.com)
+You have to think deeply and carefully about what you are intending to build. You need to do a good job on this so that you have a solid plan for what you'll spend the rest of the semester making. So, please put a lot of thought into this and carefully consider what you are going to build.
+Please let me know when you have questions.
+------
+I have graded your Business Requirements document. Several of you did well, and I was pleased. A few of you need to add a lot more detail on your features and development needs.
+I have revised the syllabus to have the next assignment - Task Estimation and Testing - due in two weeks - October 20, 11:59pm. It was originally going to be split into two parts, with one due next Sunday and the other due the Sunday after that, but I wanted to give you more time for the task estimation part. Please make good use of the extra time. Do not procrastinate. Instead, start immediately while the work you did on the requirements document is still fresh in mind.
+This assignment combines two important deliverables:
+Task estimation: a very detailed account of the tasks you will perform to deliver a product with the features you identified in the previous assignment.
+Test plans: once your initial development on your project is complete, how will you test it to make sure it works?
+These two tasks must be completed by filling in this spreadsheet:
+https://www.dropbox.com/scl/fi/opj63v8g223j4h7fi9klz/task_estimation_and_testing_spreadsheet.xlsx?rlkey=c7le7t5jpwp12gtfbi5gyxsiy&st=h9cddo5k&dl=0
+Just download the xlsx file and begin filling it in. Submit it to complete this assignment.
+I have recorded a video to help you understand how to complete it:
+https://www.dropbox.com/scl/fi/d1nz8rzc406q1xwgrnql8/task_estimation_and_testing.mp4?rlkey=3q8i871mr23oqbit3o34ri7o6&st=21an3cgy&dl=0
+Please watch it and let me know if you have questions.
+This is due Sunday, October 20 by 11:59pm.
+Some of you will have to work on your Business Requirements document more before trying to itemize tasks and write test plans. You need to have a very clear and focused accounting of the features you will deliver, with every detail envisioned from the user's or customer's perspective. What features will the user make use of, and how will you deliver these features to the user? If you aren't clear on those details at a very precise level - and some of you were but some of you weren't on the last assignment - you can't come up with a schedule of tasks you will complete nor how to test the features you deliver. You must be very clear in your understanding of what features you will deliver or you can't estimate tasks and create test plans. So make sure you spend the first part of this week working on refining your requirements document if I indicated you need to. Then watch the video I linked above and begin filling in the spreadsheet.
+Again, this is due October 20 at 11:59pm.
+As always, let me know when you have questions.
+------
+I hope you are doing well.
+I wrote you last week to inform you of the next assignment - Task Estimation and Testing. 
+This assignment combines two important deliverables:
+Task estimation: a very detailed account of the tasks you will perform to deliver a product with the features you identified in the previous assignment.
+Test plans: once your initial development on your project is complete, how will you test it to make sure it works?
+These two tasks must be completed by filling in this spreadsheet:
+https://www.dropbox.com/scl/fi/opj63v8g223j4h7fi9klz/task_estimation_and_testing_spreadsheet.xlsx?rlkey=c7le7t5jpwp12gtfbi5gyxsiy&st=l2ycy0g4&dl=0
+Just download the xlsx file and begin filling it in. Submit it to complete this assignment. Only one submission per group is required, but make sure you clearly identify your team's members in the spreadsheet where it asks you to do so.
+I have recorded a video to help you understand how to complete it:
+https://www.dropbox.com/scl/fi/d1nz8rzc406q1xwgrnql8/task_estimation_and_testing.mp4?rlkey=3q8i871mr23oqbit3o34ri7o6&st=i8b2h9hu&dl=0
+Please watch it and let me know if you have questions.
+This is due Sunday, October 20 by 11:59pm.
+Please remember that you can't do this task effectively if you haven't updated your Business Requirements document from last week to be very specific and detailed. Some of you did very well on that assignment and were extremely detailed in your descriptions of what your project would achieve. Others of you were not. All of you need to be super-detailed in your descriptions of your requirements or else you won't be able to estimate tasks correctly and prescribe test plans. So make sure you refine your business requirements for yourself first.
+Also, please don't put this assignment off. You need to think long and hard about what tasks are involved in developing what you have proposed to make and how to test it. You will not be able to do this in just an afternoon or a day. You need to think about this over several days, write some content down, and refine it over time. You need to use these days to do that.
+Again, this is due October 20 at 11:59pm.
+As always, let me know when you have questions.
+------
+Hopefully you've been spending some quality time working thoughtfully on your task estimation and test plans. Please make sure you complete these items on the Excel spreadsheet and submit the Excel spreadsheet to Blackboard. Please clearly identify the names of the team members on the first sheet of the Excel document. Note that you need to turn in only one Excel document per team.
+Please watch the video I posted to ensure that you are doing it correctly. It will not be sufficient to have only one task listed per feature. You have to be very clear about how you will build each feature and how long each task will take. There is no way you can implement a feature by doing just one task. Instead, you have to be very detailed in describing exactly how you will deliver what you promise, and that means listing probably several tasks. 
+Likewise, your test plans have to be detailed as well.
+Perhaps one way to make sure you have the right amount of detail is to read your list of tasks and ask yourself whether you think the feature they support would actually be ready for the user to use if you performed all those tasks successfully. Similarly, a way to gauge whether you've sufficiently documented a test plan is to ask yourself if carrying out that test will help you assess conclusively whether the feature is working as it should.
+Remember that you've had two weeks to do this task, so it should represent two weeks of your serious effort and demonstrate your detailed understanding of what you will be doing to implement your features during the next seven weeks. What you include in the spreadsheet is your plan for what you will do for the remainder of the course to deliver what you've promised. So doing a good job sets you up to succeed. Doing a poor or half-hearted job will make it very difficult for you to achieve your goals.
+Please don't wait until the last couple of hours to complete this. You should have started it over a week ago, so you probably are pretty close to being done.
+Let me know if you have any qeustions.
+------
+Hi, everyone.
+Most of you did very well on this week's assignment. A few of you did not include enough detail for your task estimations and test plans, so you should definitely go back and add that detail so that you can know how to proceed on your project.
+You are now in the part of the course where you need to work on your project. Your goal, of course, is to implement the features you've proposed before the end of the semester. That is why I had you estimate tasks the past two weeks. Now that you know in detail what tasks are needed and how long they will likely take and how they depend on each other, you can work a little every day to implement them.
+Each week, you'll be keeping track of your work and submitting a summary of it. This is what is due next Sunday by 11:59pm:
+Describe in detail what you accomplished during the week. Your weekly log should begin with a title block in which you show the title of your project and the names of all your team members. Then, the log should present what you did related to the tasks you put on your task estimate. Here is how each entry should look:
+Name of Feature: ________
+
+Name of Task (from the Task Estimate spreadsheet you turned in 10/20): ________
+
+Amount of Time: __________ hrs
+
+Performed By: ____________________
+
+Description (include screen shots if it is helpful): ____________________________
+
+________________________________________________________________________________
+
+________________________________________________________________________________
+Include entries like this for each task you accomplished this week. Make sure you include screen shots.
+So, for example, your weekly log might look like this:
+***
+Implementing a Secure Online Room Reservation System
+Joe Smith and Mary Jones
+Here is what was done this week.
+Name of Feature: Secure login page
+Name of Task (from the Task Estimate spreadsheet you turned in 10/20): Built user interface
+Amount of Time: 2 hours
+Performed By: Joe Smith, Mary Jones
+Description: We built the login page in HTML. We used Bootstrap to style it. The page includes warning messages when the user forgets to supply a username or password. Here is a screenshot
+<include screenshot here as evidence that you did this)
+Name of Feature: Secure login page
+Name of Task (from the Task Estimate spreadsheet you turned in 10/20): Implement login logic
+Amount of Time: 2 hours
+Performed by: Mary Jones
+Description: The login logic was implemented in PHP. When the user enters a username and password and clicks submit, we query the MySQL database looking for a match, applying SHA1 to the password first. If there is a match, we redirect to the start page. If they don't enter a valid username and password, we show an error message. Here is a screenshot of the code:
+<include screenshot of the code here as evidence of what you did>
+Name of Feature: Secure login page
+Name of Task (from the Task Estimate spreadsheet you turned in 10/20): Build user table
+Amount of Time: 1 hour
+Performed by: Joe Smith
+Description: Added User table to MySQL database. It has columns for username and password, and the primary key is auto-generated. Here is a screenshot of the table:
+<include screeenshot of the table here>
+***
+Please note that you must provide details and screenshots that convince me that you actually accomplished what you claim. If you do not include details and screenshots that show that you did the work, you will not receive credit.

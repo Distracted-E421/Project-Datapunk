@@ -1,81 +1,60 @@
-# Python related
-*.pyc
-*.pyo
-*.pyd
-__pycache__/
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
 *.so
-*.egg
-*.egg-info/
-dist/
-build/
-eggs/
-parts/
-bin/
-var/
-*.manifest
-*.spec
 
-# Django related
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Logs and databases #
+######################
 *.log
-*.pot
-*.pyc
-*.mo
-*.env
-*.sqlite3
-db.sqlite3
-instance/
-.webassets-cache
+*.sql
+*.sqlite
 
-# Django migrations
-*/migrations/__pycache__/
-*/migrations/*.pyc
-*/migrations/*.pyo
-*/migrations/*.log
-
-# Static files
-staticfiles/
-static/
-media/
-
-# Local environment
-venv/
-*.local
-config/settings/local.py
-
-
-# Unit test / coverage reports
-.coverage
-.tox
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IDEs and editors
-.vscode/
-.idea/
-*.sublime-project
-*.sublime-workspace
-
-# OS-specific files
+# OS generated files #
+######################
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# pipenv
-Pipfile.lock
+# IDEs and editors #
+####################
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# Pyenv
-.python-version
+# Python #
+##########
+*.py[cod]
+*.pyo
+__pycache__/
+*.pyd
 
-# Docker
-docker-compose.override.yml
-.env.docker
-
-# Celery
-celerybeat-schedule
-
-# Ignore takeout files
-takeout-9-5-24-1/
+# Node.js #
+###########
+node_modules/
+npm-debug.log
+yarn-error.log
