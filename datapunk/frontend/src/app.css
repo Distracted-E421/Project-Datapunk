@@ -1,0 +1,25 @@
+:root {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #252525;
+    --text-primary: #e0e0e0;
+    --text-secondary: #b0b0b0;
+    --accent: #569cd6;
+    --accent-hover: #4e8cc2;
+    --border: #333333;
+    --font-main: 'Share Tech Mono', monospace;
+    --font-headers: 'Fira Code', monospace;
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    margin: 0;
+    font-family: var(--font-main);
+    letter-spacing: 0.5px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-headers);
+    font-weight: 600;
+    letter-spacing: 1px;
+}

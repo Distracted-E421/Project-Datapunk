@@ -1,3 +1,23 @@
-<h1>Welcome to your library project</h1>
-<p>Create your package using @sveltejs/package and preview/showcase your work with SvelteKit</p>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<script>
+    import Sidebar from '$lib/components/Sidebar.svelte';
+</script>
+
+<div class="main-content">
+    <h1>Welcome to DataPunk</h1>
+    <p>Your data management platform</p>
+</div>
+
+<style>
+    .main-content {
+        padding: 2rem;
+    }
+
+    h1 {
+        color: var(--accent);
+        margin-bottom: 1rem;
+    }
+
+    p {
+        color: var(--text-secondary);
+    }
+</style>
