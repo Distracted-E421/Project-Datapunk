@@ -15,6 +15,9 @@
     h1 {
         color: var(--accent);
         margin-bottom: 1rem;
+        font-family: var(--font-title);
+        font-size: 3rem;
+        font-weight: normal;
     }
 
     p {

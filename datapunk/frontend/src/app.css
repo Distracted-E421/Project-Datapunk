@@ -1,3 +1,19 @@
+@font-face {
+    font-family: 'BladeSinger';
+    src: url('/fonts/bladesinger.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'PixelOperator';
+    src: url('/fonts/PixelOperator.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
     --bg-primary: #1a1a1a;
     --bg-secondary: #252525;
@@ -6,20 +22,13 @@
     --accent: #569cd6;
     --accent-hover: #4e8cc2;
     --border: #333333;
-    --font-main: 'Share Tech Mono', monospace;
-    --font-headers: 'Fira Code', monospace;
+    --font-title: 'BladeSinger', sans-serif;
+    --font-text: 'PixelOperator', monospace;
 }
 
 body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
     margin: 0;
-    font-family: var(--font-main);
-    letter-spacing: 0.5px;
-}
-
-h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-headers);
-    font-weight: 600;
-    letter-spacing: 1px;
+    font-family: var(--font-text);
 }
