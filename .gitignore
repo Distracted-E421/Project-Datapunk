@@ -84,22 +84,22 @@ pgadmin4.db
 
 # PostgreSQL additional #
 ########################
-data/postmaster.pid
-data/postmaster.opts
-data/pg_stat_tmp/
-data/pg_replslot/
-data/pg_dynshmem/
-data/pg_notify/
-data/pg_serial/
-data/pg_snapshots/
-data/pg_stat/
-data/pg_subtrans/
-data/pg_tblspc/
-data/pg_twophase/
-data/pg_wal/
-data/pg_xact/
-data/base/
-data/base/*
+db/data/postmaster.pid
+db/data/postmaster.opts
+db/data/pg_stat_tmp/
+db/data/pg_replslot/
+db/data/pg_dynshmem/
+db/data/pg_notify/
+db/data/pg_serial/
+db/data/pg_snapshots/
+db/data/pg_stat/
+db/data/pg_subtrans/
+db/data/pg_tblspc/
+db/data/pg_twophase/
+db/data/pg_wal/
+db/data/pg_xact/
+db/data/base/
+db/data/base/*
 db/data/base/**/*
 
 # Docker #
