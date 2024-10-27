@@ -102,6 +102,7 @@ datapunk/db/data/base/
 datapunk/db/data/base/*
 datapunk/db/data/base/**/*
 
+
 # Docker #
 ##########
 docker-compose.override.yml
