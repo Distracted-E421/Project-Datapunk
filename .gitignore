@@ -101,6 +101,7 @@ datapunk/db/data/pg_xact/
 datapunk/db/data/base/
 datapunk/db/data/base/*
 datapunk/db/data/base/**/*
+datapunk/db/data/global/
 
 
 # Docker #
