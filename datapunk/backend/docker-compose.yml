@@ -1,0 +1,22 @@
+services:
+  backend:
+    build:
+      context: .  # Changed from '..' to '.'
+      dockerfile: Dockerfile
+    container_name: datapunk_backend
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      CORS_ORIGINS: http://localhost:5173  # Allow frontend connections
+    ports:
+      - "8000:8000"
+    networks:
+      - datapunk_network
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  datapunk_network:
+    name: datapunk_network
+    external: true
