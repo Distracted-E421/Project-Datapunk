@@ -52,6 +52,15 @@ Thumbs.db
 *.pyo
 __pycache__/
 *.pyd
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.eggs/
+.tox/
+.coverage
+htmlcov/
+.mypy_cache/
 
 # Node.js #
 ###########
@@ -168,3 +177,26 @@ Thumbs.db
 *.code-workspace
 .history/
 .vscode-test
+
+# Database #
+############
+*.db
+*.sqlite3
+*.sqlite3-journal
+*.rdb
+redis-data/
+mongodb/
+mongo-data/
+neo4j/
+*.nsf
+*.nsf.lock
+*.0
+*.1
+*.2
+*.3
+*.ns
+*.wt
+*.lock
+storage.bson
+*.bson
+mongod.lock
