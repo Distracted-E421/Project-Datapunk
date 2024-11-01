@@ -1,50 +1,93 @@
+# Define reusable variables for database configuration
+# These can be overridden using environment variables
+x-common-variables: &common-variables
+  POSTGRES_USER: ${POSTGRES_USER:-postgres}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+  POSTGRES_DB: ${POSTGRES_DB:-datapunk}
+  DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-datapunk}
+
+# Define default healthcheck settings for services
+# These ensure containers are properly initialized before being marked as ready
+x-healthcheck: &healthcheck-defaults
+  interval: 10s
+  timeout: 5s
+  retries: 5
+  start_period: 60s
+
+# Main services configuration
 services:
+  # PostgreSQL database service
+  # Handles data persistence and provides the database engine
   db:
     build: 
       context: ./db
       dockerfile: Dockerfile
+    image: datapunk/postgres:latest
     container_name: datapunk_postgres
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=datapunk
+      <<: *common-variables
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    command: ["postgres"]  # Simplified command
+      - ./db/init:/docker-entrypoint-initdb.d
+      - ./db/postgresql.conf:/etc/postgresql/postgresql.conf
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+    networks:
+      - datapunk_network
+    restart: always
 
+  # Backend API service
+  # Provides the REST API and business logic
   backend:
-    build: ./backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    image: datapunk/backend:latest
     container_name: datapunk_backend
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=datapunk
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5432
+      <<: *common-variables
+    ports:
+      - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "8000:8000"
+    networks:
+      - datapunk_network
 
+  # Frontend web application
+  # Serves the user interface and connects to the backend
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: datapunk/frontend:latest
     container_name: datapunk_frontend
     ports:
-      - "5173:5173"
+      - "3000:3000"
     environment:
-      - NODE_ENV=development
+      - VITE_API_URL=http://backend:8000
     depends_on:
       - backend
-    command: ["npm", "run", "dev", "--", "--host"]
+    networks:
+      - datapunk_network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
 
+# Define persistent storage volumes
 volumes:
+  # Store PostgreSQL data
   postgres_data:
-    name: datapunk_postgres_data
+  # Store backend-specific data
+  backend_data:
+
+# Define custom network for container communication
+networks:
+  datapunk_network:
+
+# Project name
+name: datapunk
