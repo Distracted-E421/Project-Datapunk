@@ -685,27 +685,149 @@ The datapunk-cortex container serves as the central AI processing unit of the sy
 
 ### 1. Resource Management
 
+#### Compute Resources
+```yaml
 resources:
   limits:
     cpus: '4'
     memory: 8G
+    gpu: '1'    # When available
   reservations:
     cpus: '2'
     memory: 4G
+    gpu_memory: '4G'
+  scheduling:
+    priority_class: high
+    node_selector:
+      node-type: ml-optimized
+```
+
+#### Memory Management
+```yaml
+memory_config:
+  jvm_heap: '4G'
+  off_heap: '2G'
+  direct_memory: '1G'
+  gc_config:
+    type: 'G1GC'
+    pause_target: '200ms'
+    region_size: '16M'
+```
+
+#### GPU Optimization
+```yaml
+gpu_config:
+  cuda_visible_devices: '0'
+  memory_growth: true
+  mixed_precision: true
+  tensor_cores: enabled
+  batch_allocation:
+    min_batch_size: 4
+    max_batch_size: 32
+```
 
 ### 2. Caching Strategy
 
-- Model caching
-- Inference results caching
-- Embedding caching
-- Feature cache warming
+#### Model Caching
+```yaml
+model_cache:
+  storage_backend: 'redis'
+  max_models_loaded: 10
+  eviction_policy: 'lru'
+  prefetch_enabled: true
+  layers:
+    l1:
+      type: 'memory'
+      size: '2G'
+      ttl: 300s
+    l2:
+      type: 'redis'
+      size: '10G'
+      ttl: 3600s
+```
+
+#### Inference Results
+```yaml
+inference_cache:
+  enabled: true
+  backend: 'redis'
+  key_strategy: 'input_hash'
+  compression: true
+  ttl:
+    default: 3600
+    minimum: 300
+    maximum: 86400
+  invalidation:
+    strategy: 'time-based'
+    triggers:
+      - model_update
+      - config_change
+```
+
+#### Embedding Cache
+```yaml
+embedding_cache:
+  storage:
+    type: 'mmap'
+    path: '/cache/embeddings'
+    max_size: '20G'
+  optimization:
+    preload_popular: true
+    index_type: 'hnsw'
+    compression_level: 4
+  monitoring:
+    hit_rate_threshold: 0.8
+    eviction_age: '24h'
+```
+
+#### Cache Warming
+```yaml
+cache_warming:
+  schedule: '*/30 * * * *'  # Every 30 minutes
+  strategies:
+    - type: 'popular_models'
+      count: 5
+    - type: 'frequent_queries'
+      timeframe: '1h'
+      min_frequency: 10
+  monitoring:
+    effectiveness_threshold: 0.7
+    warmup_time_limit: 300s
+```
+
+### 3. Query Optimization
+
+#### Database Connections
+```yaml
+db_config:
+  pool_size: 20
+  max_overflow: 10
+  pool_timeout: 30
+  pool_recycle: 3600
+  echo: false
+```
+
+#### Vector Search
+```yaml
+vector_search:
+  index_type: 'ivfflat'
+  nlist: 100
+  nprobe: 10
+  ef_search: 64
+  ef_construction: 200
+```
 
 ## Docker Configuration
 
 ### 1. Container Specification
 
+```yaml
 services:
   datapunk-cortex:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: cortex
     image: datapunk/cortex:latest
     container_name: datapunk_cortex
     environment:
@@ -713,24 +835,124 @@ services:
       - POSTGRES_URL=${POSTGRES_URL}
       - MODEL_CACHE_SIZE=2GB
       - MAX_BATCH_SIZE=32
+      - HAYSTACK_HOST=${HAYSTACK_HOST}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
     volumes:
       - model_storage:/models
       - cache_storage:/cache
+      - log_storage:/var/log/datapunk/cortex
     ports:
       - "8001:8001"
     networks:
       - datapunk_network
     depends_on:
-      - datapunk-lake
-      - redis
+      datapunk-lake:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+          gpus: '1'
+        reservations:
+          cpus: '2'
+          memory: 4G
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+```
 
 ### 2. Volume Management
 
+```yaml
 volumes:
   model_storage:
     driver: local
+    driver_opts:
+      type: none
+      device: /data/models
+      o: bind
   cache_storage:
     driver: local
+    driver_opts:
+      type: none
+      device: /data/cache
+      o: bind
+  log_storage:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/log/datapunk/cortex
+      o: bind
+```
+
+### 3. Network Configuration
+
+```yaml
+networks:
+  datapunk_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+    driver_opts:
+      com.docker.network.bridge.name: datapunk_net
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+```
+
+### 4. Build Configuration
+
+```dockerfile
+# Cortex Stage
+FROM python:3.12-slim as cortex
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    gcc \
+    python3-dev \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app/cortex
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p /models /cache /var/log/datapunk/cortex
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV MODEL_CACHE_SIZE=2GB
+ENV MAX_BATCH_SIZE=32
+
+# Expose port
+EXPOSE 8001
+
+# Start the application
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
+```
 
 ## Monitoring & Maintenance
 
@@ -932,17 +1154,168 @@ cache_analysis:
 
 ### 1. Local Development
 
-- Model development environment
-- Testing frameworks
-- Debug logging
-- Hot reloading
+#### Development Environment Setup
+```yaml
+dev_environment:
+  python_version: "3.12"
+  virtual_env: true
+  required_services:
+    - postgres
+    - redis
+    - minio
+  environment_variables:
+    PYTHONPATH: "${PWD}/src"
+    MODEL_CACHE_DIR: "${PWD}/.cache/models"
+    DEBUG: "true"
+```
+
+#### Testing Framework Configuration
+```yaml
+testing:
+  frameworks:
+    - pytest
+    - hypothesis
+    - locust
+  coverage:
+    minimum: 80%
+    exclude_patterns:
+      - "**/tests/*"
+      - "**/migrations/*"
+  fixtures:
+    - mock_models
+    - test_datasets
+    - cached_embeddings
+```
+
+#### Debug Configuration
+```yaml
+debugging:
+  log_level: "DEBUG"
+  hot_reload: true
+  debugger: "debugpy"
+  profiling:
+    enabled: true
+    tools:
+      - cProfile
+      - memory_profiler
+  tracing:
+    enabled: true
+    exporter: "jaeger"
+```
+
+#### Development Tools
+```yaml
+dev_tools:
+  code_quality:
+    - black
+    - isort
+    - flake8
+    - mypy
+  documentation:
+    - sphinx
+    - pdoc
+  notebooks:
+    jupyter_lab:
+      enabled: true
+      extensions:
+        - jupyterlab-git
+        - jupyterlab-lsp
+```
 
 ### 2. CI/CD Integration
 
-- Model testing pipeline
-- Performance benchmarking
-- Security scanning
-- Automated deployment
+#### Pipeline Configuration
+```yaml
+ci_pipeline:
+  triggers:
+    - push:
+        branches: [main, develop]
+    - pull_request:
+        types: [opened, synchronize]
+  stages:
+    - lint
+    - test
+    - build
+    - benchmark
+    - security
+    - deploy
+```
+
+#### Testing Pipeline
+```yaml
+test_pipeline:
+  unit_tests:
+    runner: pytest
+    parallel: true
+    timeout: 10m
+  integration_tests:
+    runner: pytest
+    markers: "integration"
+    services:
+      - postgres
+      - redis
+  model_tests:
+    runner: pytest
+    markers: "models"
+    gpu: true
+```
+
+#### Performance Benchmarking
+```yaml
+benchmarking:
+  tools:
+    - locust
+    - pytest-benchmark
+  scenarios:
+    - name: inference_latency
+      duration: 5m
+      users: 100
+    - name: training_performance
+      duration: 30m
+      batch_sizes: [16, 32, 64]
+  metrics:
+    - throughput
+    - response_time
+    - memory_usage
+    - gpu_utilization
+```
+
+#### Security Scanning
+```yaml
+security_scan:
+  tools:
+    - bandit
+    - safety
+    - trivy
+    - snyk
+  scan_targets:
+    - source_code
+    - dependencies
+    - containers
+    - models
+  compliance:
+    - OWASP
+    - CWE
+  reporting:
+    format: SARIF
+    severity_threshold: MEDIUM
+```
+
+#### Deployment Validation
+```yaml
+deployment_validation:
+  smoke_tests:
+    - api_health
+    - model_inference
+    - database_connection
+  canary_deployment:
+    enabled: true
+    traffic_percentage: 10
+    evaluation_period: 1h
+  rollback_criteria:
+    error_rate_threshold: 1%
+    latency_threshold: 500ms
+```
 
 ## Future Considerations
 

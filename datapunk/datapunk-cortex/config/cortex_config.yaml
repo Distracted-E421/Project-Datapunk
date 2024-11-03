@@ -1,0 +1,51 @@
+neurocortex:
+  cache:
+    redis_host: ${REDIS_HOST}
+    redis_port: 6379
+    redis_db: 0
+    memory_cache_size: 1000
+    default_ttl: 3600
+    cache_levels: ["memory", "redis"]
+
+  model_selection:
+    models:
+      - name: "lightweight-classifier"
+        type: "lightweight"
+        version: "1.0.0"
+        metrics:
+          latency: 50.0
+          memory_usage: 512.0
+          accuracy: 0.85
+          throughput: 100.0
+        max_batch_size: 32
+        supports_streaming: true
+        
+      - name: "heavy-classifier"
+        type: "heavy"
+        version: "1.0.0"
+        metrics:
+          latency: 200.0
+          memory_usage: 2048.0
+          accuracy: 0.95
+          throughput: 50.0
+        max_batch_size: 16
+        supports_streaming: false
+
+  integrations:
+    haystack:
+      document_store:
+        type: "postgresql"
+        host: ${POSTGRES_HOST}
+        port: 5432
+        username: ${POSTGRES_USER}
+        password: ${POSTGRES_PASSWORD}
+        index: "document_store"
+        
+    langchain:
+      llm_config:
+        model_name: "gpt-3.5-turbo"
+        temperature: 0.7
+        max_tokens: 500
+      memory:
+        type: "conversation_buffer"
+        max_history: 10

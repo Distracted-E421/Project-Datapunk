@@ -1,0 +1,83 @@
+services:
+  # ... existing services ...
+
+  cortex:
+    build:
+      context: ./datapunk-cortex
+      dockerfile: Dockerfile
+    image: datapunk/cortex:latest
+    container_name: datapunk_cortex
+    environment:
+      <<: *common-variables
+      REDIS_HOST: redis
+      MINIO_HOST: minio
+      MODEL_CACHE_SIZE: 2GB
+      MAX_BATCH_SIZE: 32
+    volumes:
+      - cortex_models:/models
+      - cortex_cache:/cache
+      - cortex_logs:/var/log/datapunk/cortex
+    ports:
+      - "8001:8001"
+    networks:
+      - datapunk_network
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  redis:
+    image: redis:7-alpine
+    container_name: datapunk_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - datapunk_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: datapunk/frontend:latest
+    container_name: datapunk_frontend
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://backend:8000
+      - VITE_CORTEX_URL=http://cortex:8001
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - datapunk_network
+    depends_on:
+      - backend
+      - cortex
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+
+volumes:
+  # ... existing volumes ...
+  cortex_models:
+  cortex_cache:
+  cortex_logs:

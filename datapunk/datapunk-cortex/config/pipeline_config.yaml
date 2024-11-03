@@ -1,0 +1,41 @@
+pipeline:
+  standard:
+    stages:
+      preprocessing:
+        privacy_filter: true
+        normalization: true
+        validation: true
+        batch_size: ${MAX_BATCH_SIZE}
+      inference:
+        model_selection: dynamic
+        cache_enabled: true
+        timeout: 30s
+      postprocessing:
+        aggregation: true
+        confidence_scoring: true
+        format_conversion: true
+        
+  realtime:
+    buffer_size: 1000
+    processing_interval: 100ms
+    stages:
+      stream_processing:
+        window_size: 5m
+        overlap: 30s
+      feature_extraction:
+        cache_enabled: true
+      inference:
+        model_type: lightweight
+        latency_threshold: 50ms
+
+  common:
+    error_handling:
+      max_retries: 3
+      backoff_factor: 2
+      timeout: 30s
+    monitoring:
+      metrics_enabled: true
+      tracing_enabled: true
+    resource_limits:
+      max_memory: "2G"
+      max_cpu_percent: 80

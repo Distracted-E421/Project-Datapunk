@@ -1,0 +1,47 @@
+cache:
+  redis_host: ${REDIS_HOST:-localhost}
+  redis_port: ${REDIS_PORT:-6379}
+  redis_db: 0
+  memory_cache_size: 1000
+  default_ttl: 3600  # 1 hour
+  cache_levels:
+    - memory
+    - redis
+  warm_up:
+    enabled: true
+    interval: 300  # 5 minutes
+
+model_selection:
+  models:
+    - name: "lightweight-classifier"
+      type: "lightweight"
+      version: "1.0.0"
+      metrics:
+        latency: 10.0  # ms
+        memory_usage: 512  # MB
+        accuracy: 0.92
+        throughput: 100  # requests/second
+      max_batch_size: 64
+      min_batch_size: 1
+      supports_streaming: true
+      resource_requirements:
+        memory: 1024  # MB
+        gpu_memory: 0
+
+    - name: "heavy-classifier"
+      type: "heavy"
+      version: "1.0.0"
+      metrics:
+        latency: 50.0
+        memory_usage: 2048
+        accuracy: 0.98
+        throughput: 20
+      max_batch_size: 32
+      min_batch_size: 1
+      supports_streaming: false
+      resource_requirements:
+        memory: 4096
+        gpu_memory: 2048
+
+  default_priority: "balanced"
+  selection_cache_ttl: 300  # 5 minutes
