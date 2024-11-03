@@ -348,6 +348,7 @@ The datapunk-cortex container serves as the central AI processing unit of the sy
 ### 1. Data Preprocessing
 
 #### Text Processing
+
 - Unicode normalization
 - Language detection and routing
 - Tokenization (via spaCy)
@@ -356,12 +357,14 @@ The datapunk-cortex container serves as the central AI processing unit of the sy
 - Encoding standardization
 
 #### Feature Engineering
+
 - Semantic feature extraction
 - Temporal feature generation
 - Geospatial feature processing
 - User behavior patterns
 - Interaction metrics
 - Configuration:
+
   ```yaml
   feature_config:
     semantic:
@@ -377,12 +380,14 @@ The datapunk-cortex container serves as the central AI processing unit of the sy
   ```
 
 #### Data Validation
+
 - Schema validation
 - Type checking
 - Range validation
 - Relationship verification
 - Completeness checks
 - Custom validation rules:
+
   ```yaml
   validation_rules:
     text_length:
@@ -398,6 +403,7 @@ The datapunk-cortex container serves as the central AI processing unit of the sy
   ```
 
 #### Privacy and Security
+
 - PII detection and masking
 - Sensitive data filtering
 - Data anonymization
@@ -407,12 +413,14 @@ The datapunk-cortex container serves as the central AI processing unit of the sy
 ### 2. Inference Pipeline
 
 #### Model Selection
+
 - Task-based routing
 - Model availability checking
 - Version compatibility
 - Resource requirement matching
 - Fallback strategy
 - Configuration:
+
   ```yaml
   model_selection:
     strategy: dynamic
@@ -426,12 +434,14 @@ The datapunk-cortex container serves as the central AI processing unit of the sy
   ```
 
 #### Load Distribution
+
 - Request batching
 - Priority queuing
 - Resource monitoring
 - Load shedding
 - Circuit breaking
 - Configuration:
+
   ```yaml
   load_balancing:
     max_batch_size: 32
@@ -445,12 +455,14 @@ The datapunk-cortex container serves as the central AI processing unit of the sy
   ```
 
 #### Caching System
+
 - Multi-level cache
 - Cache key generation
 - TTL management
 - Cache invalidation
 - Hit rate monitoring
 - Configuration:
+
   ```yaml
   cache_config:
     layers:
@@ -468,12 +480,14 @@ The datapunk-cortex container serves as the central AI processing unit of the sy
 ### 3. Post-processing
 
 #### Result Processing
+
 - Response aggregation
 - Ensemble methods
 - Weighted scoring
 - Threshold filtering
 - Format standardization
 - Configuration:
+
   ```yaml
   postprocessing:
     aggregation:
@@ -489,6 +503,7 @@ The datapunk-cortex container serves as the central AI processing unit of the sy
   ```
 
 #### Quality Assurance
+
 - Confidence scoring
 - Consistency checking
 - Business rule validation
@@ -496,12 +511,14 @@ The datapunk-cortex container serves as the central AI processing unit of the sy
 - Response validation
 
 #### Response Optimization
+
 - Response compression
 - Field selection
 - Pagination handling
 - Rate limiting
 - Error formatting
 - Configuration:
+
   ```yaml
   response_config:
     compression:
@@ -519,17 +536,150 @@ The datapunk-cortex container serves as the central AI processing unit of the sy
 
 ### 1. Model Security
 
-- Input validation
-- Output sanitization
-- Rate limiting
-- Access control
+#### Input Validation & Sanitization
+
+- Schema-based validation for all inputs
+- Type checking and conversion
+- Size and range limitations
+- Malicious content detection
+- Configuration:
+
+  ```yaml
+  input_validation:
+    max_text_length: 10000
+    max_batch_size: 32
+    allowed_mime_types:
+      - application/json
+      - text/plain
+    sanitization_rules:
+      - remove_html_tags: true
+      - escape_special_chars: true
+      - normalize_unicode: true
+  ```
+
+#### Access Control
+
+- Role-based access control (RBAC)
+- Model-specific permissions
+- API key management
+- OAuth2 integration
+- Configuration:
+
+  ```yaml
+  access_control:
+    rbac_enabled: true
+    default_role: reader
+    roles:
+      - name: model_admin
+        permissions: [train, deploy, delete]
+      - name: inference_user
+        permissions: [predict]
+    token_expiration: 3600
+  ```
+
+#### Rate Limiting
+
+- Token bucket algorithm
+- Per-user and per-model limits
+- Burst allowance
+- Configuration:
+
+  ```yaml
+  rate_limits:
+    default:
+      requests_per_minute: 60
+      burst_size: 10
+    premium:
+      requests_per_minute: 300
+      burst_size: 50
+    inference:
+      max_concurrent_requests: 100
+      queue_timeout: 30s
+  ```
 
 ### 2. Data Protection
 
-- PII detection and masking
-- Encryption at rest
-- Secure model storage
-- Audit logging
+#### PII Handling
+
+- Automated PII detection
+- Data masking and anonymization
+- Encryption of sensitive data
+- Configuration:
+
+  ```yaml
+  pii_protection:
+    detection:
+      enabled: true
+      confidence_threshold: 0.85
+    masking_rules:
+      email: partial
+      phone: last_four
+      address: country_only
+    encryption:
+      algorithm: AES-256-GCM
+      key_rotation: 90d
+  ```
+
+#### Storage Security
+
+- Model artifact encryption
+- Secure key management
+- Access logging
+- Configuration:
+
+  ```yaml
+  storage_security:
+    encryption:
+      at_rest: true
+      in_transit: true
+      key_provider: vault
+    model_storage:
+      encryption_enabled: true
+      versioning_enabled: true
+    audit:
+      enabled: true
+      retention_period: 90d
+  ```
+
+#### Audit System
+
+- Comprehensive event logging
+- Security event monitoring
+- Access tracking
+- Configuration:
+
+  ```yaml
+  audit_system:
+    log_level: INFO
+    events:
+      - model_access
+      - configuration_changes
+      - security_violations
+    alerts:
+      - type: security_breach
+        threshold: 3
+        window: 5m
+      - type: unusual_access
+        threshold: 10
+        window: 1h
+  ```
+
+#### Network Security
+
+- TLS 1.3 enforcement
+- Certificate management
+- Network isolation
+- Configuration:
+
+  ```yaml
+  network_security:
+    tls_version: "1.3"
+    cipher_suites:
+      - TLS_AES_256_GCM_SHA384
+      - TLS_CHACHA20_POLY1305_SHA256
+    certificate_rotation: 30d
+    internal_network: datapunk_network
+  ```
 
 ## Performance Optimization
 
@@ -587,6 +737,7 @@ volumes:
 ### 1. Health Checks
 
 #### System Health
+
 ```yaml
 healthcheck:
   test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
@@ -598,6 +749,7 @@ healthcheck:
 ```
 
 #### Component Health Monitoring
+
 ```yaml
 component_health:
   endpoints:
@@ -622,6 +774,7 @@ component_health:
 ### 2. Metrics Collection
 
 #### Model Performance Metrics
+
 ```yaml
 model_metrics:
   collection_interval: 60s
@@ -639,6 +792,7 @@ model_metrics:
 ```
 
 #### Resource Utilization
+
 ```yaml
 resource_metrics:
   collection_interval: 30s
@@ -661,6 +815,7 @@ resource_metrics:
 ```
 
 #### Performance Monitoring
+
 ```yaml
 performance_metrics:
   tracing:
@@ -679,6 +834,7 @@ performance_metrics:
 ### 3. Logging Configuration
 
 #### Application Logs
+
 ```yaml
 logging:
   level: INFO
@@ -694,6 +850,7 @@ logging:
 ```
 
 #### Audit Logging
+
 ```yaml
 audit:
   enabled: true
@@ -708,6 +865,7 @@ audit:
 ### 4. Alert Management
 
 #### Alert Configuration
+
 ```yaml
 alerts:
   channels:
@@ -733,6 +891,7 @@ alerts:
 ```
 
 #### Alert Aggregation
+
 ```yaml
 alert_aggregation:
   grouping_window: 5m
@@ -746,6 +905,7 @@ alert_aggregation:
 ### 5. Performance Analysis
 
 #### Query Performance
+
 ```yaml
 query_analysis:
   slow_query_threshold: 500ms
@@ -755,6 +915,7 @@ query_analysis:
 ```
 
 #### Cache Analysis
+
 ```yaml
 cache_analysis:
   metrics:
