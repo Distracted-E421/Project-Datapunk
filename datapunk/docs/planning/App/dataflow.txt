@@ -1,0 +1,132 @@
+graph TD
+    A[External Data Sources] --> B{Router}
+    B -->|Bulk Data| C[datapunk-lake]
+    B -->|Real-time Streams| D[datapunk-stream]
+    C --> E[PostgreSQL]
+    D --> E
+    E --> F[datapunk-cortex]
+    E --> G[datapunk-forge]
+    F --> E
+    G --> E
+
+graph TD
+    %% External Data Sources
+    GServices[Google Services] --> Router
+    MSServices[Microsoft Services] --> Router
+    Social[Social Media] --> Router
+    Entertainment[Entertainment APIs] --> Router
+    Takeout[Google Takeout] --> Router
+    
+    %% Router Layer
+    Router{Router} -->|Bulk Data| Lake[datapunk-lake]
+    Router -->|Real-time| Stream[datapunk-stream]
+    
+    %% datapunk-lake Container
+    subgraph Lake[datapunk-lake]
+        BulkParser[Bulk Parser] --> SchemaManager[Schema Manager]
+        SchemaManager --> PostgreSQL
+        PostgreSQL --> Archival[Archival Service]
+        
+        subgraph PostgreSQL Extensions
+            PostGIS
+            pgvector
+            TimescaleDB
+            pg_cron
+            hstore
+        end
+    end
+    
+    %% datapunk-stream Container
+    subgraph Stream[datapunk-stream]
+        OAuth[OAuth Manager] --> APIHandler[API Handler]
+        APIHandler --> StreamProcessor[Stream Processor]
+        StreamProcessor --> Cache[Redis Cache]
+        Cache --> PostgreSQL
+        
+        subgraph Integration Framework
+            FastAPI[FastAPI + Celery]
+            Temporal[Temporal]
+            TokenBucket[Rate Limiter]
+            RabbitMQ[Message Broker]
+            Prefect[Pipeline Orchestration]
+        end
+    end
+    
+    %% datapunk-cortex Container
+    subgraph Cortex[datapunk-cortex]
+        NeuroCortex[NeuroCortex] --> LangChain
+        LangChain --> Haystack
+        Haystack --> ModelInference[Model Inference]
+        ModelInference --> Cache
+        
+        subgraph AI Services
+            NLP[NLP Service]
+            Analysis[Analysis Service]
+            QueryHandler[Query Handler]
+        end
+    end
+    
+    %% datapunk-forge Container
+    subgraph Forge[datapunk-forge]
+        MLRun --> Training[Training Pipeline]
+        Training --> BentoML[Model Registry]
+        BentoML --> VectorProcessor[Vector Processor]
+        VectorProcessor --> PostgreSQL
+        
+        subgraph Model Services
+            FeatureEng[Feature Engineering]
+            ModelDev[Model Development]
+            Evaluation[Model Evaluation]
+        end
+    end
+    
+    %% Cross-container Communication
+    PostgreSQL --> Cortex
+    PostgreSQL --> Forge
+    Cache --> Cortex
+    Cache --> Stream
+    
+    %% Data Flow Notes
+    classDef container fill:#f9f,stroke:#333,stroke-width:2px
+    classDef service fill:#bbf,stroke:#333,stroke-width:1px
+    classDef database fill:#bfb,stroke:#333,stroke-width:2px
+    
+    class Lake,Stream,Cortex,Forge container
+    class PostgreSQL,Cache database
+    class OAuth,APIHandler,NeuroCortex,MLRun service
+
+Container Responsibilities:
+
+datapunk-lake:
+- Bulk data imports (Google Takeout)
+- Schema management and validation
+- PostgreSQL extension management
+- Data archival and retention
+
+datapunk-stream:
+- OAuth token management
+- API integration handling
+- Real-time stream processing
+- Rate limiting and backpressure
+- Redis caching layer
+
+datapunk-cortex:
+- NeuroCortex orchestration
+- LangChain/Haystack integration
+- Model inference coordination
+- Query processing and response
+- Real-time analysis
+
+datapunk-forge:
+- MLRun pipeline management
+- Model training and optimization
+- Vector embedding generation
+- BentoML model registry
+- Feature engineering
+
+Cross-cutting Services:
+- PostgreSQL: Central data store
+- Redis: Caching and real-time processing
+- Temporal: Workflow orchestration
+- Token Bucket: Rate limiting
+- RabbitMQ: Message broker

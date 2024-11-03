@@ -1,0 +1,804 @@
+# Datapunk Cortex Architecture
+
+## Overview
+
+The datapunk-cortex container serves as the central AI processing unit of the system, analogous to GAIA in the Horizon series. It orchestrates all AI-related tasks, manages model inference, and coordinates with other containers for data processing and storage.
+
+## Core Components
+
+### NeuroCortex (Central Orchestrator)
+
+#### Primary Functions
+
+1. Task Orchestration and Delegation
+   - Intelligent workload distribution across processing nodes
+   - Priority-based task scheduling
+   - Automated resource allocation based on task complexity
+   - Failure recovery and task redistribution
+
+2. Model Inference Coordination
+   - Dynamic model selection based on task requirements
+   - Load balancing across multiple inference endpoints
+   - Batch processing optimization
+   - Model versioning and compatibility management
+   - Caching strategy implementation for frequent queries
+
+3. Data Processing Pipeline Management
+   - ETL workflow orchestration
+   - Data validation and quality checks
+   - Privacy-preserving transformations
+   - Real-time stream processing coordination
+   - Integration with datapunk-lake and datapunk-stream
+
+4. Real-time Analysis and Insights Generation
+   - Continuous monitoring and analysis of data streams
+   - Anomaly detection and alerting
+   - Pattern recognition and trend analysis
+   - Automated report generation
+   - Real-time visualization data preparation
+
+#### Integration Components
+
+1. Haystack Integration
+   - Document store management
+   - Question-answering pipeline coordination
+   - Information retrieval optimization
+   - Document preprocessing workflows
+   - Custom pipeline development
+
+2. LangChain Integration
+   - LLM chain orchestration
+   - Prompt management and optimization
+   - Context window handling
+   - Memory management for conversations
+   - Tool and agent coordination
+
+#### Processing Workflows
+
+1. Standard Processing Pipeline
+
+   ```yaml
+   pipeline:
+     stages:
+       - preprocessing:
+           privacy_filter: true
+           normalization: true
+           validation: true
+       - inference:
+           model_selection: dynamic
+           batch_size: ${MAX_BATCH_SIZE}
+           cache_enabled: true
+       - postprocessing:
+           aggregation: true
+           confidence_scoring: true
+           format_conversion: true
+   ```
+
+2. Real-time Processing Pipeline
+
+   ```yaml
+   realtime_pipeline:
+     buffer_size: 1000
+     processing_interval: 100ms
+     stages:
+       - stream_processing:
+           window_size: 5m
+           overlap: 30s
+       - feature_extraction:
+           cache_enabled: true
+       - inference:
+           model_type: lightweight
+           latency_threshold: 50ms
+   ```
+
+#### Performance Optimizations
+
+1. Caching Strategy
+   - Multi-level cache implementation
+   - Predictive cache warming
+   - Cache invalidation policies
+   - Distributed cache synchronization
+
+2. Resource Management
+   - Dynamic resource allocation
+   - Load prediction and scaling
+   - Memory optimization
+   - CPU/GPU utilization balancing
+
+### Model Management
+
+#### Local Models
+
+1. Embeddings Generation
+   - Sentence transformers for text embeddings
+   - Image embeddings via ResNet/EfficientNet
+   - Custom embedding models for specific domains
+   - Integration with pgvector for storage
+   - Dimensionality reduction capabilities (PCA, UMAP)
+
+2. Text Classification
+   - DistilBERT-based classifiers for efficiency
+   - Custom spaCy pipelines for specific tasks
+   - Multi-label classification support
+   - Zero-shot classification capabilities
+   - Fine-tuning infrastructure for domain adaptation
+
+3. Entity Recognition
+   - spaCy NER models for basic entities
+   - Custom entity recognition models
+   - Biomedical entity recognition (if needed)
+   - Geospatial entity detection
+   - Custom entity training pipeline
+
+4. Anomaly Detection
+   - Time series anomaly detection
+   - Behavioral pattern analysis
+   - Security threat detection
+   - Usage pattern monitoring
+   - Unsupervised learning models for outlier detection
+
+5. Time Series Analysis
+   - Forecasting models (Prophet, ARIMA)
+   - Seasonal decomposition
+   - Trend analysis
+   - Pattern recognition
+   - Real-time prediction capabilities
+
+#### External Model Integration
+
+1. OpenAI API Integration
+   - GPT model integration
+   - DALL-E for image generation
+   - Whisper for speech recognition
+   - Embeddings API integration
+   - Rate limiting and cost management
+   - Response caching strategy
+   - Error handling and fallbacks
+
+2. Hugging Face Hub Integration
+   - Model versioning and tracking
+   - Automated model downloads
+   - Custom model hosting
+   - Pipeline integration
+   - Supported model architectures:
+     - BERT/RoBERTa variants
+     - T5 for text generation
+     - CLIP for multi-modal tasks
+     - DistilBERT for efficiency
+
+3. Custom Model Registry
+   - Model metadata management
+   - Version control integration
+   - A/B testing framework
+   - Model performance tracking
+   - Deployment history
+   - Resource utilization monitoring
+   - Automated retraining triggers
+
+4. Model Version Control
+   - Git-based version tracking
+   - Model card generation
+   - Performance metrics tracking
+   - Training data versioning
+   - Configuration management
+   - Dependency tracking
+   - Reproducibility guarantees
+
+#### Model Lifecycle Management
+
+1. Training Pipeline
+   - Automated retraining schedules
+   - Data validation steps
+   - Performance monitoring
+   - Resource allocation
+   - Experiment tracking
+   - Model evaluation criteria
+
+2. Deployment Strategy
+   - Blue-green deployments
+   - Canary releases
+   - Rollback capabilities
+   - Health monitoring
+   - Performance profiling
+   - Resource scaling
+
+3. Monitoring & Metrics
+   - Inference latency tracking
+   - Prediction accuracy monitoring
+   - Resource utilization
+   - Error rate tracking
+   - Usage statistics
+   - Cost analysis
+
+## Integration Points
+
+### 1. Data Layer Communication
+
+1. PostgreSQL with pgvector
+   - Vector embedding storage and retrieval
+   - Similarity search operations
+   - Model metadata storage
+   - Training data versioning
+   - Performance metrics tracking
+   - Configuration:
+
+     ```yaml
+     postgres_config:
+       host: ${POSTGRES_HOST}
+       port: 5432
+       vector_dimension: 768
+       index_type: ivfflat
+       probe_count: 10
+       nlist: 100
+     ```
+
+2. Redis Cache Layer
+   - Model prediction caching
+   - Feature vector caching
+   - Session state management
+   - Real-time analytics buffer
+   - Configuration:
+
+     ```yaml
+     redis_config:
+       host: ${REDIS_HOST}
+       port: 6379
+       db: 0
+       cache_ttl: 3600
+       max_memory: 2gb
+       eviction_policy: volatile-lru
+     ```
+
+3. MinIO Object Storage
+   - Model artifact storage
+   - Training checkpoint storage
+   - Large binary data handling
+   - Configuration:
+
+     ```yaml
+     minio_config:
+       endpoint: ${MINIO_ENDPOINT}
+       access_key: ${MINIO_ACCESS_KEY}
+       secret_key: ${MINIO_SECRET_KEY}
+       bucket_name: model-artifacts
+       region: us-east-1
+     ```
+
+4. Apache Arrow Integration
+   - High-performance data transfer
+   - Column-oriented data processing
+   - Memory-mapped file support
+   - Zero-copy data sharing
+   - Configuration:
+
+     ```yaml
+     arrow_config:
+       compression: lz4
+       batch_size: 10000
+       memory_pool: 1GB
+       thread_count: 4
+     ```
+
+### 2. API Endpoints
+
+1. Model Inference Endpoints
+   - Synchronous prediction: `/api/v1/predict`
+   - Batch prediction: `/api/v1/predict/batch`
+   - Streaming inference: `/api/v1/predict/stream`
+   - Multi-model pipeline: `/api/v1/predict/pipeline`
+   - Parameters:
+
+     ```yaml
+     inference_config:
+       max_batch_size: 32
+       timeout: 30s
+       max_concurrent_requests: 100
+       enable_batching: true
+     ```
+
+2. Training Job Management
+   - Job submission: `/api/v1/training/submit`
+   - Job status: `/api/v1/training/status/{job_id}`
+   - Job control: `/api/v1/training/control/{job_id}`
+   - Resource monitoring: `/api/v1/training/resources`
+   - Configuration:
+
+     ```yaml
+     training_endpoints:
+       max_concurrent_jobs: 5
+       queue_size: 100
+       priority_levels: 3
+       resource_quotas:
+         gpu_memory: 16G
+         cpu_cores: 8
+     ```
+
+3. Model Status and Health
+   - Model health: `/api/v1/health/model/{model_id}`
+   - System metrics: `/api/v1/health/metrics`
+   - Resource usage: `/api/v1/health/resources`
+   - Cache status: `/api/v1/health/cache`
+   - Monitoring config:
+
+     ```yaml
+     health_check:
+       interval: 30s
+       timeout: 5s
+       failure_threshold: 3
+       success_threshold: 1
+     ```
+
+4. Batch Processing
+   - Job submission: `/api/v1/batch/submit`
+   - Progress tracking: `/api/v1/batch/progress/{job_id}`
+   - Result retrieval: `/api/v1/batch/results/{job_id}`
+   - Error handling: `/api/v1/batch/errors/{job_id}`
+   - Configuration:
+
+     ```yaml
+     batch_config:
+       max_batch_size: 1000
+       chunk_size: 100
+       parallel_workers: 4
+       retry_count: 3
+     ```
+
+## Processing Pipeline
+
+### 1. Data Preprocessing
+
+#### Text Processing
+- Unicode normalization
+- Language detection and routing
+- Tokenization (via spaCy)
+- Stop word removal
+- Special character handling
+- Encoding standardization
+
+#### Feature Engineering
+- Semantic feature extraction
+- Temporal feature generation
+- Geospatial feature processing
+- User behavior patterns
+- Interaction metrics
+- Configuration:
+  ```yaml
+  feature_config:
+    semantic:
+      use_embeddings: true
+      embedding_model: "distilbert-base-multilingual"
+      pooling_strategy: "mean"
+    temporal:
+      window_sizes: [1h, 24h, 7d]
+      aggregation_methods: [mean, sum, count]
+    geospatial:
+      coordinate_system: "EPSG:4326"
+      clustering_enabled: true
+  ```
+
+#### Data Validation
+- Schema validation
+- Type checking
+- Range validation
+- Relationship verification
+- Completeness checks
+- Custom validation rules:
+  ```yaml
+  validation_rules:
+    text_length:
+      min: 1
+      max: 10000
+    numeric_ranges:
+      confidence_score: [0.0, 1.0]
+      priority_level: [1, 5]
+    required_fields:
+      - user_id
+      - timestamp
+      - content_type
+  ```
+
+#### Privacy and Security
+- PII detection and masking
+- Sensitive data filtering
+- Data anonymization
+- Access control validation
+- Audit logging
+
+### 2. Inference Pipeline
+
+#### Model Selection
+- Task-based routing
+- Model availability checking
+- Version compatibility
+- Resource requirement matching
+- Fallback strategy
+- Configuration:
+  ```yaml
+  model_selection:
+    strategy: dynamic
+    criteria:
+      - latency_threshold: 100ms
+      - memory_limit: 2GB
+      - minimum_confidence: 0.85
+    fallback:
+      default_model: lightweight-v1
+      retry_count: 3
+  ```
+
+#### Load Distribution
+- Request batching
+- Priority queuing
+- Resource monitoring
+- Load shedding
+- Circuit breaking
+- Configuration:
+  ```yaml
+  load_balancing:
+    max_batch_size: 32
+    queue_timeout: 500ms
+    circuit_breaker:
+      error_threshold: 50%
+      reset_timeout: 30s
+    resource_limits:
+      cpu_threshold: 80%
+      memory_threshold: 85%
+  ```
+
+#### Caching System
+- Multi-level cache
+- Cache key generation
+- TTL management
+- Cache invalidation
+- Hit rate monitoring
+- Configuration:
+  ```yaml
+  cache_config:
+    layers:
+      memory:
+        size: 1GB
+        ttl: 300s
+      redis:
+        size: 5GB
+        ttl: 3600s
+    invalidation:
+      strategy: lru
+      max_size_per_key: 1MB
+  ```
+
+### 3. Post-processing
+
+#### Result Processing
+- Response aggregation
+- Ensemble methods
+- Weighted scoring
+- Threshold filtering
+- Format standardization
+- Configuration:
+  ```yaml
+  postprocessing:
+    aggregation:
+      method: weighted_average
+      min_responses: 2
+      timeout: 1s
+    scoring:
+      confidence_threshold: 0.75
+      quality_metrics: [precision, recall]
+    formatting:
+      output_format: json
+      include_metadata: true
+  ```
+
+#### Quality Assurance
+- Confidence scoring
+- Consistency checking
+- Business rule validation
+- Error classification
+- Response validation
+
+#### Response Optimization
+- Response compression
+- Field selection
+- Pagination handling
+- Rate limiting
+- Error formatting
+- Configuration:
+  ```yaml
+  response_config:
+    compression:
+      enabled: true
+      min_size: 1024
+    pagination:
+      default_size: 50
+      max_size: 200
+    rate_limits:
+      requests_per_minute: 60
+      burst_size: 10
+  ```
+
+## Security Measures
+
+### 1. Model Security
+
+- Input validation
+- Output sanitization
+- Rate limiting
+- Access control
+
+### 2. Data Protection
+
+- PII detection and masking
+- Encryption at rest
+- Secure model storage
+- Audit logging
+
+## Performance Optimization
+
+### 1. Resource Management
+
+resources:
+  limits:
+    cpus: '4'
+    memory: 8G
+  reservations:
+    cpus: '2'
+    memory: 4G
+
+### 2. Caching Strategy
+
+- Model caching
+- Inference results caching
+- Embedding caching
+- Feature cache warming
+
+## Docker Configuration
+
+### 1. Container Specification
+
+services:
+  datapunk-cortex:
+    image: datapunk/cortex:latest
+    container_name: datapunk_cortex
+    environment:
+      - REDIS_URL=${REDIS_URL}
+      - POSTGRES_URL=${POSTGRES_URL}
+      - MODEL_CACHE_SIZE=2GB
+      - MAX_BATCH_SIZE=32
+    volumes:
+      - model_storage:/models
+      - cache_storage:/cache
+    ports:
+      - "8001:8001"
+    networks:
+      - datapunk_network
+    depends_on:
+      - datapunk-lake
+      - redis
+
+### 2. Volume Management
+
+volumes:
+  model_storage:
+    driver: local
+  cache_storage:
+    driver: local
+
+## Monitoring & Maintenance
+
+### 1. Health Checks
+
+#### System Health
+```yaml
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 60s
+  start_interval: 5s
+```
+
+#### Component Health Monitoring
+```yaml
+component_health:
+  endpoints:
+    - name: haystack
+      path: /health/haystack
+      critical: true
+    - name: langchain
+      path: /health/langchain
+      critical: true
+    - name: model_service
+      path: /health/models
+      critical: true
+  dependencies:
+    - service: postgres
+      port: 5432
+    - service: redis
+      port: 6379
+    - service: minio
+      port: 9000
+```
+
+### 2. Metrics Collection
+
+#### Model Performance Metrics
+```yaml
+model_metrics:
+  collection_interval: 60s
+  retention_period: 30d
+  metrics:
+    - name: inference_latency
+      type: histogram
+      buckets: [0.01, 0.05, 0.1, 0.5, 1.0]
+    - name: prediction_accuracy
+      type: gauge
+    - name: model_throughput
+      type: counter
+    - name: cache_hit_ratio
+      type: gauge
+```
+
+#### Resource Utilization
+```yaml
+resource_metrics:
+  collection_interval: 30s
+  exporters:
+    - prometheus
+    - grafana
+  metrics:
+    cpu:
+      - usage_percent
+      - load_average
+      - context_switches
+    memory:
+      - usage_bytes
+      - swap_usage
+      - page_faults
+    gpu:
+      - utilization
+      - memory_used
+      - temperature
+```
+
+#### Performance Monitoring
+```yaml
+performance_metrics:
+  tracing:
+    enabled: true
+    sampler_type: probabilistic
+    sampler_param: 0.1
+  profiling:
+    enabled: true
+    interval: 300s
+  alerts:
+    latency_threshold: 500ms
+    error_rate_threshold: 0.01
+    resource_threshold: 0.85
+```
+
+### 3. Logging Configuration
+
+#### Application Logs
+```yaml
+logging:
+  level: INFO
+  format: json
+  output:
+    - stdout
+    - file
+  file_config:
+    path: /var/log/datapunk/cortex
+    max_size: 100MB
+    max_files: 10
+    compression: true
+```
+
+#### Audit Logging
+```yaml
+audit:
+  enabled: true
+  events:
+    - model_inference
+    - configuration_changes
+    - security_events
+  retention: 90d
+  encryption: true
+```
+
+### 4. Alert Management
+
+#### Alert Configuration
+```yaml
+alerts:
+  channels:
+    - type: slack
+      webhook: ${SLACK_WEBHOOK_URL}
+    - type: email
+      recipients: ${ALERT_EMAIL_LIST}
+  rules:
+    high_priority:
+      response_time:
+        threshold: 1s
+        window: 5m
+      error_rate:
+        threshold: 5%
+        window: 5m
+    medium_priority:
+      cache_miss:
+        threshold: 40%
+        window: 15m
+      resource_usage:
+        threshold: 80%
+        window: 10m
+```
+
+#### Alert Aggregation
+```yaml
+alert_aggregation:
+  grouping_window: 5m
+  max_alerts_per_group: 10
+  cooldown_period: 15m
+  deduplication:
+    enabled: true
+    window: 1h
+```
+
+### 5. Performance Analysis
+
+#### Query Performance
+```yaml
+query_analysis:
+  slow_query_threshold: 500ms
+  explain_analyze: true
+  log_parameter_values: true
+  sample_rate: 0.1
+```
+
+#### Cache Analysis
+```yaml
+cache_analysis:
+  metrics:
+    - hit_rate
+    - eviction_rate
+    - memory_usage
+    - key_distribution
+  optimization:
+    auto_adjust_ttl: true
+    prefetch_threshold: 0.8
+```
+
+## Development Considerations
+
+### 1. Local Development
+
+- Model development environment
+- Testing frameworks
+- Debug logging
+- Hot reloading
+
+### 2. CI/CD Integration
+
+- Model testing pipeline
+- Performance benchmarking
+- Security scanning
+- Automated deployment
+
+## Future Considerations
+
+1. Scalability
+   - Horizontal scaling for inference
+   - Distributed training support
+   - Model sharding capabilities
+   - Dynamic resource allocation
+
+2. Advanced Features
+   - Federated learning support
+   - Online learning capabilities
+   - Model A/B testing
+   - Automated model optimization
+
+3. Integration
+   - Additional model providers
+   - Enhanced privacy features
+   - Extended monitoring capabilities
+   - Advanced caching strategies
