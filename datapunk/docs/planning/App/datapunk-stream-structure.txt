@@ -1,0 +1,95 @@
+datapunk-stream/
+├── api/                              # API layer handling external communications
+│   ├── endpoints/                    # API endpoint definitions
+│   │   ├── google/                  # Google services integration endpoints
+│   │   │   ├── maps.py             # Maps API integration and location tracking
+│   │   │   ├── youtube.py          # YouTube activity and history tracking
+│   │   │   ├── fit.py              # Fitness and health data integration
+│   │   │   ├── photos.py           # Photo metadata and album management
+│   │   │   └── play.py             # Play Store activity tracking
+│   │   ├── microsoft/              # Microsoft services integration endpoints
+│   │   ├── entertainment/          # Entertainment platforms integration
+│   │   ├── stream.py               # Generic stream handling endpoints
+│   │   ├── websocket.py            # WebSocket connection management
+│   │   └── health.py               # Health check endpoints
+│   └── middleware/                   # Request/Response middleware
+│       ├── auth.py                  # Authentication and authorization
+│       ├── rate_limit.py            # Rate limiting implementation
+│       └── pii.py                   # PII detection and handling
+├── core/                             # Core application components
+│   ├── config.py                    # Configuration management
+│   ├── security.py                  # Security utilities and settings
+│   └── logging.py                   # Logging configuration
+├── services/                         # Service layer implementations
+│   ├── temporal/                    # Temporal workflow management
+│   │   ├── workflows/              # Workflow definitions
+│   │   └── activities/             # Activity implementations
+│   ├── celery/                      # Celery task management
+│   │   ├── tasks/                  # Task definitions
+│   │   └── workers/                # Worker configurations
+│   └── prefect/                     # Prefect pipeline management
+│       ├── flows/                  # Data flow definitions
+│       └── tasks/                  # Task implementations
+├── integrations/                     # Third-party integration logic
+│   ├── google/                      # Google services integration logic
+│   ├── microsoft/                   # Microsoft services integration logic
+│   └── entertainment/               # Entertainment platforms integration
+├── processors/                       # Data processing components
+│   ├── stream/                      # Stream processing logic
+│   ├── validation/                  # Data validation components
+│   └── normalization/               # Data normalization logic
+├── models/                          # Data models and schemas
+│   ├── stream.py                    # Stream-related data models
+│   ├── events.py                    # Event definitions
+│   └── oauth.py                     # OAuth-related models
+├── storage/                         # Storage layer implementations
+│   ├── redis/                      # Redis cache management
+│   └── rabbitmq/                   # RabbitMQ message broker
+└── utils/                           # Utility functions and helpers
+    ├── token_bucket.py             # Rate limiting implementation
+    └── validators.py               # Data validation utilities
+
+
+
+
+graph TD
+    %% External Data Sources
+    ExtSources[External Data Sources] --> Router{API Router}
+    
+    %% API Layer
+    Router --> |Authentication| Auth[Authentication Middleware]
+    Auth --> |Rate Limiting| RateLimit[Rate Limiter]
+    RateLimit --> |PII Check| PII[PII Detection]
+    
+    %% Service Processing
+    PII --> Endpoints[API Endpoints]
+    Endpoints --> |Tasks| Celery[Celery Workers]
+    Endpoints --> |Workflows| Temporal[Temporal Workflows]
+    Endpoints --> |Pipelines| Prefect[Prefect Flows]
+    
+    %% Data Processing
+    Celery --> Processor[Stream Processor]
+    Temporal --> Processor
+    Prefect --> Processor
+    
+    %% Storage Layer
+    Processor --> |Cache| Redis[Redis Cache]
+    Processor --> |Messages| RabbitMQ[RabbitMQ]
+    Processor --> |Persistence| PostgreSQL[PostgreSQL]
+    
+    %% Monitoring
+    Processor --> |Metrics| Prometheus[Prometheus]
+    Processor --> |Logs| Logger[Logging System]
+    
+    %% Class Styling
+    classDef external fill:#f96,stroke:#333
+    classDef middleware fill:#9cf,stroke:#333
+    classDef processing fill:#9f9,stroke:#333
+    classDef storage fill:#f9f,stroke:#333
+    classDef monitoring fill:#ff9,stroke:#333
+    
+    class ExtSources external
+    class Auth,RateLimit,PII middleware
+    class Processor,Celery,Temporal,Prefect processing
+    class Redis,RabbitMQ,PostgreSQL storage
+    class Prometheus,Logger monitoring

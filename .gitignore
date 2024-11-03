@@ -91,26 +91,7 @@ postgres-data-*/
 pgadmin-data/
 pgadmin4.db
 
-# PostgreSQL additional #
-########################
-datapunk/db/data/postmaster.pid
-datapunk/db/data/postmaster.opts
-datapunk/db/data/pg_stat_tmp/
-datapunk/db/data/pg_replslot/
-datapunk/db/data/pg_dynshmem/
-datapunk/db/data/pg_notify/
-datapunk/db/data/pg_serial/
-datapunk/db/data/pg_snapshots/
-datapunk/db/data/pg_stat/
-datapunk/db/data/pg_subtrans/
-datapunk/db/data/pg_tblspc/
-datapunk/db/data/pg_twophase/
-datapunk/db/data/pg_wal/
-datapunk/db/data/pg_xact/
-datapunk/db/data/base/
-datapunk/db/data/base/*
-datapunk/db/data/base/**/*
-datapunk/db/data/global/
+
 
 
 # Docker #

@@ -1,6 +1,13 @@
-services:
-  # ... existing services ...
+# Common configuration anchors
 
+
+x-healthcheck-defaults: &healthcheck-defaults
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s
+
+services:
   cortex:
     build:
       context: ./datapunk-cortex
@@ -30,7 +37,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-
+      
   redis:
     image: redis:7-alpine
     container_name: datapunk_redis
@@ -62,7 +69,6 @@ services:
     networks:
       - datapunk_network
     depends_on:
-      - backend
       - cortex
     healthcheck:
       <<: *healthcheck-defaults
@@ -76,8 +82,41 @@ services:
           cpus: '1'
           memory: 2G
 
+  datapunk-stream:
+    image: datapunk/stream:latest
+    container_name: datapunk_stream
+    environment:
+      REDIS_URL: ${REDIS_URL}
+      POSTGRES_URL: ${POSTGRES_URL}
+      API_KEYS: ${API_KEYS}
+    volumes:
+      - stream_cache:/cache
+      - stream_logs:/logs
+    ports:
+      - "8000:8000"
+    networks:
+      - datapunk_network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 volumes:
-  # ... existing volumes ...
   cortex_models:
   cortex_cache:
   cortex_logs:
+  stream_cache:
+  stream_logs:  
+
+networks:
+  datapunk_network:
+    driver: bridge

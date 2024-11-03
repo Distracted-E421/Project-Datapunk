@@ -291,3 +291,148 @@ oauth_config:
 - Access token rotation
 - Audit logging
 - Rate limit enforcement
+
+# DataPunk Stream Module
+
+### Integration Framework Overview
+
+- **FastAPI + Celery**: Async service integration backbone
+  - FastAPI handles real-time API endpoints and WebSocket connections
+  - Celery manages distributed task processing and background jobs
+  - Provides scalable microservices architecture for stream processing
+
+- **Token Bucket**: Rate limiting implementation
+  - Configurable rate limits per user/client
+  - Burst handling capabilities
+  - Protection against API abuse and resource exhaustion
+
+- **Temporal**: Workflow orchestration and data flow automation
+  - Manages complex data processing workflows
+  - Handles retry logic and error recovery
+  - Maintains workflow state and history
+  - Supports long-running processes
+
+- **Redis**: Stream caching and pub/sub
+  - Real-time data stream caching
+  - Pub/sub messaging for real-time updates
+  - Session management
+  - Temporary data storage
+
+- **RabbitMQ**: Message broker and event streaming
+  - Reliable message queuing
+  - Event-driven architecture support
+  - Message routing and fan-out capabilities
+  - Dead letter queuing for failed messages
+
+- **Prefect**: Data pipeline orchestration
+  - ETL workflow management
+  - Pipeline monitoring and logging
+  - Scheduled data processing tasks
+  - Data transformation workflows
+
+### Directory Structure
+
+``` datapunk-stream/
+├── api/
+│   ├── endpoints/
+│   │   ├── google/
+│   │   │   ├── maps.py
+│   │   │   ├── youtube.py
+│   │   │   ���── fit.py
+│   │   │   ├── photos.py
+│   │   │   └── play.py
+│   │   ├── microsoft/
+│   │   ├── entertainment/
+│   │   ├── stream.py
+│   │   ├── websocket.py
+│   │   ��── health.py
+│   └── middleware/
+│       ├── auth.py
+│       ├── rate_limit.py
+│       └── pii.py
+├── core/
+│   ├── config.py
+│   ├── security.py
+│   └── logging.py
+├── services/
+│   ├── temporal/
+│   │   ├── workflows/
+│   │   └── activities/
+│   ├── celery/
+│   │   ├── tasks/
+│   │   └── workers/
+│   └── prefect/
+│       ├── flows/
+│       └── tasks/
+├── integrations/
+│   ├── google/
+│   ├── microsoft/
+│   └── entertainment/
+├── processors/
+│   ├── stream/
+│   ├── validation/
+│   └── normalization/
+├── models/
+│   ├── stream.py
+│   ├── events.py
+│   └── oauth.py
+├── storage/
+│   ├── redis/
+│   └── rabbitmq/
+└── utils/
+    ├── token_bucket.py
+    └── validators.py
+```
+
+### Key Features
+
+1. **Stream Processing**
+   - Real-time data ingestion
+   - Stream transformation and enrichment
+   - Data validation and cleaning
+   - Stream aggregation and windowing
+
+2. **Event Processing**
+   - Event sourcing and replay capabilities
+   - Event-driven workflows
+   - Custom event handlers
+   - Event storage and archival
+
+3. **Integration Capabilities**
+   - REST API endpoints
+   - WebSocket connections
+   - Message queue integration
+   - Third-party system connectors
+
+4. **Monitoring and Management**
+   - Stream health monitoring
+   - Performance metrics
+   - Error tracking and alerting
+   - Resource usage monitoring
+
+5. **Security Features**
+   - Authentication and authorization
+   - Rate limiting
+   - Data encryption
+   - Audit logging
+
+### Configuration Management
+
+- Environment-based configuration
+- Feature flags
+- Service discovery
+- Dynamic scaling parameters
+
+### Error Handling
+
+- Retry mechanisms
+- Circuit breakers
+- Dead letter queues
+- Error logging and notification
+
+### Scalability Considerations
+
+- Horizontal scaling capabilities
+- Load balancing
+- Partitioning strategies
+- Caching mechanisms
