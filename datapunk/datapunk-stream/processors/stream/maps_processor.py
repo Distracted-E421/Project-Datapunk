@@ -162,3 +162,22 @@ class MapsProcessor(BaseEventProcessor):
         """Handle PII detection and anonymization"""
         from api.middleware.pii import pii_detector
         return await pii_detector.anonymize_pii(text)
+
+    async def validate(self, event: StreamEvent) -> bool:
+        """Validate Maps event data"""
+        if not await super().validate(event):
+            return False
+            
+        data = event.data
+        event_type = data.get('event_type')
+        
+        if event_type == 'location':
+            return (
+                isinstance(data.get('latitude'), (int, float)) and
+                isinstance(data.get('longitude'), (int, float)) and
+                self.validator.validate_coordinates(data['latitude'], data['longitude'])
+            )
+        elif event_type == 'place_visit':
+            return all(field in data for field in ['place_id', 'duration'])
+            
+        return True
