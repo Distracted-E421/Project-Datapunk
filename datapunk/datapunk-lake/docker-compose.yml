@@ -1,0 +1,37 @@
+x-healthcheck-defaults: &healthcheck-defaults
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s
+
+services:
+  datapunk-lake:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: datapunk/lake:latest
+    container_name: datapunk_lake
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-datapunk}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-datapunk}
+    volumes:
+      - data_volume:/var/lib/postgresql/data
+      - ./config/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./config/init-extensions.sql:/docker-entrypoint-initdb.d/init-extensions.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "pg_isready -U datapunk -d datapunk"]
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: '8G'
+        reservations:
+          cpus: '2'
+          memory: '4G'
+
+volumes:
+  data_volume:
