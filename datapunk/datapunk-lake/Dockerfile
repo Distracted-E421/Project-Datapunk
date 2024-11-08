@@ -1,4 +1,4 @@
-FROM postgres:16
+FROM postgres:16 as datapunk-lake
 
 # Add PostgreSQL's repository key and repository
 RUN apt-get update \
@@ -6,7 +6,7 @@ RUN apt-get update \
     && curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg >/dev/null \
     && echo "deb http://apt.postgresql.org/pub/repos/apt/ bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list
 
-# Install build dependencies and extensions
+# Install build dependencies and extensions (referencing Architecture-Lake.md lines 13-21)
 RUN apt-get update && apt-get install -y \
     build-essential \
     git \
@@ -19,11 +19,14 @@ RUN apt-get update && apt-get install -y \
     postgresql-contrib \
     && rm -rf /var/lib/apt/lists/*
 
-# Install pgvector with correct include paths
-RUN git clone --branch v0.5.1 https://github.com/pgvector/pgvector.git \
-    && cd pgvector \
-    && PG_CONFIG=/usr/lib/postgresql/16/bin/pg_config make \
-    && PG_CONFIG=/usr/lib/postgresql/16/bin/pg_config make install
+# Install pgvector with correct paths
+WORKDIR /tmp/pgvector
+RUN git clone --branch v0.5.1 https://github.com/pgvector/pgvector.git . && \
+    PG_CONFIG=/usr/lib/postgresql/16/bin/pg_config make && \
+    PG_CONFIG=/usr/lib/postgresql/16/bin/pg_config make install && \
+    mkdir -p /usr/share/postgresql/16/extension && \
+    cp vector.control /usr/share/postgresql/16/extension/ && \
+    cp sql/vector--*.sql /usr/share/postgresql/16/extension/
 
 # Install TimescaleDB
 RUN echo "deb https://packagecloud.io/timescale/timescaledb/debian/ bookworm main" > /etc/apt/sources.list.d/timescaledb.list \
@@ -32,18 +35,18 @@ RUN echo "deb https://packagecloud.io/timescale/timescaledb/debian/ bookworm mai
     && apt-get install -y timescaledb-2-postgresql-16 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy configuration files
+# Copy configuration files (referencing README.md lines 141-142)
 COPY config/postgresql.conf /etc/postgresql/postgresql.conf
 COPY config/init-extensions.sql /docker-entrypoint-initdb.d/
 
-# Set environment variables (referencing README.md lines 242-264)
+# Set environment variables
 ENV POSTGRES_USER=datapunk \
     POSTGRES_PASSWORD=changeme \
     POSTGRES_DB=datapunk \
     POSTGRES_INITDB_ARGS="--data-checksums" \
     PATH=$PATH:/usr/lib/postgresql/16/bin
 
-# Update shared preload libraries
+# Update shared preload libraries (referencing extension-config.txt lines 11-12)
 RUN echo "shared_preload_libraries = 'pg_stat_statements,pg_stat_monitor,pg_cron,timescaledb,pgvector'" >> /usr/share/postgresql/postgresql.conf.sample
 
 EXPOSE 5432
