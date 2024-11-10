@@ -18,7 +18,7 @@ services:
 
   datapunk-lake:
     image: datapunk/lake:latest
-    container_name: datapunk_lake_cortex
+    container_name: datapunk_lake
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-datapunk}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}

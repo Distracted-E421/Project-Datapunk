@@ -4,30 +4,41 @@
 
 The datapunk-lake container serves as the primary data storage and processing layer, handling bulk data imports and maintaining the core database infrastructure. It's designed to be independent and compatible with different backend services while maintaining strict data sovereignty.
 
-## Core Components
+## Build Architecture
 
-### PostgreSQL Extensions
+The container uses a multi-stage build process:
+1. Build stage: Compiles extensions from source
+2. Final stage: Installs only runtime dependencies
+
+### Core Components
+
+#### PostgreSQL Extensions
 
 Core Extensions (Compatible with PostgreSQL 16.x):
 
-- PostGIS (3.4+): Spatial data handling
+Built from source:
 - pgvector (0.5.1+): Vector embeddings storage
-- TimescaleDB (2.13+): Time-series data optimization
-- pg_cron (1.6+): Automated maintenance tasks
-- pg_stat_statements: Query performance monitoring
 - pg_partman (5.0+): Automated partition management
+
+Installed from packages:
+- PostGIS (3.4+): Spatial data handling
+- pg_cron (1.6+): Automated maintenance tasks
+
+Included in postgresql-contrib:
+- pg_stat_statements: Query performance monitoring
 - hstore: Flexible metadata storage
 - pg_trgm: Fuzzy text search capabilities
 
-Performance & Caching:
+### Extension Loading
 
-- pg_prewarm: Cache warming after restarts
-- pg_memcache: Memcached integration for query caching
-- pgbouncer: Connection pooling (runs separately)
-- pg_stat_kcache: System resource usage monitoring
-- pg_buffercache: Shared buffer analysis
+Extensions are loaded in two ways:
+1. Startup (shared_preload_libraries):
+   - timescaledb
+   - pg_stat_statements
+   - vector
 
-Analytics & Monitoring:
+2. On-demand (CREATE EXTENSION):
+   - All other extensions
 
 - pganalyze_collector: Performance analytics
 - pg_prometheus: Prometheus metrics export

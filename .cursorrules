@@ -6,8 +6,6 @@ ignore:
   - "**/*.pyc"
   - "**/.venv/"
   - "**/venv/"
-  - "**/env/"
-  - "**/.env.*"
   - "**/.git/"
   - "**/node_modules/"
   - "**/dist/"
@@ -15,50 +13,27 @@ ignore:
 
 # Include all Python files
 include:
-  - "**/*.py"   
-
-# Include all YAML files
-include:
+  - "**/*.py" # Python files
   - "**/*.yaml" # Configuration files
-
-# Include all Docker files
-include:
-  - "**/*.dockerfile"   
-
-# Include all SQL files
-include:
-  - "**/*.sql"
-
-# Include all CSV files
-include:
-  - "**/*.csv"
-
-# Include all JSON files
-include:
-  - "**/*.json" 
-
-# Include all TXT files
-include:
-  - "**/*.txt"
-
-# Include all TS files
-include:
-  - "**/*.ts"   
-
-# Include all Svelte files
-include:
-  - "**/*.svelte"   
-
-# Include all JS files
-include:
-  - "**/*.js"   
-
-# Prioritize documentation files for planning and context
-include:
-  - "docs/**/*.md"
-  - "docs/**/*.txt"
-  - "docs/**/*.yaml"
-  - "docs/**/*.json"
-  - "README.md"
+  - "**/*.dockerfile" # Dockerfiles
+  - "**/*.csv" # CSV files
+  - "**/*.txt" # Text files
+  - "**/*.ts" # TypeScript files
+  - "**/*.svelte" # Svelte files
+  - "**/*.js" # JavaScript files
+  - "**/*.md" # Markdown files
+  - "**/.env.*" # Environment files
+  - "**/*.yml" # YAML files
+  - "**/*.json" # JSON files
+  - "**/*.sql" # SQL files
+  - "**/*.conf" # Configuration files
+  - "**/*.ini" # INI files
+  - "**/*.sh" # Shell scripts
+  - "**/*.ps1" # PowerShell files
+  - "**/*.psm1" # PowerShell files
+  - "**/*.gitignore" # Git ignore files
+  - "**/*.dockerignore" # Docker ignore files
+  - "**/*.docker-compose.yml" # Docker compose files
+  - "**/*.sql.conf" # SQL configuration files
 
 

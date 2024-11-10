@@ -12,9 +12,7 @@ services:
     image: datapunk/lake:latest
     container_name: datapunk_lake
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-datapunk}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
-      POSTGRES_DB: ${POSTGRES_DB:-datapunk}
+      POSTGRES_URL: ${POSTGRES_URL:-postgresql://datapunk:changeme@datapunk-lake:5432/datapunk}
     volumes:
       - data_volume:/var/lib/postgresql/data
       - ./config/postgresql.conf:/etc/postgresql/postgresql.conf:ro
