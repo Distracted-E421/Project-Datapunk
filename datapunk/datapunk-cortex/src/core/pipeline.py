@@ -89,6 +89,37 @@ class PipelineManager:
         
         return pipeline
 
+    def _create_nlp_pipeline(self) -> Pipeline:
+        """Create NLP-specific pipeline"""
+        pipeline = Pipeline()
+        
+        # Add preprocessing stage
+        pipeline.add_node(
+            component=PreProcessor(
+                clean_empty_lines=True,
+                clean_whitespace=True,
+                clean_header_footer=True
+            ),
+            name="preprocessor",
+            inputs=["Query"]
+        )
+        
+        # Add NLP processing stage
+        pipeline.add_node(
+            component=self.nlp_pipeline,
+            name="nlp_processor",
+            inputs=["preprocessor"]
+        )
+        
+        # Add postprocessing stage
+        pipeline.add_node(
+            component=self._create_postprocessor(),
+            name="postprocessor",
+            inputs=["nlp_processor"]
+        )
+        
+        return pipeline
+
     async def process(self, 
                      input_data: Dict[str, Any], 
                      pipeline_type: PipelineType = PipelineType.STANDARD) -> Dict[str, Any]:
