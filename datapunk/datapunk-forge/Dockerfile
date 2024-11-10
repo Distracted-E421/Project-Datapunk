@@ -16,6 +16,14 @@ WORKDIR /build
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Cleanup
+RUN pip install --no-cache-dir -r requirements.txt \
+    && find /usr/local/lib/python3.11/site-packages -name "*.pyc" -delete \
+    && find /usr/local/lib/python3.11/site-packages -name "__pycache__" -delete \
+    && rm -rf /root/.cache/pip \
+    && apt-get clean autoclean \
+    && apt-get autoremove --yes
+
 FROM python:3.11-slim AS datapunk-forge
 
 # Install runtime dependencies

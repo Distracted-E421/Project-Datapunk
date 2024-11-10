@@ -1,0 +1,3 @@
+Authentication and authorization
+Data protection strategies
+Security monitoring

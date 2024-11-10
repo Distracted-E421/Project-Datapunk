@@ -1,4 +1,4 @@
-FROM node:20 AS datapunk-frontend-builder
+FROM node:20-slim AS datapunk-frontend-builder
 
 WORKDIR /app
 
@@ -15,6 +15,12 @@ RUN npm install
 # Copy the rest and build
 COPY . .
 RUN npm run build
+
+# Cleanup
+RUN npm cache clean --force \
+    && rm -rf /root/.npm \
+    && apt-get clean autoclean \
+    && apt-get autoremove --yes
 
 FROM node:20-slim AS datapunk-frontend
 

@@ -40,6 +40,11 @@ RUN git clone https://github.com/pgpartman/pg_partman.git \
     && make USE_PGXS=1 \
     && make install
 
+# Cleanup
+RUN apt-get clean autoclean \
+    && apt-get autoremove --yes \
+    && rm -rf /var/lib/{apt,dpkg,cache,log}/
+
 FROM postgres:16 AS datapunk-lake
 
 # Copy built extensions from build stage
