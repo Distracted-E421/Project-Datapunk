@@ -1,0 +1,33 @@
+name: Performance Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  performance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.12'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          
+      - name: Run performance tests
+        run: |
+          python -m pytest tests/performance/test_nlp_performance.py -v \
+            --benchmark-only \
+            --benchmark-json output.json
+            
+      - name: Check performance thresholds
+        run: |
+          python scripts/check_performance.py output.json
