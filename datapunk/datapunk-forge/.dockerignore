@@ -41,15 +41,23 @@ coverage/
 .pytest_cache/
 htmlcov/
 
-# Logs
+# ML specific
+*.pkl
+*.pt
+*.pth
+*.onnx
+*.h5
+*.tfevents.*
+mlruns/
+runs/
+wandb/
+lightning_logs/
+
+# Logs and Cache
 *.log
 logs/
-
-# Data directories (these should be mounted as volumes)
-data/
-staging/
-archive/
-/var/lib/postgresql/data/
+cache/
+.cache/
 
 # Docker
 Dockerfile*
@@ -65,12 +73,20 @@ README*
 .git/
 .gitignore
 
-# Configuration (these should be mounted as volumes)
-config/*.conf
-config/*.sql
-!config/init-extensions.sql
-!config/postgresql.conf
-
 # Temporary files
 tmp/
 temp/
+
+# Model artifacts
+models/
+checkpoints/
+saved_models/
+
+# MLflow
+mlruns/
+mlartifacts/
+
+# Training data
+data/
+datasets/
+raw_data/

@@ -41,15 +41,11 @@ coverage/
 .pytest_cache/
 htmlcov/
 
-# Logs
+# Logs and Cache
 *.log
 logs/
-
-# Data directories (these should be mounted as volumes)
-data/
-staging/
-archive/
-/var/lib/postgresql/data/
+cache/
+.cache/
 
 # Docker
 Dockerfile*
@@ -65,12 +61,16 @@ README*
 .git/
 .gitignore
 
-# Configuration (these should be mounted as volumes)
-config/*.conf
-config/*.sql
-!config/init-extensions.sql
-!config/postgresql.conf
+# Protocol Buffers
+*.pb.go
+*.pb.cc
+*.pb.h
 
 # Temporary files
 tmp/
 temp/
+
+# Service specific
+celerybeat-schedule
+*.rdb
+dump.rdb

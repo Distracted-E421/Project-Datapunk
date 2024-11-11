@@ -1,9 +1,52 @@
+# Dependencies
 node_modules
 npm-debug.log
+
+# Build outputs
 build
 .svelte-kit
 dist
+out
+
+# Development
 .git
-.gitignore
+.github
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+
+# Environment
 .env
 .env.*
+!.env.example
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Documentation
+docs/
+README*
+
+# Cache
+.cache
+.npm
+.next
+.nuxt
+.docusaurus
+
+# Temporary files
+tmp
+temp
+.tmp
+.temp
+
+# Don't ignore these config files
+!svelte.config.js
+!vite.config.ts
+!tsconfig.json

@@ -45,16 +45,10 @@ htmlcov/
 *.log
 logs/
 
-# Data directories (these should be mounted as volumes)
-data/
-staging/
-archive/
-/var/lib/postgresql/data/
-
-# Docker
-Dockerfile*
+# Local development
+local_settings.py
 docker-compose*.yml
-.docker/
+Dockerfile*
 
 # Documentation
 docs/
@@ -65,11 +59,17 @@ README*
 .git/
 .gitignore
 
-# Configuration (these should be mounted as volumes)
-config/*.conf
-config/*.sql
-!config/init-extensions.sql
-!config/postgresql.conf
+# Cache
+.cache/
+*.cache
+
+# Models (these should be mounted as volumes)
+models/
+*.pkl
+*.h5
+*.pt
+*.pth
+*.onnx
 
 # Temporary files
 tmp/

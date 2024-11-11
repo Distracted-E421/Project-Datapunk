@@ -1,26 +1,9 @@
-<script>
-    import Sidebar from '$lib/components/Sidebar.svelte';
+<script lang="ts">
+  import { onMount } from 'svelte';
+
+  onMount(() => {
+    console.log('Datapunk Frontend Initialized');
+  });
 </script>
 
-<div class="main-content">
-    <h1>Welcome to DataPunk</h1>
-    <p>Your data management platform</p>
-</div>
-
-<style>
-    .main-content {
-        padding: 2rem;
-    }
-
-    h1 {
-        color: var(--accent);
-        margin-bottom: 1rem;
-        font-family: var(--font-title);
-        font-size: 3rem;
-        font-weight: normal;
-    }
-
-    p {
-        color: var(--text-secondary);
-    }
-</style>
+<h1>Datapunk</h1>

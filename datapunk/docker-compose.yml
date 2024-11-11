@@ -6,7 +6,7 @@ x-healthcheck-defaults: &healthcheck-defaults
 
 services:
   redis:
-    image: redis:7-alpine
+    image: redis:alpine
     container_name: datapunk_redis
     ports:
       - "6379:6379"
@@ -85,6 +85,8 @@ services:
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       POSTGRES_URL: ${POSTGRES_URL:-postgresql://datapunk:changeme@datapunk-lake:5432/datapunk}
       API_KEYS: ${API_KEYS:-test_key_123}
+      REDIS_HOST: redis
+      NEUROCORTEX_HOST: datapunk-cortex
     networks:
       - datapunk_network
     deploy:
@@ -101,6 +103,8 @@ services:
       redis:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      datapunk-cortex:
         condition: service_healthy
 
   datapunk-forge:

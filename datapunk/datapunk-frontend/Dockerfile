@@ -8,29 +8,34 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy package files
+# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
 
-# Copy the rest and build
-COPY . .
-RUN npm run build
+# Copy configuration files
+COPY svelte.config.js ./
+COPY tsconfig.json ./
+COPY vite.config.ts ./
 
-# Cleanup
-RUN npm cache clean --force \
-    && rm -rf /root/.npm \
-    && apt-get clean autoclean \
-    && apt-get autoremove --yes
+# Copy source files
+COPY src/ ./src/
+COPY static/ ./static/
+
+# Initialize SvelteKit
+RUN npm run prepare
+
+# Build the application
+RUN npm run build
 
 FROM node:20-slim AS datapunk-frontend
 
 WORKDIR /app
 
-# Copy source files for development
-COPY . .
+# Copy built files and dependencies
+COPY --from=datapunk-frontend-builder /app/build ./build
 COPY --from=datapunk-frontend-builder /app/node_modules ./node_modules
+COPY --from=datapunk-frontend-builder /app/package.json ./
 
 EXPOSE 3000
 
-# Start the application in development mode
-CMD ["npm", "run", "dev", "--", "--host"]
+CMD ["node", "build"]

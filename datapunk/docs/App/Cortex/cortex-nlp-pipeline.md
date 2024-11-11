@@ -29,22 +29,94 @@ class NLPPipelineManager:
         return result
 ```
 
-#### 2. Text Processing Flow
+## Text Processing Flow
 
-The current implementation leverages Haystack's pipeline architecture:
+The NeuroCortex text processing pipeline implements a multi-stage architecture that integrates with both Haystack and LangChain. The system processes text through a series of optimized stages with built-in caching and fallback mechanisms.
+
+### Core Implementation of NLP Pipeline
 
 ```python:datapunk/datapunk-cortex/src/core/pipeline.py
-startLine: 50
-endLine: 71
+class NLPPipelineManager:
+    def __init__(self, config: Dict[str, Any]):
+        self.preprocessor = TextPreprocessor(config["preprocessing"])
+        self.classifier = TextClassifier(config["classification"])
+        self.cache = CacheManager(config["cache"])
+        
+    async def process_text(self, text: str) -> Dict[str, Any]:
+        cache_key = f"nlp:{hash(text)}"
+        cached = await self.cache.get(cache_key)
+        if cached:
+            return cached
+            
+        processed = await self.preprocessor.process(text)
+        result = await self.classifier.classify(processed)
+        await self.cache.set(cache_key, result)
+        return result
 ```
 
-### Integration Points
+### Processing Stages
 
-Currently interfaces with:
+#### 1. Text Preprocessing
 
-- HaystackEngine for document processing
-- LangChainEngine for LLM operations
-- Cache layer for performance optimization
+- Normalizes and cleans input text
+- Handles special characters and encoding
+- Implements configurable tokenization strategies
+- Manages text chunking for large documents
+
+#### 2. Classification Pipeline
+
+- Routes text to appropriate models based on content
+- Integrates with Haystack document processors
+- Leverages LangChain for LLM operations
+- Implements intelligent model fallback
+
+#### 3. Cache Management
+
+- Multi-level caching with Redis and local memory
+- Automatic cache invalidation based on content age
+- Performance metrics tracking and optimization
+- Configurable cache strategies per content type
+
+### System Architecture
+
+```mermaid
+graph TD
+    A[Text Input] --> B[Preprocessor]
+    B --> C[Model Router]
+    C --> D[Primary Model]
+    C --> E[Fallback Model]
+    D --> F[Post Processor]
+    E --> F
+    F --> G[Cache Manager]
+    
+    subgraph "Performance Optimization"
+    H[Metrics Collector] --> I[Resource Monitor]
+    I --> C
+    end
+```
+
+### Configuration
+
+The pipeline configuration defines processing behavior and resource allocation:
+
+```yaml:datapunk/datapunk-cortex/config/pipeline.yaml
+processing_engine:
+  components:
+    task_manager:
+      priority_levels: [critical, high, medium, low]
+      queue_depth: 1000
+      scheduling_algorithm: "weighted_fair"
+    
+    resource_allocator:
+      strategy: "dynamic"
+      monitoring_interval: "1s"
+      reallocation_threshold: 0.8
+    
+    pipeline_coordinator:
+      max_concurrent_pipelines: 100
+      buffer_size: 1000
+      processing_timeout: "30s"
+```
 
 ## Speculative Potential
 

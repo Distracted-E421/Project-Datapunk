@@ -5,7 +5,7 @@
         { label: 'Home', path: '/' },
         { label: 'Import', path: '/import' },
         { label: 'Analytics', path: '/analytics' },
-        { label: 'Reports', path: '/reports' },
+        { label: 'Chat', path: '/chat' },
         { label: 'Settings', path: '/settings' }
     ];
 
