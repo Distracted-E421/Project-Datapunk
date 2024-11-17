@@ -1,240 +1,43 @@
-x-healthcheck-defaults: &healthcheck-defaults
-  interval: 30s
-  timeout: 10s
-  retries: 3
-  start_period: 40s
-
 services:
-  redis:
-    image: redis:alpine
-    container_name: datapunk_redis
-    ports:
-      - "6379:6379"
-    healthcheck:
-      <<: *healthcheck-defaults
-      test: ["CMD", "redis-cli", "ping"]
-    networks:
-      - datapunk_network
-
-  rabbitmq:
-    image: rabbitmq:3.12-management-alpine
-    container_name: datapunk_rabbitmq
-    ports:
-      - "5672:5672"   # AMQP
-      - "15672:15672" # Management UI
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-datapunk}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-changeme}
-    healthcheck:
-      <<: *healthcheck-defaults
-      test: ["CMD", "rabbitmqctl", "status"]
-    networks:
-      - datapunk_network
-
   datapunk-lake:
     build:
       context: ./datapunk-lake
       dockerfile: Dockerfile
-    image: datapunk/lake:latest
+      args:
+        PG_MAJOR: ${PG_MAJOR:-16}
+        PGVECTOR_VERSION: ${PGVECTOR_VERSION:-0.5.1}
+        TIMESCALEDB_VERSION: ${TIMESCALEDB_VERSION:-2}
+        POSTGIS_VERSION: ${POSTGIS_VERSION:-3}
     container_name: datapunk_lake
-    volumes:
-      - data_volume:/var/lib/postgresql/data
-      - lake_logs:/var/log/postgresql
+    env_file:
+      - .env
+      - ./datapunk-lake/.env
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-datapunk}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-datapunk}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - postgres_archive:/var/lib/postgresql/archive
+      - ./datapunk-lake/config/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./datapunk-lake/config/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U datapunk -d datapunk && psql -U datapunk -d datapunk -c \"SELECT * FROM pg_extension WHERE extname = 'vector';\""]
+      test: ["CMD", "/usr/local/bin/healthcheck.sh"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
-    networks:
-      - datapunk_network
+      start_period: 30s
     deploy:
       resources:
         limits:
           cpus: '4'
-          memory: '8G'
+          memory: 8G
         reservations:
           cpus: '2'
-          memory: '4G'
-
-  datapunk-stream:
-    build:
-      context: ./datapunk-stream
-      dockerfile: Dockerfile
-    image: datapunk/stream:latest
-    container_name: datapunk_stream
-    command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
-    volumes:
-      - stream_cache:/cache
-      - stream_logs:/var/log/datapunk/stream
-    ports:
-      - "8000:8000"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    environment:
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
-      POSTGRES_URL: ${POSTGRES_URL:-postgresql://datapunk:changeme@datapunk-lake:5432/datapunk}
-      API_KEYS: ${API_KEYS:-test_key_123}
-      REDIS_HOST: redis
-      NEUROCORTEX_HOST: datapunk-cortex
-    networks:
-      - datapunk_network
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: '4G'
-        reservations:
-          cpus: '1'
-          memory: '2G'
-    depends_on:
-      datapunk-lake:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      datapunk-cortex:
-        condition: service_healthy
-
-  datapunk-forge:
-    build:
-      context: ./datapunk-forge
-      dockerfile: Dockerfile
-    image: datapunk/forge:latest
-    container_name: datapunk_forge
-    environment:
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
-      POSTGRES_URL: ${POSTGRES_URL:-postgresql://datapunk:changeme@datapunk-lake:5432/datapunk}
-      MLRUN_DBPATH: ${MLRUN_DBPATH:-postgresql://datapunk:changeme@datapunk-lake:5432/mlrun}
-      MODEL_CACHE_SIZE: 2GB
-      MAX_BATCH_SIZE: 32
-    volumes:
-      - forge_models:/models
-      - forge_cache:/cache
-      - forge_logs:/var/log/datapunk/forge
-    ports:
-      - "8002:8002"
-    networks:
-      - datapunk_network
-    healthcheck:
-      <<: *healthcheck-defaults
-      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
-    deploy:
-      resources:
-        limits:
-          cpus: '4'
-          memory: '16G'
-        reservations:
-          cpus: '2'
-          memory: '8G'
-    depends_on:
-      datapunk-lake:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-
-  datapunk-cortex:
-    build:
-      context: ./datapunk-cortex
-      dockerfile: Dockerfile
-      target: datapunk-cortex
-    image: datapunk/cortex:latest
-    container_name: datapunk_cortex
-    environment:
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
-      POSTGRES_URL: ${POSTGRES_URL:-postgresql://datapunk:changeme@datapunk-lake:5432/datapunk}
-      MODEL_CACHE_SIZE: 2GB
-      MAX_BATCH_SIZE: 32
-      HAYSTACK_HOST: ${HAYSTACK_HOST}
-      LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY}
-    volumes:
-      - cortex_models:/models
-      - cortex_cache:/cache
-      - cortex_logs:/var/log/datapunk/cortex
-    ports:
-      - "8001:8001"
-    networks:
-      - datapunk_network
-    healthcheck:
-      <<: *healthcheck-defaults
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
-    deploy:
-      resources:
-        limits:
-          cpus: '4'
-          memory: '8G'
-        reservations:
-          cpus: '2'
-          memory: '4G'
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-    depends_on:
-      datapunk-lake:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-
-  datapunk-frontend:
-    build:
-      context: ./datapunk-frontend
-      dockerfile: Dockerfile
-    image: datapunk/frontend:latest
-    container_name: datapunk_frontend
-    ports:
-      - "3000:3000"
-    environment:
-      VITE_API_URL: ${API_URL:-http://localhost:8000}
-      VITE_CORTEX_URL: ${CORTEX_URL:-http://localhost:8001}
-    volumes:
-      - ./datapunk-frontend:/app
-      - /app/node_modules
-    networks:
-      - datapunk_network
-    healthcheck:
-      <<: *healthcheck-defaults
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: '2G'
-        reservations:
-          cpus: '0.5'
-          memory: '1G'
-    depends_on:
-      datapunk-stream:
-        condition: service_healthy
-      datapunk-cortex:
-        condition: service_healthy
+          memory: 4G
 
 volumes:
-  data_volume:
-  import_staging:
-  archive:
-  lake_logs:
-  stream_cache:
-  stream_logs:
-  forge_models:
-  forge_cache:
-  forge_logs:
-  cortex_models:
-  cortex_cache:
-  cortex_logs:
-
-networks:
-  datapunk_network:
-    driver: bridge
+  postgres_data:
+  postgres_archive:
