@@ -23,7 +23,6 @@
 # Logs and databases #
 ######################
 *.log
-*.sql
 *.sqlite
 
 # OS generated files #
@@ -72,7 +71,6 @@ yarn-error.log
 ##########
 .svelte-kit/
 build/
-.env
 .env.*
 !.env.example
 vite.config.js.timestamp-*
