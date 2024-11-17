@@ -1,3 +1,0 @@
-Container orchestration
-Scaling framework
-Update management
