@@ -35,5 +35,16 @@ include:
   - "**/*.dockerignore" # Docker ignore files
   - "**/*.docker-compose.yml" # Docker compose files
   - "**/*.sql.conf" # SQL configuration files
-
-
+  - "**/*.pdf" # PDF files
+  - "**/*.docx" # Word files
+  - "**/*.doc" # Word files
+  - "**/*.xls" # Excel files
+  - "**/*.xlsx" # Excel files 
+  - "**/*.pptx" # PowerPoint files
+  - "**/*.ppt" # PowerPoint files
+  - "**/*.jsonl" # JSONL files
+  - "**/*.env" # Environment files
+  - ".env" # Environment file
+  - "**/config/postgresql.conf" # PostgreSQL configuration file
+  - "**/config/init.sql" # PostgreSQL initialization script
+  - "**/scripts/healthcheck.sh" # Healthcheck script
