@@ -55,10 +55,6 @@ Dockerfile*
 docker-compose*.yml
 .docker/
 
-# Documentation
-docs/
-*.md
-README*
 
 # Git
 .git/
