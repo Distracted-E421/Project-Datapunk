@@ -1,1 +1,0 @@
- # Graph service main documentation
