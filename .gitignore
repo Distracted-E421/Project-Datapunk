@@ -71,8 +71,6 @@ yarn-error.log
 ##########
 .svelte-kit/
 build/
-.env.*
-!.env.example
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 

@@ -1,0 +1,501 @@
+graph TD
+    %% Frontend Layer
+    subgraph "Frontend Layer"
+        subgraph "Web Applications"
+            WebApp[Web Application]
+            AdminUI[Admin Dashboard]
+            AnalyticsUI[Analytics Dashboard]
+        end
+        
+        subgraph "Mobile Applications"
+            MobileApp[Mobile Application]
+            TabletApp[Tablet Application]
+        end
+
+        subgraph "Frontend Services"
+            StateManager[State Management]
+            UICache[UI Cache]
+            ErrorBoundary[Error Handling]
+        end
+    end
+
+    %% External Layer with Refined Connections
+    subgraph "External Layer"
+        subgraph "Client Layer"
+            WebClient[Web Client]
+            MobileClient[Mobile Client]
+            ThirdParty[Third Party Apps]
+            subgraph "Client Protocols"
+                REST[REST API]
+                GraphQL[GraphQL API]
+                WS[WebSocket]
+            end
+        end
+
+        subgraph "Third Party Services"
+            subgraph "Google Services"
+                YouTube & Maps & Fit & Photos & Play --> GOAuth
+                GOAuth --> GToken
+            end
+            
+            subgraph "Microsoft Services"
+                MSGraph & OneDrive & Teams --> MSOAuth
+                MSOAuth --> MSToken
+            end
+            
+            subgraph "Entertainment Services"
+                Spotify & Discord & Twitch --> EntOAuth
+                EntOAuth --> EntToken
+            end
+        end
+    end
+
+    %% Gateway Layer with Unified Auth
+    subgraph "Gateway Layer"
+        subgraph "Load Balancing"
+            LB[NGINX Load Balancer]
+            SSL[SSL Termination]
+            WAF[Web Application Firewall]
+            RateLimit[Rate Limiting]
+        end
+
+        subgraph "Nexus Service"
+            Router[Request Router]
+            APIGateway[API Gateway]
+            StateManager[State Manager]
+            Validator[Request Validator]
+            
+            subgraph "Router Rules"
+                DataOps[Data Operations]
+                StreamOps[Stream Operations]
+                AIops[AI Operations]
+            end
+        end
+
+        subgraph "Authentication"
+            subgraph "External Auth"
+                OAuth --> JWT --> TokenMgmt
+                GOAuth & MSOAuth & EntOAuth --> OAuth
+                GToken & MSToken & EntToken --> TokenMgmt
+            end
+            
+            subgraph "Internal Auth"
+                MTLS & APIKey --> ServiceAuth
+                ServiceAuth --> ServiceReg
+            end
+        end
+    end
+
+    %% Core Services with Clear Boundaries
+    subgraph "Core Services"
+        subgraph "Lake Service"
+            LakeRouter[Lake Router]
+            
+            subgraph "Data Processing"
+                DataValidator[Data Validator]
+                SchemaManager[Schema Manager]
+                ETLPipeline[ETL Pipeline]
+            end
+            
+            subgraph "Storage"
+                VectorStore[Vector Storage]
+                TimeSeriesStore[TimeSeries Storage]
+                BlobStore[Blob Storage]
+                ArchiveStore[Archive Storage]
+            end
+        end
+
+        subgraph "Stream Service"
+            StreamRouter[Stream Router]
+            
+            subgraph "Event Processing"
+                EventProcessor[Event Processor]
+                PubSubManager[PubSub Manager]
+                StreamCache[Stream Cache]
+            end
+        end
+
+        subgraph "Cortex Service"
+            CortexRouter[Cortex Router]
+            
+            subgraph "Inference Pipeline"
+                LangGraph[LangGraph Controller]
+                HaystackOrch[Haystack Orchestrator]
+                
+                subgraph "Models"
+                    MixtralSvc[Mixtral Service]
+                    LlamaSvc[Llama Service]
+                    OpenAISvc[OpenAI Service]
+                    AnthropicSvc[Anthropic Service]
+                end
+            end
+            
+            subgraph "Vector Processing"
+                VectorProcessor[Vector Processor]
+                QueryEngine[Query Engine]
+            end
+        end
+
+        subgraph "Forge Service"
+            ForgeRouter[Forge Router]
+            
+            subgraph "Training Pipeline"
+                MLFlow[MLFlow Controller]
+                HFIntegration[HuggingFace Integration]
+                ModelRegistry[Model Registry]
+                
+                subgraph "Training"
+                    TFTrainer[TensorFlow Trainer]
+                    PyTorchTrainer[PyTorch Trainer]
+                end
+            end
+        end
+    end
+
+    %% Infrastructure Layer with Unified Patterns
+    subgraph "Infrastructure"
+        subgraph "Cache Layer"
+            Redis[(Redis Cluster)]
+            CacheManager[Cache Manager]
+            
+            subgraph "Cache Patterns"
+                WriteThrough[Write Through]
+                ReadThrough[Read Through]
+                CacheInval[Cache Invalidation]
+            end
+
+            CacheManager --> WriteThrough
+            WriteThrough --> ReadThrough
+            ReadThrough --> CacheInval
+            
+            ModelCache & VectorCache & ResultCache --> CacheManager
+        end
+
+        subgraph "Storage Layer"
+            PG[(PostgreSQL)]
+            subgraph "PG Extensions"
+                pgvector[Vector Store]
+                TimescaleDB[Time Series]
+                PostGIS[Spatial Data]
+            end
+        end
+
+        subgraph "Message Layer"
+            MQ[(RabbitMQ)]
+            subgraph "Queue Patterns"
+                PubSub[Pub/Sub]
+                WorkQueue[Work Queue]
+                DLQ[Dead Letter Queue]
+            end
+        end
+
+        subgraph "Service Discovery"
+            Consul[(Consul)]
+            Discovery[Service Discovery]
+            HealthCheck[Health Check]
+        end
+
+        %% Universal Monitoring
+        subgraph "Universal Monitoring"
+            subgraph "Metrics Collection"
+                Prometheus[Prometheus]
+                StatsD[StatsD]
+                CustomMetrics[Custom Metrics]
+            end
+            
+            subgraph "Log Aggregation"
+                Loki[Loki]
+                ElasticSearch[Elastic Search]
+                LogProcessor[Log Processor]
+        end
+        
+        subgraph "Tracing System"
+            Jaeger[Jaeger]
+            OpenTelemetry[OpenTelemetry]
+            TraceCollector[Trace Collector]
+        end
+
+        subgraph "Alerting"
+            AlertManager[Alert Manager]
+            PagerDuty[PagerDuty]
+            Slack[Slack Alerts]
+        end
+
+        subgraph "Visualization"
+            Grafana[Grafana]
+            Kibana[Kibana]
+            CustomDashboards[Custom Dashboards]
+        end
+    end
+
+    %% Service Layer Definitions
+    subgraph "Data Flow Patterns"
+        %% Core API Flows
+        subgraph "API Layer"
+            REST & GraphQL & WS -->|Request| SSL
+            SSL --> WAF --> RateLimit --> Router
+            Router -->|Route| DataOps & StreamOps & AIops
+        end
+
+        %% Primary Data Flows
+        subgraph "Data Processing Layer"
+            %% Lake Flows
+            LakeRouter -->|Vector Processing| VectorProcessor
+            LakeRouter -->|Model Training| MLFlow
+            LakeRouter -->|Time Series| TimeSeriesStore
+            LakeRouter -->|Binary Data| BlobStore
+            LakeRouter -->|Historical| ArchiveStore
+
+            %% Stream Flows
+            StreamRouter -->|Event Processing| EventProcessor
+            StreamRouter -->|Real-time Data| LakeRouter
+            EventProcessor -->|Analytics Data| TimeSeriesStore
+            EventProcessor -->|Temporary| StreamCache
+
+            %% AI Processing Flows
+            CortexRouter -->|Model Inference| LangGraph
+            VectorProcessor -->|Embeddings| VectorStore
+            QueryEngine -->|Vector Search| VectorStore
+            LangGraph -->|Inference Results| ResultCache
+
+            %% Training Flows
+            ForgeRouter -->|Training Pipeline| MLFlow
+            MLFlow -->|Trained Models| ModelRegistry
+            ModelRegistry -->|Model Deployment| LangGraph
+            ModelRegistry -->|Vector Storage| VectorStore
+        end
+
+        %% Infrastructure Layer
+        subgraph "Storage Layer"
+            %% Cache System
+            ModelCache & VectorCache & ResultCache -->|Cache Operations| CacheManager
+            CacheManager -->|Invalidation Events| PubSub
+
+            %% Persistent Storage
+            VectorStore -->|Vector Data| pgvector
+            TimeSeriesStore -->|Time Series| TimescaleDB
+            BlobStore -->|Binary Storage| PG
+            ArchiveStore -->|Archive Data| PG
+
+            %% Message Queue
+            EventProcessor -->|Events| PubSub
+            PubSub -->|Tasks| WorkQueue
+            WorkQueue -->|Failed Tasks| DLQ
+        end
+
+        %% Add Health Check System
+        subgraph "Health System"
+            HealthRegistry[Health Registry]
+            MetricsAggregator[Metrics Aggregator]
+            LogFormatter[Log Formatter]
+        end
+
+    %% Add Error Handling
+        subgraph "Error Handling"
+            ErrorCollector[Error Collector]
+            RecoveryManager[Recovery Manager]
+            CircuitBreaker[Circuit Breaker]
+        end
+
+        %% Add Security Controls
+        subgraph "Security Controls"
+            PIIHandler[PII Handler]
+            AuditLogger[Audit Logger]
+            PolicyDistributor[Policy Distributor]
+        end
+
+        %% Add Cache Management
+        subgraph "Cache Management"
+            CacheCoordinator[Cache Coordinator]
+            InvalidationManager[Invalidation Manager]
+            ConsistencyChecker[Consistency Checker]
+        end
+    end
+
+    WebApp & AdminUI & AnalyticsUI --> |HTTP/WebSocket| APIGateway
+    MobileApp & TabletApp --> |HTTP/WebSocket| APIGateway
+    
+    %% Monitoring Integration
+    APIGateway --> Prometheus
+    LakeRouter & StreamRouter & CortexRouter & ForgeRouter --> Prometheus
+    APIGateway & LakeRouter & StreamRouter & CortexRouter & ForgeRouter --> Loki
+    APIGateway & LakeRouter & StreamRouter & CortexRouter & ForgeRouter --> Jaeger
+
+    %% Monitoring Flow
+    Prometheus --> Grafana
+    Loki --> Grafana
+    Jaeger --> Grafana
+    AlertManager --> PagerDuty & Slack
+
+    
+    %% Style Definitions - Core Colors
+    classDef external fill:#ffebeb,stroke:#990000,stroke-width:2px;
+    classDef gateway fill:#ebf5ff,stroke:#004d99,stroke-width:2px;
+    classDef service fill:#ebffeb,stroke:#006600,stroke-width:2px;
+    classDef auth fill:#f5ebff,stroke:#4d0099,stroke-width:2px;
+    classDef storage fill:#ebfffd,stroke:#006666,stroke-width:2px;
+    classDef cache fill:#fff2eb,stroke:#994d00,stroke-width:2px;
+    classDef queue fill:#ebfff2,stroke:#004d1a,stroke-width:2px;
+    classDef monitor fill:#ebf7ff,stroke:#004d99,stroke-width:2px;
+    classDef frontend fill:#f9f0ff,stroke:#9933cc,stroke-width:2px;
+    classDef alerts fill:#fff0f0,stroke:#cc3333,stroke-width:2px;
+    classDef visualization fill:#fff9f0,stroke:#cc9933,stroke-width:2px;
+
+    %% Layer Gradients
+    classDef externalL1 fill:#fff5f5,stroke:#cc0000,stroke-width:3px;
+    classDef externalL2 fill:#ffe6e6,stroke:#990000,stroke-width:2.5px;
+    classDef externalL3 fill:#ffcccc,stroke:#660000,stroke-width:2px;
+
+    classDef gatewayL1 fill:#f5f5ff,stroke:#0000cc,stroke-width:3px;
+    classDef gatewayL2 fill:#e6e6ff,stroke:#0000b3,stroke-width:2.5px;
+    classDef gatewayL3 fill:#ccccff,stroke:#000099,stroke-width:2px;
+
+    classDef coreL1 fill:#f5fff5,stroke:#00cc00,stroke-width:3px;
+    classDef coreL2 fill:#e6ffe6,stroke:#00b300,stroke-width:2.5px;
+    classDef coreL3 fill:#ccffcc,stroke:#009900,stroke-width:2px;
+
+    classDef infraL1 fill:#fff5ff,stroke:#cc00cc,stroke-width:3px;
+    classDef infraL2 fill:#ffe6ff,stroke:#b300b3,stroke-width:2.5px;
+    classDef infraL3 fill:#ffccff,stroke:#990099,stroke-width:2px;
+
+    %% Apply styles to nodes
+    class WebClient,MobileClient,ThirdParty external;
+    class LB,Router,APIGateway gateway;
+    class LakeRouter,StreamRouter,CortexRouter,ForgeRouter service;
+    class OAuth,JWT,MTLS,ServiceAuth auth;
+    class PG,Redis,MQ storage;
+    class ModelCache,VectorCache,ResultCache cache;
+    class PubSub,WorkQueue,DLQ queue;
+    class Prometheus,Grafana monitor;
+
+    %% Apply layer gradients
+    class ExternalLayer externalL1;
+    class ClientLayer,ThirdPartyServices externalL2;
+    class ClientProtocols,GoogleServices,MicrosoftServices,EntertainmentServices externalL3;
+
+    class GatewayLayer gatewayL1;
+    class LoadBalancing,NexusService,Authentication gatewayL2;
+    class RouterRules,ExternalAuth,InternalAuth gatewayL3;
+
+    class CoreServices coreL1;
+    class LakeService,StreamService,CortexService,ForgeService coreL2;
+    class DataProcessing,Storage,EventProcessing,InferencePipeline,VectorProcessing,TrainingPipeline,Models,Training coreL3;
+
+    class Infrastructure infraL1;
+    class CacheLayer,StorageLayer,MessageLayer,ServiceDiscovery,Monitoring infraL2;
+    class CachePatterns,PGExtensions,QueuePatterns,Metrics infraL3;
+
+    %% Apply styles to monitoring components
+    class Prometheus,StatsD,CustomMetrics metrics;
+    class Loki,ElasticSearch,LogProcessor,Jaeger,OpenTelemetry,TraceCollector monitor;
+    class AlertManager,PagerDuty,Slack alerts;
+    class Grafana,Kibana,CustomDashboards visualization
+
+    %% Apply styles to frontend components
+    class WebApp frontend
+    class AdminUI frontend
+    class AnalyticsUI frontend
+    class MobileApp frontend
+    class TabletApp frontend
+    class StateManager frontend
+    class UICache frontend
+    class ErrorBoundary frontend
+
+    %% Add Service Mesh Layer
+    subgraph "Service Mesh"
+        subgraph "Communication Patterns"
+            gRPC[gRPC Services]
+            REST[REST Services]
+            MQ[Message Queue]
+        end
+        
+        subgraph "Service Discovery"
+            Consul[Consul]
+            ServiceRegistry[Service Registry]
+            HealthCheck[Health Check]
+        end
+    end
+
+    %% Add Standardized Monitoring
+    subgraph "Universal Monitoring"
+        subgraph "Health Checks"
+            HealthRegistry[Health Registry]
+            MetricsAggregator[Metrics Aggregator]
+            LogFormatter[Log Formatter]
+        end
+        
+        subgraph "Observability"
+            MetricsCollector[Metrics Collector]
+            LogAggregator[Log Aggregator]
+            TraceCollector[Trace Collector]
+        end
+    end
+
+    %% Add Cache Coherency
+    subgraph "Cache Management"
+        subgraph "Cache Control"
+            CacheCoordinator[Cache Coordinator]
+            InvalidationManager[Invalidation Manager]
+            ConsistencyChecker[Consistency Checker]
+        end
+        
+        subgraph "Cache Patterns"
+            WriteThrough[Write Through]
+            ReadThrough[Read Through]
+            CacheAside[Cache Aside]
+        end
+    end
+
+    %% Add Security Layer
+    subgraph "Security Controls"
+        subgraph "Data Protection"
+            PIIHandler[PII Handler]
+            Encryption[Encryption Service]
+            MaskingService[Data Masking]
+        end
+        
+        subgraph "Audit"
+            AuditLogger[Audit Logger]
+            ComplianceMonitor[Compliance Monitor]
+            PolicyEnforcer[Policy Enforcer]
+        end
+    end
+
+    %% Connect Components
+    ServiceRegistry --> HealthCheck
+    HealthCheck --> MetricsCollector
+    CacheCoordinator --> ConsistencyChecker
+    PIIHandler --> AuditLogger
+    
+    %% Service Mesh Integration
+    gRPC --> ServiceRegistry
+    REST --> ServiceRegistry
+    MQ --> ServiceRegistry
+
+    %% Monitoring Integration
+    MetricsCollector --> Prometheus
+    LogAggregator --> Loki
+    TraceCollector --> Jaeger
+
+    %% Cache Management Flow
+    CacheCoordinator --> Redis
+    InvalidationManager --> Redis
+    ConsistencyChecker --> Redis
+
+    %% Security Flow
+    PIIHandler --> Encryption
+    AuditLogger --> ComplianceMonitor
+    PolicyEnforcer --> AuditLogger
+
+    %% Additional Style Definitions
+    classDef mesh fill:#f0f0ff,stroke:#6666cc,stroke-width:2px
+    classDef health fill:#f0fff0,stroke:#66cc66,stroke-width:2px
+    classDef security fill:#fff0f0,stroke:#cc6666,stroke-width:2px
+    classDef cache fill:#fff0f0,stroke:#cc6666,stroke-width:2px
+    
+    %% Apply styles
+    class gRPC,REST,MQ,Consul,ServiceRegistry,HealthCheck mesh
+    class HealthRegistry,MetricsAggregator,LogFormatter health
+    class PIIHandler,Encryption,MaskingService,AuditLogger,ComplianceMonitor,PolicyEnforcer security
+    class CacheCoordinator,InvalidationManager,ConsistencyChecker,WriteThrough,ReadThrough,CacheAside cache
+end

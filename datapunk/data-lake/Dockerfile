@@ -68,10 +68,13 @@ RUN apt-get update \
         postgresql-16-postgis-3 \
         postgresql-16-postgis-3-scripts \
         postgresql-16-cron \
-        timescaledb-2-postgresql-16 \
         wget \
         lsb-release \
         gnupg \
+    && sh -c 'echo "deb https://packagecloud.io/timescale/timescaledb/debian/ $(lsb_release -c -s) main" > /etc/apt/sources.list.d/timescaledb.list' \
+    && wget --quiet -O - https://packagecloud.io/timescale/timescaledb/gpgkey | apt-key add - \
+    && apt-get update \
+    && apt-get install -y timescaledb-2-postgresql-16 \
     && rm -rf /var/lib/apt/lists/*
 
 # Create required directories with proper permissions
