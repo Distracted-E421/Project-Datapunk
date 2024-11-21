@@ -188,54 +188,41 @@ The subtask experience Esi and the reflection is used by the Action Generator su
 
 ### 3.1.3 SELF-EVALUATOR: SUMMARIZINGEXPERIENCES ASTEXTUALREWARDS
 
-The Self-Evaluator Sis responsible for generating experience summaries as textual rewards r for the Manager and Worker modules. In the case of the successful end of an episode signaled by the Worker with a DONE signal, the evaluator observes the complete episode and generates learning in the form of a summarization of the strategy used by the worker to complete that subtask. This strategy is fed back into the Worker's episodic memoryMe. In the case of the end of the complete user-provided task, indicated either by the successful completion of all subtasks or by the maximum number of steps limit, the evaluator generates a learning signal in the form of the summary of the entire task completion process. This summary is fed back and saved in the narrative memory Mn of the Manager. This process of Observations, Hierarchical Action Generation, and Rewards in the
-form of textual summaries to update the internal memories of the Manager and Worker mirrors a classic Hierarchical Reinforcement Learning process - but uses Retrieval as a learning strategy.
+The Self-Evaluator Sis responsible for generating experience summaries as textual rewards r for the Manager and Worker modules. In the case of the successful end of an episode signaled by the Worker with a DONE signal, the evaluator observes the complete episode and generates learning in the form of a summarization of the strategy used by the worker to complete that subtask. This strategy is fed back into the Worker's episodic memoryMe. In the case of the end of the complete user-provided task, indicated either by the successful completion of all subtasks or by the maximum number of steps limit, the evaluator generates a learning signal in the form of the summary of the entire task completion process. This summary is fed back and saved in the narrative memory Mn of the Manager. This process of Observations, Hierarchical Action Generation, and Rewards in the form of textual summaries to update the internal memories of the Manager and Worker mirrors a classic Hierarchical Reinforcement Learning process - but uses Retrieval as a learning strategy.
 
 ### 3.2 MEMORYCONSTRUCTION ANDUPDATE
 
-Initial Memory Construction via Self-supervised Exploration. To bootstrap NarrativeMnand
-Episodic MemoriesMe, Agent S conducts self-supervised exploration on a set of synthetically gen-
-erated tasks (see Figure 4). We utilize two methods to create two types of random exploration
-tasks: environment-independent tasks and environment-aware tasks. For environment-independent
-tasks, we leverage a task generator to generate the top 50 most common tasks from the various
+#### Initial Memory Construction via Self-supervised Exploration
+
+To bootstrap Narrative Memory Mn and Episodic Memory Me, Agent S conducts self-supervised exploration on a set of synthetically generated tasks (see Figure 4). We utilize two methods to create two types of random exploration tasks: environment-independent tasks and environment-aware tasks. For environment-independent tasks, we leverage a task generator to generate the top 50 most common tasks from the various
 
 ```mermaid
-graph TD
-    Start[Start: Task Execution]
-    Exploration[Self-Supervised Exploration]
-    RandomTasks[Generate Random Tasks]
-    WebKnowledge[Retrieve Web Knowledge]
-    Experience[Store Full and Subtask Experiences]
-    Update[Continual Memory Update]
-    Inference[Use Experience for Inference Tasks]
-    End[Improved Task Execution]
+flowchart TD
+    subgraph SelfSupervised["Self-supervised Exploration"]
+        TG[Task Generator] -->|Exploration Tasks| AS1[Agent S]
+        AS1 -->|Summarization| MEM[Narrative & Episodic Memory]
+    end
 
-    Start --> Exploration
-    Exploration --> RandomTasks
-    RandomTasks --> WebKnowledge
-    WebKnowledge --> Experience
-    Experience --> Update
-    Update --> Inference
-    Inference --> End
+    subgraph ContinualMemory["Continual Memory Update"]
+        AS2[Agent S] -->|Summarization| MEM
+        AS2 -->|Inference Task| Download[Download Task]
+    end
 
+    MEM -->|Retrieval| AS2
+    
+    Cloud((Web Knowledge)) -->|Knowledge| AS1 & AS2
+    AS1 & AS2 <-->|ACI| DE[Desktop Environment]
 ```
 
+```txt
 Figure 4: The pipeline of memory construction and update, which contains two phases: Self-supervised Exploration and Continual Memory Update. The initial Narrative & Episodic Memory is constructed through some randomly curated tasks during the exploration phase, and then it is updated based on the inference tasks continually.
+```
 
-applications used in OSWorld (Xie et al., 2024) and WindowsAgentArena (Bonatti et al., 2024).
-For environment-aware tasks, we take the initial environments of the tasks in OSWorld and Win-
-dowsAgentArena and prompt a Task Generator to generate a different task based on the environ-
-ment. Both types of tasks consist of the exploration tasks. Then we run Agent S on these tasks by
-only taking web knowledgeKweband collect the full task (Narrative ExperienceEn) and subtask
-experiences (Episodic ExperienceEe) for the narrative and episodic memories. The key stored in
-narrative memoryMnis the queryQand for episodic memoryMe, the key is queryQconcatenated
-with subtask information⟨Q, si, Csi⟩. Through this process, the initial memory is constructed.
+applications used in OSWorld (Xie et al., 2024) and WindowsAgentArena (Bonatti et al., 2024). For environment-aware tasks, we take the initial environments of the tasks in OSWorld and WindowsAgentArena and prompt a Task Generator to generate a different task based on the environment. Both types of tasks consist of the exploration tasks. Then we run Agent S on these tasks by only taking web knowledge Kweb and collect the full task (Narrative Experience En) and subtask experiences (Episodic Experience Ee) for the narrative and episodic memories. The key stored in narrative memory Mn is the query Q and for episodic memory Me, the key is query Q concatenated with subtask information ⟨Q, si, Csi⟩. Through this process, the initial memory is constructed.
 
-Continual Memory Update. As our Agent S interacts with new tasks, it continually updates the
-Narrative MemoryMnand Episodic MemoryMe, as illustrated in Figure 4. Thus even after the
-initial exploration is completed, the agent continues to learn as it encounters and attempts newer,
-more novel tasks. This process enables our agent to learn even during inference and retrieve the
-learned knowledge to new tasks effectively.
+#### Continual Memory Update
+
+As our Agent S interacts with new tasks, it continually updates the Narrative Memory Mn and Episodic Memory Me, as illustrated in Figure 4. Thus even after the initial exploration is completed, the agent continues to learn as it encounters and attempts newer, more novel tasks. This process enables our agent to learn even during inference and retrieve the learned knowledge to new tasks effectively.
 
 ### 3.3 AGENT-COMPUTERINTERFACE
 
