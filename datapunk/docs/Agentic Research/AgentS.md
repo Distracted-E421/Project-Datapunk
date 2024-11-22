@@ -9,7 +9,8 @@ graph TD
     NarrativeMemory["Narrative Memory: I did similar tasks in LibreOffice Calc. Use the formula SUM to..."]
     EpisodicMemory["Episodic Memory: To sum... and select the cell...\n- agent.type()\n- agent.drag_and_drop()"]
     OnlineSearch["Online Web Search: * Select the cells containing all the required data...\n* Click the Insert Chart icon on the Standard toolbar..."]
-    ACI["Agent-Computer Interface: agent.type(“=SUM(Sheet1.A2:A20)”)\nThe total sales have been calculated...\nagent.drag_and_drop(ele_id1, ele_id2)\nThe cells have been selected..."]
+    ACI["Agent-Computer Interface: agent.type("=SUM(Sheet1.A2:A20)")
+The total sales have been calculated...\nagent.drag_and_drop(ele_id1, ele_id2)\nThe cells have been selected..."]
     HierarchicalPlanning["Hierarchical Planning:\nSubtask 1: Calculate the total sales\nSubtask 2: Calculate the average sales\nSubtask 3: Create a chart to visualize"]
     ExternalKnowledge["External Knowledge"]
     SubtaskExperience["Subtask Experience Retrieval"]
@@ -34,7 +35,7 @@ We present Agent S, an open agentic framework that enables autonomous interactio
 ## 1 INTRODUCTION
 
 ```txt
-“The digital revolution is far more significant than the invention of writing or even of printing.”
+"The digital revolution is far more significant than the invention of writing or even of printing."
 ```
 
 ```txt
@@ -309,11 +310,9 @@ from OSWorld:Help me to remove the account "<anonym-x2024@outlook.com>". Agent S
 tasks by interacting with the desktop through a combination of actions. More qualitative examples
 are demonstrated in Appendix D.1.
 
-### 4.3 ABLATIONSTUDY
+#### Ablation Study
 
-To demonstrate the effectiveness of individual modules of Agent S, we stratified sampled a subset
-of 65 instances,testsub^3 from the full test set for the ablation study. Considering the inference cost,
-we utilized GPT-4o as the LLM backbone for all ablation studies for both the baseline and Agent S.
+To demonstrate the effectiveness of individual modules of Agent S, we stratified sampled a subset of 65 instances, testsub^3 from the full test set for the ablation study. Considering the inference cost, we utilized GPT-4o as the LLM backbone for all ablation studies for both the baseline and Agent S.
 
 Learning from experience enhances the domain knowledge of GUI agents. The Experiential
 learning process of Agent S involves searching web knowledge, retrieving full task experience from
@@ -337,70 +336,44 @@ total and 2 in the OS category) for practical evaluations. Thus, we sample a lar
 Table 2: The ablation study of experience-augmented hierarchical planning in OSWorldtestsub.
 The metric is Successful Rate (%).
 
-```
-Method OS (6) Office (17) Daily (16) Profess. (10) Workflow (16) Overall (65)
-baseline (OSWorld Agent) 33.33 5.88 12.50 10.00 6.25 10.
-Agent S 50.00 11.76 37.50 40.00 12.50 26.
-```
-
-- w/o Web Knowledge 16.60 11.76 24.49 30.00 6.25 16.
-- w/o Narrative Memory 33.33 11.76 36.99 20.00 12.50 21.
-- w/o Episodic Memory 33.33 5.88 25.00 30.00 12.50 18.
-- w/o All 33.33 5.88 18.75 20.00 6.25 13.
-
-```
-0 5 10 15 20 25 30
-Success Rate (%)
-```
-
-```
-Agent S 26.15%
-```
-
-```
-Agent S (ACI + Retrieval) 20.00%
-```
-
-```
-Agent S (ACI-only) 12.31%
-```
-
-```
-Baseline + Retrieval 12.31%
-```
-
-```
-Baseline 10.77%
-```
-
-```
-Figure 6: Ablation of ACI in OSWorldtestsub.
-```
-
-```
-0 5 10 15 20 25 30
-Success Rate (%)
-```
-
-```
-Agent S - w/o Exploration 15.38%
-```
-
-```
-Agent S - w/o Self-Evaluator 18.46%
-```
-
-```
-Agent S - w/o Continual Memory Update 23.18%
-```
-
-```
-Agent S 26.15%
-```
-
-```
-Figure 7: Ablation of the memory update mech-
-anism in OSWorldtestsub.
+```chart
+{
+    "type": "horizontalBar",
+    "data": {
+        "labels": [
+            "Baseline",
+            "Baseline + Retrieval",
+            "Agent S (ACI-only)",
+            "Agent S (ACI + Retrieval)",
+            "Agent S",
+            "Agent S w/o Exploration",
+            "Agent S w/o Self-Evaluator", 
+            "Agent S w/o Continual Memory Update"
+        ],
+        "datasets": [
+            {
+                "label": "Figure 6: ACI Ablation",
+                "backgroundColor": ["#FF9999", "#FFB266", "#CCCCFF", "#99CCFF", "#99FF99", "#FFFFFF", "#FFFFFF", "#FFFFFF"],
+                "data": [10.77, 12.31, 12.31, 20.00, 26.15, 0, 0, 0]
+            },
+            {
+                "label": "Figure 7: Memory Update Ablation",
+                "backgroundColor": ["#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#99FF99", "#CCCCFF", "#99CCFF", "#FFB266"],
+                "data": [0, 0, 0, 0, 26.15, 15.38, 18.46, 23.18]
+            }
+        ]
+    },
+    "options": {
+        "scales": {
+            "xAxes": [{
+                "ticks": {
+                    "beginAtZero": true,
+                    "max": 30
+                }
+            }]
+        }
+    }
+}
 ```
 
 S (ACI-only)^4 highlights the enhanced reasoning abilities achieved by incorporating ACI. Addi-
@@ -1145,8 +1118,7 @@ completed.
 ### D.2 DETAILEDERRORANALYSIS ANDFAILUREEXAMPLES
 
 In this section, we analyze the sources of execution errors as defined in §4.4, followed by presenting
-several examples of failed tasks, each with a detailed error analysis provided for the respective case.
-Empirically, Grounding and planning errors often directly lead to execution errors (e.g., failing
+several examples of failed tasks, each with a detailed error analysis provided for the respective case. Empirically, Grounding and planning errors often directly lead to execution errors (e.g., failing
 to interact with the correct target element can result in repetitive actions, and incorrect planning
 
 ```
