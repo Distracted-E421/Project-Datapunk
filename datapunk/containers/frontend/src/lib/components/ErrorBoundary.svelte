@@ -1,14 +1,13 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
-    import type { Alert } from '$lib/types/monitoring';
+    import { browser } from '$app/environment';
     
-    export let fallback: string = "Something went wrong";
+    export let fallback = "Something went wrong";
     export let onError: ((error: Error) => void) | null = null;
     
     let error: Error | null = null;
     let errorInfo: string = '';
     
-    // Create error handler
     function handleError(event: ErrorEvent) {
         error = event.error;
         errorInfo = event.error.stack || '';
@@ -18,18 +17,22 @@
     }
     
     onMount(() => {
-        window.addEventListener('error', handleError);
+        if (browser) {
+            window.addEventListener('error', handleError);
+        }
     });
     
     onDestroy(() => {
-        window.removeEventListener('error', handleError);
+        if (browser) {
+            window.removeEventListener('error', handleError);
+        }
     });
 </script>
 
 {#if error}
     <div class="error-boundary">
         <div class="error-content">
-            <h2>Something went wrong</h2>
+            <h2>{fallback}</h2>
             <p class="error-message">{error.message}</p>
             {#if errorInfo}
                 <details>

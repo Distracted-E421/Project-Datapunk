@@ -13,6 +13,8 @@
     function toggleNav() {
         isNavOpen = !isNavOpen;
     }
+    
+    export let currentPath: string = '';
 </script>
 
 <div class="app-layout">

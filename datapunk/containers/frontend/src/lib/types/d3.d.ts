@@ -1,25 +1,30 @@
 declare module 'd3' {
     export * from 'd3-selection';
     export * from 'd3-scale';
-    export * from 'd3-array';
     export * from 'd3-shape';
+    export * from 'd3-array';
     export * from 'd3-axis';
     export * from 'd3-time';
     export * from 'd3-transition';
     
-    // Add missing type definitions
+    // Selection functions
     export function select(selector: string | Element): Selection<Element, unknown, HTMLElement, any>;
     export function selectAll(selector: string): Selection<Element, unknown, HTMLElement, any>;
     
+    // Scale factories
     export function scaleTime(): ScaleTime<number, number>;
     export function scaleLinear(): ScaleLinear<number, number>;
-    export function arc<Datum>(): Arc<any, Datum>;
+    
+    // Shape generators
     export function line<Datum>(): Line<Datum>;
+    export function arc<Datum>(): Arc<Datum>;
     export function area<Datum>(): Area<Datum>;
     
+    // Axis factories
     export function axisBottom<Domain>(scale: Scale<Domain, number>): Axis<Domain>;
     export function axisLeft<Domain>(scale: Scale<Domain, number>): Axis<Domain>;
     
+    // Array helpers
     export function extent<T, V>(
         array: T[],
         accessor: (datum: T) => V
@@ -31,35 +36,46 @@ declare module 'd3' {
     ): number | undefined;
 }
 
-// Add BaseType interface
-export interface BaseType extends Element {}
-
-// Add Selection interface with proper types
+// Selection interface
 export interface Selection<
     GElement extends BaseType,
     Datum,
     PElement extends BaseType,
     PDatum
 > {
-    select(selector: string): Selection<GElement, Datum, PElement, PDatum>;
-    selectAll(selector: string): Selection<BaseType, Datum, GElement, Datum>;
-    append<K extends keyof SVGElementTagNameMap>(
-        name: K
-    ): Selection<SVGElementTagNameMap[K], Datum, PElement, PDatum>;
+    select<DescElement extends BaseType>(selector: string): Selection<DescElement, Datum, PElement, PDatum>;
+    selectAll<DescElement extends BaseType, NewDatum>(selector: string): Selection<DescElement, NewDatum, GElement, Datum>;
+    append<K extends keyof SVGElementTagNameMap>(name: K): Selection<SVGElementTagNameMap[K], Datum, PElement, PDatum>;
     append(name: string): Selection<BaseType, Datum, PElement, PDatum>;
     attr(name: string, value: string | number | boolean | ((d: Datum) => string | number | boolean)): this;
     style(name: string, value: string | number | boolean | ((d: Datum) => string | number | boolean)): this;
     text(value: string | ((d: Datum) => string)): this;
     html(value: string | ((d: Datum) => string)): this;
-    datum<T>(value: T): Selection<GElement, T, PElement, PDatum>;
-    data<T>(data: T[]): Selection<GElement, T, PElement, PDatum>;
-    merge(other: Selection<GElement, Datum, PElement, PDatum>): this;
+    data<NewDatum>(data: NewDatum[]): Selection<GElement, NewDatum, PElement, PDatum>;
+    datum<NewDatum>(value: NewDatum): Selection<GElement, NewDatum, PElement, PDatum>;
+    enter(): Selection<GElement, Datum, PElement, PDatum>;
+    exit(): Selection<GElement, Datum, PElement, PDatum>;
+    merge(selection: Selection<GElement, Datum, PElement, PDatum>): this;
     transition(): Transition<GElement, Datum, PElement, PDatum>;
     remove(): void;
+    call(fn: (selection: Selection<GElement, Datum, PElement, PDatum>) => void): this;
     on(type: string, listener: (event: Event, d: Datum) => void): this;
 }
 
-// Add Scale interfaces
+// Transition interface
+export interface Transition<
+    GElement extends BaseType,
+    Datum,
+    PElement extends BaseType,
+    PDatum
+> {
+    duration(ms: number): this;
+    style(name: string, value: string | number | boolean | ((d: Datum) => string | number | boolean)): this;
+}
+
+// Base interfaces
+export interface BaseType extends Element {}
+
 export interface Scale<Domain, Range> {
     (value: Domain): Range;
     domain(domain: Domain[]): this;
@@ -72,14 +88,20 @@ export interface ScaleTime<Range, Output> extends Scale<Date | number, Range> {
 
 export interface ScaleLinear<Range, Output> extends Scale<number, Range> {}
 
-// Add Line interface
 export interface Line<Datum> {
     (data: Datum[]): string | null;
     x(accessor: (d: Datum) => number): this;
     y(accessor: (d: Datum) => number): this;
 }
 
-// Add Area interface
+export interface Arc<Datum> {
+    (d: Datum): string | null;
+    innerRadius(radius: number | ((d: Datum) => number)): this;
+    outerRadius(radius: number | ((d: Datum) => number)): this;
+    startAngle(angle: number | ((d: Datum) => number)): this;
+    endAngle(angle: number | ((d: Datum) => number)): this;
+}
+
 export interface Area<Datum> {
     (data: Datum[]): string | null;
     x(accessor: (d: Datum) => number): this;
@@ -87,21 +109,15 @@ export interface Area<Datum> {
     y1(accessor: (d: Datum) => number): this;
 }
 
-// Add Axis interface
 export interface Axis<Domain> {
-    (context: Selection<SVGGElement, unknown, HTMLElement, any>): void;
+    (selection: Selection<SVGGElement, unknown, HTMLElement, any>): void;
     scale(): Scale<Domain, number>;
     scale(scale: Scale<Domain, number>): this;
     ticks(count?: number): this;
     tickFormat(format: (d: Domain) => string): this;
 }
 
-// Add Transition interface
-export interface Transition<
-    GElement extends BaseType,
-    Datum,
-    PElement extends BaseType,
-    PDatum
-> extends Selection<GElement, Datum, PElement, PDatum> {
-    duration(milliseconds: number): this;
+// Add at the top level of the file
+export interface WebSocketMessageEvent extends Event {
+    data: any;
 } 

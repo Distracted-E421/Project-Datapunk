@@ -2,18 +2,12 @@ import type {
     Selection, 
     BaseType,
     ScaleTime,
-    ScaleLinear
-} from 'd3';
-
-// Import specific types from d3-shape
-import type { 
+    ScaleLinear,
     Arc as D3Arc,
     Line as D3Line,
-    Area as D3Area 
-} from 'd3-shape';
-
-// Import from d3-axis
-import type { Axis as D3Axis } from 'd3-axis';
+    Area as D3Area,
+    Axis as D3Axis
+} from 'd3';
 
 export interface D3Error extends Error {
     type: 'selection' | 'scale' | 'data' | 'render' | 'transition';
@@ -24,12 +18,24 @@ export interface D3Error extends Error {
 export type D3Selection<GElement extends BaseType = BaseType> = 
     Selection<GElement, unknown, HTMLElement, any>;
 
-// Type aliases for better readability
-export type Arc<T> = D3Arc<any, T>;
-export type Line<T> = D3Line<T>;
-export type Area<T> = D3Area<T>;
-export type Axis = D3Axis<number | Date | string>;
+export interface D3Transition<GElement extends BaseType = BaseType> {
+    duration(ms: number): this;
+    style(name: string, value: string | number): this;
+}
 
+export interface TooltipSelection {
+    transition(): D3Transition<HTMLDivElement>;
+    html(value: string): this;
+    remove(): void;
+    style(
+        name: string,
+        value: string | number | null | ((d: unknown) => string | number),
+        priority?: 'important' | null
+    ): this;
+    attr(name: string, value: string | number | boolean | ((d: unknown) => string | number | boolean)): this;
+}
+
+// Type guards
 export function isD3Selection(value: unknown): value is D3Selection {
     return value !== null && 
            typeof value === 'object' && 
@@ -52,23 +58,21 @@ export function isScaleLinear(value: unknown): value is ScaleLinear<number, numb
            'range' in value;
 }
 
-export function isArc<T>(value: unknown): value is Arc<T> {
+export function isArc<T>(value: unknown): value is D3Arc<any, T> {
     return value !== null && 
            typeof value === 'object' && 
            'innerRadius' in value &&
-           'outerRadius' in value &&
-           'startAngle' in value &&
-           'endAngle' in value;
+           'outerRadius' in value;
 }
 
-export function isLine<T>(value: unknown): value is Line<T> {
+export function isLine<T>(value: unknown): value is D3Line<T> {
     return value !== null && 
            typeof value === 'object' && 
            'x' in value &&
            'y' in value;
 }
 
-export function isArea<T>(value: unknown): value is Area<T> {
+export function isArea<T>(value: unknown): value is D3Area<T> {
     return value !== null && 
            typeof value === 'object' && 
            'x' in value &&
@@ -76,7 +80,7 @@ export function isArea<T>(value: unknown): value is Area<T> {
            'y1' in value;
 }
 
-export function isAxis(value: unknown): value is Axis {
+export function isAxis(value: unknown): value is D3Axis<number | Date | string> {
     return value !== null && 
            typeof value === 'object' && 
            'scale' in value &&
@@ -146,6 +150,25 @@ export function validateScaleLinear(
         throw createD3Error(
             'Invalid linear scale',
             'scale',
+            context
+        );
+    }
+}
+
+export function isTooltipSelection(value: unknown): value is TooltipSelection {
+    return isD3Selection(value) && 
+           'transition' in value &&
+           'html' in value;
+}
+
+export function validateTooltipSelection(
+    selection: unknown,
+    context: string
+): asserts selection is TooltipSelection {
+    if (!isTooltipSelection(selection)) {
+        throw createD3Error(
+            'Invalid tooltip selection',
+            'selection',
             context
         );
     }

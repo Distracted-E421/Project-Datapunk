@@ -1,8 +1,8 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import PageLayout from '$lib/components/layout/PageLayout.svelte';
-    import { settings, type AppSettings } from '$lib/stores/settings';
-    import type { ServiceSettings } from '$lib/types/services';
+    import { settings } from '$lib/stores/settings';
+    import type { AppSettings } from '$lib/stores/settings';
     import ErrorBoundary from '$lib/components/ErrorBoundary.svelte';
     
     let loading = true;
@@ -141,59 +141,60 @@
             <!-- Service Settings -->
             <section class="settings-section">
                 <h2>Services</h2>
-                {#each Object.entries($settings.services) as [serviceName, serviceSettings]}
-                    <div class="service-settings">
-                        <h3>{serviceName}</h3>
-                        <div class="setting-group">
-                            {#if serviceSettings}
-                                {@const settings = serviceSettings as ServiceSettings}
-                                <label>
-                                    Max Retries
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="10"
-                                        bind:value={settings.maxRetries}
-                                        disabled={saving}
-                                    />
-                                </label>
-                                
-                                <label>
-                                    Timeout (seconds)
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        max="300"
-                                        bind:value={settings.timeout}
-                                        disabled={saving}
-                                    />
-                                </label>
-                                
-                                <label class="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        bind:checked={settings.cacheEnabled}
-                                        disabled={saving}
-                                    />
-                                    Enable Caching
-                                </label>
-                                
-                                {#if settings.cacheEnabled}
+                {#if $settings.services}
+                    {#each Object.entries($settings.services) as [serviceName, serviceSettings]}
+                        <div class="service-settings">
+                            <h3>{serviceName}</h3>
+                            <div class="setting-group">
+                                {#if serviceSettings}
                                     <label>
-                                        Cache Duration (minutes)
+                                        Max Retries
                                         <input
                                             type="number"
-                                            min="1"
-                                            max="1440"
-                                            bind:value={settings.cacheDuration}
+                                            min="0"
+                                            max="10"
+                                            bind:value={serviceSettings.maxRetries}
                                             disabled={saving}
                                         />
                                     </label>
+                                    
+                                    <label>
+                                        Timeout (seconds)
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            max="300"
+                                            bind:value={serviceSettings.timeout}
+                                            disabled={saving}
+                                        />
+                                    </label>
+                                    
+                                    <label class="checkbox-label">
+                                        <input
+                                            type="checkbox"
+                                            bind:checked={serviceSettings.cacheEnabled}
+                                            disabled={saving}
+                                        />
+                                        Enable Caching
+                                    </label>
+                                    
+                                    {#if serviceSettings.cacheEnabled}
+                                        <label>
+                                            Cache Duration (minutes)
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="1440"
+                                                bind:value={serviceSettings.cacheDuration}
+                                                disabled={saving}
+                                            />
+                                        </label>
+                                    {/if}
                                 {/if}
-                            {/if}
+                            </div>
                         </div>
-                    </div>
-                {/each}
+                    {/each}
+                {/if}
             </section>
             
             <div class="actions">

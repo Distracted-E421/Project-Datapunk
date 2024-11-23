@@ -2,25 +2,25 @@
     import { onMount, onDestroy } from 'svelte';
     import * as d3 from 'd3';
     import type { ChartData } from '$lib/types/charts';
-    import type { Selection, Line, Axis } from '$lib/types/d3';
     import { 
         isD3Selection,
         validateD3Selection,
         validateScaleTime,
         validateScaleLinear,
-        handleD3Error 
+        handleD3Error,
+        type TooltipSelection 
     } from '$lib/utils/d3-guards';
     
     export let data: ChartData[] = [];
-    export let yLabel = '';
+    export let yLabel: string = '';
     export let color = '#3B82F6';
     export let xKey = 'timestamp';
     export let yKey = 'value';
-    export let title = '';
+    export let title: string = '';
     
     let chartDiv: HTMLDivElement;
-    let svg: Selection<SVGGElement, unknown, HTMLElement, any>;
-    let tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>;
+    let svg: d3.Selection<SVGGElement, unknown, HTMLElement, any>;
+    let tooltip: TooltipSelection;
     
     $: if (chartDiv && data) {
         updateChart();
@@ -59,11 +59,11 @@
                 
             validateD3Selection(svg, 'TimeSeriesChart.setupChart');
             
-            // Create tooltip
+            // Create tooltip with proper type assertion
             tooltip = d3.select(chartDiv)
                 .append('div')
                 .attr('class', 'tooltip')
-                .style('opacity', 0);
+                .style('opacity', 0) as unknown as TooltipSelection;
                 
             validateD3Selection(tooltip, 'TimeSeriesChart.setupChart');
             
@@ -78,15 +78,15 @@
         try {
             validateD3Selection(svg, 'TimeSeriesChart.updateChart');
             
-            // Create scales
+            // Create scales with explicit types
             const xScale = d3.scaleTime()
-                .domain(d3.extent(data, d => new Date(d[xKey])) as [Date, Date])
+                .domain(d3.extent(data, (d: ChartData) => new Date(d[xKey])) as [Date, Date])
                 .range([0, chartDiv.clientWidth - 70]);
                 
             validateScaleTime(xScale, 'TimeSeriesChart.updateChart');
             
             const yScale = d3.scaleLinear()
-                .domain([0, d3.max(data, d => d[yKey]) || 0])
+                .domain([0, d3.max(data, (d: ChartData) => d[yKey]) || 0])
                 .range([chartDiv.clientHeight - 50, 0]);
                 
             validateScaleLinear(yScale, 'TimeSeriesChart.updateChart');
@@ -107,50 +107,46 @@
             svg.select('.y-axis')
                 .call(yAxis);
             
-            // Update line
-            const path = svg.selectAll('.line')
-                .data([data]);
-                
-            path.enter()
-                .append('path')
-                .merge(path as any)
+            // Add type for path data
+            type PathData = ChartData[];
+            
+            // Update line with proper types
+            const pathSelection = svg.selectAll<SVGPathElement, PathData>('.line');
+            pathSelection
+                .data([data])
+                .join('path')
                 .attr('class', 'line')
-                .attr('d', line)
+                .attr('d', (d: PathData) => line(d) || '')
                 .attr('fill', 'none')
                 .attr('stroke', color)
                 .attr('stroke-width', 2);
-                
-            // Update points
-            const points = svg.selectAll('.point')
-                .data(data);
-                
-            points.enter()
-                .append('circle')
-                .merge(points as any)
+            
+            // Update points with proper types
+            const pointSelection = svg.selectAll<SVGCircleElement, ChartData>('.point');
+            pointSelection
+                .data(data)
+                .join('circle')
                 .attr('class', 'point')
-                .attr('cx', d => xScale(new Date(d[xKey])))
-                .attr('cy', d => yScale(d[yKey]))
+                .attr('cx', (d: ChartData) => xScale(new Date(d[xKey])))
+                .attr('cy', (d: ChartData) => yScale(d[yKey]))
                 .attr('r', 4)
                 .attr('fill', color)
-                .on('mouseover', (event: MouseEvent, d: ChartData) => {
+                .on('mouseover', function(event: Event, d: ChartData) {
+                    const e = event as MouseEvent;
                     tooltip.transition()
                         .duration(200)
                         .style('opacity', .9);
                     tooltip.html(
                         `${new Date(d[xKey]).toLocaleString()}<br/>${d[yKey]}`
                     )
-                    .style('left', `${event.pageX + 10}px`)
-                    .style('top', `${event.pageY - 28}px`);
+                    .style('left', `${e.pageX + 10}px`)
+                    .style('top', `${e.pageY - 28}px`);
                 })
                 .on('mouseout', () => {
                     tooltip.transition()
                         .duration(500)
                         .style('opacity', 0);
                 });
-                
-            // Remove old elements
-            path.exit().remove();
-            points.exit().remove();
             
         } catch (error) {
             throw handleD3Error(error, 'TimeSeriesChart.updateChart');

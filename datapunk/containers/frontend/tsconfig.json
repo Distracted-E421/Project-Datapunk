@@ -10,12 +10,10 @@
 		"sourceMap": true,
 		"strict": true,
 		"moduleResolution": "bundler",
-		"paths": {
-			"$lib": ["./src/lib"],
-			"$lib/*": ["./src/lib/*"]
-		},
+		"verbatimModuleSyntax": false,
 		"types": [
-			"svelte"
+			"svelte",
+			"vite/client"
 		]
 	},
 	"include": [
