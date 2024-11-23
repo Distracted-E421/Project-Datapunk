@@ -1,0 +1,86 @@
+# Service Mesh Configuration
+mesh:
+  name: datapunk-mesh
+  version: "1.0"
+  
+  # Service Discovery
+  discovery:
+    method: consul
+    consul:
+      host: ${CONSUL_HOST:-consul}
+      port: ${CONSUL_PORT:-8500}
+      datacenter: ${CONSUL_DC:-dc1}
+      register_interval: 10s
+      deregister_critical_service_after: 30s
+
+  # Circuit Breaking
+  circuit_breakers:
+    default:
+      max_connections: 1024
+      max_pending_requests: 1024
+      max_requests: 1024
+      max_retries: 3
+    custom:
+      lake_service:
+        max_connections: 2048
+        max_pending_requests: 2048
+      stream_service:
+        max_requests: 2048
+
+  # Load Balancing
+  load_balancing:
+    policy: least_request
+    health_checks:
+      timeout: 5s
+      interval: 10s
+      unhealthy_threshold: 3
+      healthy_threshold: 2
+
+  # Service Policies
+  policies:
+    retry:
+      attempts: 3
+      timeout: 2s
+      backoff:
+        base_interval: 100ms
+        max_interval: 3s
+        multiplier: 2
+      conditions:
+        - 5xx
+        - connect-failure
+        - refused-stream
+    
+    timeout:
+      idle: 5m
+      connect: 5s
+      read: 30s
+      write: 30s
+
+  # Observability
+  telemetry:
+    tracing:
+      enabled: true
+      provider: jaeger
+      sampling_rate: 0.1
+      tags:
+        - key: "service.version"
+          value: "${SERVICE_VERSION}"
+        - key: "environment"
+          value: "${ENV:-development}"
+    metrics:
+      enabled: true
+      provider: prometheus
+      scrape_interval: 15s
+      path: "/metrics"
+
+  # Security
+  security:
+    mtls:
+      enabled: true
+      cert_rotation: 24h
+    authorization:
+      enabled: true
+      policies:
+        - name: "service-to-service"
+          principals: ["spiffe://datapunk/*"]
+          action: ALLOW

@@ -1,0 +1,34 @@
+lake:
+  data:
+    path: /data
+    backup_path: /backup/lake
+    permissions: "0755"
+    owner: "datapunk:datapunk"
+    mount_options:
+      - noatime
+      - nodiratime
+
+stream:
+  data:
+    path: /data
+    backup_path: /backup/stream
+    permissions: "0755"
+    owner: "datapunk:datapunk"
+    mount_options:
+      - noatime
+      - nodiratime
+
+nexus:
+  cache:
+    path: /cache
+    max_size: "10GB"
+    cleanup_interval: "1d"
+    permissions: "0755"
+    owner: "datapunk:datapunk"
+
+model_cache:
+  path: /models
+  max_size: "50GB"
+  cleanup_policy: "lru"
+  permissions: "0755"
+  owner: "datapunk:datapunk" 
