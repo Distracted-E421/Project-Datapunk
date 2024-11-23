@@ -6,7 +6,7 @@ The schema organization within Datapunk Lake implements a strategic approach to 
 
 ## Core Schemas
 
-#### User Data Schema
+### User Data Schema for Datapunk Lake
 
 ```yaml
 schema_purpose:
@@ -25,17 +25,17 @@ schema_purpose:
     - access_control
 ```
 
-###### User Data Schema Design Intent
+#### User Data Schema Design Intent
 
 The User Data Schema represents a foundational component of the Datapunk Lake architecture, implementing a robust approach to personal data management with privacy and security at its core. This schema design reflects our commitment to data isolation and regulatory compliance while maintaining system performance and scalability.
 
-###### Core Design Principles for User Data Schema
+#### Core Design Principles for User Data Schema
 
-##### Data Isolation Strategy for User Data Schema
+#### Data Isolation Strategy for User Data Schema
 
 The schema implements strict data isolation through dedicated user namespaces, preventing data leakage between users while enabling efficient data management. This isolation is achieved through PostgreSQL's native schema capabilities and custom security policies.
 
-##### Privacy Enforcement for User Data Schema
+#### Privacy Enforcement for User Data Schema
 
 Privacy enforcement is implemented through multiple layers:
 

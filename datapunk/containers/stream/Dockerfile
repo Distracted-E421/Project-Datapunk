@@ -1,48 +1,36 @@
-FROM python:3.11 AS datapunk-stream-builder
-
-# Install build dependencies
-RUN apt-get update \
-    && apt-get install -y \
-        build-essential \
-        git \
-        libpq-dev \
-        pkg-config \
-        protobuf-compiler \
-    && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /build
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Cleanup
-RUN pip install --no-cache-dir -r requirements.txt \
-    && find /usr/local/lib/python3.11/site-packages -name "*.pyc" -delete \
-    && find /usr/local/lib/python3.11/site-packages -name "__pycache__" -delete \
-    && rm -rf /root/.cache/pip
-
-FROM python:3.11-slim AS datapunk-stream
-
-# Install runtime dependencies
-RUN apt-get update \
-    && apt-get install -y \
-        libpq5 \
-        protobuf-compiler \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy built packages from builder
-COPY --from=datapunk-stream-builder /usr/local/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
-COPY --from=datapunk-stream-builder /usr/local/bin/ /usr/local/bin/
+FROM datapunk-base-python:latest as builder
 
 WORKDIR /app
-COPY ./src /app/src
 
-RUN mkdir -p /cache /var/log/datapunk/stream
+# Copy service-specific files
+COPY pyproject.toml poetry.lock ./
+COPY src/ ./src/
+COPY scripts/ ./scripts/
 
-ENV PYTHONPATH=/app
+# Install dependencies
+RUN poetry install --no-dev
 
-EXPOSE 8000
+# Runtime stage
+FROM datapunk-base-python:latest as runtime
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+WORKDIR /app
 
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Copy built files from builder
+COPY --from=builder /app/src ./src
+COPY --from=builder /app/scripts ./scripts
+COPY --from=builder ${PYSETUP_PATH}/.venv ${PYSETUP_PATH}/.venv
+
+# Set up healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8001/health || exit 1
+
+# Create non-root user
+RUN addgroup --system --gid 1002 datapunk && \
+    adduser --system --uid 1002 stream && \
+    chown -R stream:datapunk /app
+
+USER stream
+
+EXPOSE 8001
+
+CMD ["poetry", "run", "python", "-m", "src.main"]

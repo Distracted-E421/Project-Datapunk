@@ -2,7 +2,7 @@
 # /scripts/healthcheck.sh
 
 # Check if PostgreSQL is accepting connections
-pg_isready -U datapunk -d datapunk || exit 1
+pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost -p 5432
 
 # Verify essential extensions
 psql -U datapunk -d datapunk -c "SELECT extname, extversion FROM pg_extension WHERE extname IN ('vector', 'postgis', 'timescaledb', 'pg_cron');" || exit 1

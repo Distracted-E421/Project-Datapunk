@@ -7,6 +7,7 @@ The datapunk-lake container serves as the primary data storage and processing la
 ## Build Architecture
 
 The container uses a multi-stage build process:
+
 1. Build stage: Compiles extensions from source
 2. Final stage: Installs only runtime dependencies
 
@@ -17,14 +18,17 @@ The container uses a multi-stage build process:
 Core Extensions (Compatible with PostgreSQL 16.x):
 
 Built from source:
+
 - pgvector (0.5.1+): Vector embeddings storage
 - pg_partman (5.0+): Automated partition management
 
 Installed from packages:
+
 - PostGIS (3.4+): Spatial data handling
 - pg_cron (1.6+): Automated maintenance tasks
 
 Included in postgresql-contrib:
+
 - pg_stat_statements: Query performance monitoring
 - hstore: Flexible metadata storage
 - pg_trgm: Fuzzy text search capabilities
@@ -32,6 +36,7 @@ Included in postgresql-contrib:
 ### Extension Loading
 
 Extensions are loaded in two ways:
+
 1. Startup (shared_preload_libraries):
    - timescaledb
    - pg_stat_statements
@@ -78,49 +83,49 @@ Important Configuration Notes:
 
 The schema organization within the Datapunk Lake is crucial for maintaining data integrity, optimizing performance, and ensuring efficient data retrieval. Below is an expanded description of each schema, detailing its purpose, structure, and any relevant considerations.
 
-- **user_data**: 
+- **user_data**:
   - **Purpose**: This schema is designed to store individual user data, ensuring data isolation and privacy. Each user will have a dedicated schema to prevent data leakage and maintain compliance with data protection regulations.
-  - **Structure**: 
+  - **Structure**:
     - Tables for user profiles, preferences, and settings.
     - Data partitioning based on user IDs to enhance query performance.
     - Indexing strategies to optimize search and retrieval operations.
   - **Considerations**: Implement row-level security policies to restrict access based on user identity.
 
-- **imports**: 
+- **imports**:
   - **Purpose**: Serves as a staging area for bulk data processing, particularly for large data imports such as Google Takeout.
-  - **Structure**: 
+  - **Structure**:
     - Temporary tables for raw data ingestion.
     - Metadata tables to track import status, timestamps, and error logs.
     - Validation and sanitization processes to ensure data quality before moving to permanent storage.
   - **Considerations**: Implement automated cleanup processes to remove old or failed import records.
 
-- **analytics**: 
+- **analytics**:
   - **Purpose**: This schema is dedicated to derived analytics and aggregations, providing insights from the raw data stored in other schemas.
-  - **Structure**: 
+  - **Structure**:
     - Tables for aggregated metrics, trends, and statistical analyses.
     - Pre-computed views for frequently accessed reports.
     - Support for time-series data to facilitate historical analysis.
   - **Considerations**: Regularly update analytics tables to reflect changes in the underlying data, and consider using materialized views for performance optimization.
 
-- **vectors**: 
+- **vectors**:
   - **Purpose**: This schema is specifically for storing vector embeddings generated from various data sources, enabling efficient similarity searches and machine learning applications.
-  - **Structure**: 
+  - **Structure**:
     - Tables for different types of embeddings (e.g., text, image, audio).
     - Indexing strategies such as HNSW (Hierarchical Navigable Small World) for fast nearest neighbor searches.
     - Metadata tables to track the origin and versioning of embeddings.
   - **Considerations**: Ensure that the embedding generation process is well-documented and version-controlled to maintain consistency across updates.
 
-- **timeseries**: 
+- **timeseries**:
   - **Purpose**: Optimized for storing and querying time-series data, this schema supports applications that require historical data analysis and trend forecasting.
-  - **Structure**: 
+  - **Structure**:
     - Tables designed for efficient time-series storage, utilizing PostgreSQL extensions like TimescaleDB.
     - Partitioning strategies based on time intervals (e.g., daily, monthly) to enhance query performance.
     - Support for continuous aggregates to provide real-time insights.
   - **Considerations**: Implement retention policies to manage the lifecycle of time-series data, archiving older data as necessary.
 
-- **archive**: 
+- **archive**:
   - **Purpose**: This schema is intended for historical data storage, ensuring that older records are preserved for compliance and auditing purposes.
-  - **Structure**: 
+  - **Structure**:
     - Tables for archived user data, import logs, and historical analytics.
     - Metadata to track the archiving process, including timestamps and reasons for archiving.
   - **Considerations**: Establish clear policies for data retention and access to archived records, ensuring that sensitive information is handled appropriately.
@@ -130,6 +135,7 @@ The schema organization within the Datapunk Lake is crucial for maintaining data
 ### 1. Bulk Import Processing
 
 #### Data Ingestion Pipeline
+
 - Primary ingestion handler for large data exports (Google Takeout, etc.)
 - Streaming upload support for files >2GB
 - Chunked processing with configurable batch sizes
@@ -137,6 +143,7 @@ The schema organization within the Datapunk Lake is crucial for maintaining data
 - Progress tracking and resumable uploads
 
 #### Validation & Sanitization
+
 - File integrity verification (checksum validation)
 - MIME type validation per supported formats:
   - JSON, CSV, MBOX (emails)
@@ -150,6 +157,7 @@ The schema organization within the Datapunk Lake is crucial for maintaining data
 - Duplicate detection using content hashing
 
 #### Format Standardization
+
 - JSON normalization for nested structures
 - CSV header standardization
 - Timestamp normalization to UTC
@@ -159,6 +167,7 @@ The schema organization within the Datapunk Lake is crucial for maintaining data
 - Metadata extraction and indexing
 
 #### Partitioning Strategy
+
 - Time-based partitioning (by year/month)
 - User-based partitioning
 - Data type partitioning:
@@ -174,6 +183,7 @@ The schema organization within the Datapunk Lake is crucial for maintaining data
 - Partition statistics tracking
 
 #### Processing Pipeline
+
 1. Initial Receipt
    - File upload validation
    - Virus scanning
@@ -205,6 +215,7 @@ The schema organization within the Datapunk Lake is crucial for maintaining data
    - Cache warming
 
 #### Error Handling
+
 - Detailed error logging
 - Failed record quarantine
 - Validation error categorization
@@ -214,6 +225,7 @@ The schema organization within the Datapunk Lake is crucial for maintaining data
 - Error reporting
 
 #### Performance Optimization
+
 - Parallel processing
 - Batch operations
 - Memory management
@@ -223,6 +235,7 @@ The schema organization within the Datapunk Lake is crucial for maintaining data
 - Resource allocation
 
 #### Monitoring & Metrics
+
 - Processing speed
 - Error rates
 - Data quality scores
@@ -232,6 +245,7 @@ The schema organization within the Datapunk Lake is crucial for maintaining data
 - Storage efficiency
 
 #### Security Controls
+
 - Encryption at rest
 - Access logging
 - PII handling
@@ -241,6 +255,7 @@ The schema organization within the Datapunk Lake is crucial for maintaining data
 - Access controls
 
 #### Recovery & Backup
+
 - Checkpoint creation
 - State management
 - Rollback capabilities
@@ -251,7 +266,9 @@ The schema organization within the Datapunk Lake is crucial for maintaining data
 ### 2. Storage Strategy
 
 #### Volume Configuration
+
 - Primary Storage Volumes:
+
   ```yaml
   volumes:
     data_volume:
@@ -275,7 +292,9 @@ The schema organization within the Datapunk Lake is crucial for maintaining data
   ```
 
 #### PostgreSQL Configuration
+
 - Core Settings:
+
   ```yaml
   environment:
     POSTGRES_MAX_CONNECTIONS: 200
@@ -292,6 +311,7 @@ The schema organization within the Datapunk Lake is crucial for maintaining data
   ```
 
 #### Storage Hierarchy
+
 - Hot Data (data_volume)
   - Active user data
   - Recent imports
@@ -314,6 +334,7 @@ The schema organization within the Datapunk Lake is crucial for maintaining data
   - Compliance records
 
 #### Optimization Strategies
+
 - Data Compression
   - ZSTD compression for cold storage
   - LZ4 for warm data
@@ -343,7 +364,9 @@ parallel_jobs: 4
 ```
 
 #### Performance Tuning
+
 - I/O Configuration:
+
   ```yaml
   storage_opts:
     dm.basesize: 20G
@@ -355,6 +378,7 @@ parallel_jobs: 4
   ```
 
 - Memory Allocation:
+
   ```yaml
   limits:
     memory: 8G
@@ -364,6 +388,7 @@ parallel_jobs: 4
   ```
 
 #### Monitoring & Maintenance
+
 - Storage Metrics:
   - Volume utilization
   - I/O performance
@@ -372,6 +397,7 @@ parallel_jobs: 4
   - Storage growth rates
 
 - Maintenance Tasks:
+
   ```yaml
   maintenance:
     vacuum_schedule: "0 3 * * *"
@@ -384,12 +410,14 @@ parallel_jobs: 4
   ```
 
 #### Security Controls
+
 - Encryption:
   - At-rest encryption (LUKS)
   - TLS for data in transit
   - Key rotation policies
 
 - Access Controls:
+
   ```yaml
   security:
     encryption_at_rest: true

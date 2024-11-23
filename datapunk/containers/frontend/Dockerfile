@@ -1,40 +1,40 @@
-FROM node:20-slim AS datapunk-frontend-builder
+# Build stage
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
-# Add build dependencies
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy package files and install dependencies
+# Install dependencies
 COPY package*.json ./
-RUN npm install
-
-# Copy configuration files
-COPY svelte.config.js ./
-COPY tsconfig.json ./
-COPY vite.config.ts ./
+RUN npm ci
 
 # Copy source files
-COPY src/ ./src/
-COPY static/ ./static/
-
-# Initialize SvelteKit
-RUN npm run prepare
+COPY . .
 
 # Build the application
 RUN npm run build
 
-FROM node:20-slim AS datapunk-frontend
+# Production stage
+FROM node:20-slim AS runner
 
 WORKDIR /app
 
-# Copy built files and dependencies
-COPY --from=datapunk-frontend-builder /app/build ./build
-COPY --from=datapunk-frontend-builder /app/node_modules ./node_modules
-COPY --from=datapunk-frontend-builder /app/package.json ./
+# Copy built assets and necessary files
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/package.json ./package.json
+
+# Install production dependencies only
+RUN npm ci --production
+
+# Create non-root user
+RUN addgroup --system --gid 1004 nodejs && \
+    adduser --system --uid 1004 svelte && \
+    chown -R svelte:nodejs /app
+
+USER svelte
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node -e "fetch('http://localhost:3000/health').then(r => process.exit(r.ok ? 0 : 1))"
 
 EXPOSE 3000
 
