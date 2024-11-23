@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "datapunk-stream"
+version = "0.1.0"
+description = "Stream service for Datapunk"
+authors = ["Your Name <your.email@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+datapunk-shared = { path = "../../lib/shared" }
+fastapi = "^0.104.1"
+uvicorn = "^0.24.0"
+aio-pika = "^9.3.1"
+redis = "^5.0.1"
+asyncio-stream = "^0.3.1"
+aiokafka = "^0.10.0"
+confluent-kafka = "^2.3.0"
+msgpack = "^1.0.7"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.3"
+pytest-asyncio = "^0.21.1"
+black = "^23.11.0"
+mypy = "^1.7.1"
+pylint = "^3.0.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api" 

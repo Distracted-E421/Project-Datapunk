@@ -1,0 +1,82 @@
+services:
+  lake:
+    build:
+      context: .
+      dockerfile: containers/lake/Dockerfile
+      target: development
+    volumes:
+      - ./containers/lake/src:/app/src
+      - ./containers/lake/tests:/app/tests
+      - lake-dev-data:/data
+      - lake-dev-cache:/cache
+    environment:
+      - PYTHONPATH=/app/src
+      - DEBUG=1
+      - ENVIRONMENT=development
+    ports:
+      - "8000:8000"
+      - "5678:5678"  # For debugger
+
+  stream:
+    build:
+      context: .
+      dockerfile: containers/stream/Dockerfile
+      target: development
+    volumes:
+      - ./containers/stream/src:/app/src
+      - ./containers/stream/tests:/app/tests
+      - stream-dev-data:/data
+      - stream-dev-cache:/cache
+    environment:
+      - PYTHONPATH=/app/src
+      - DEBUG=1
+      - ENVIRONMENT=development
+    ports:
+      - "8001:8001"
+      - "5679:5679"  # For debugger
+
+  nexus:
+    build:
+      context: .
+      dockerfile: containers/nexus/Dockerfile
+      target: development
+    volumes:
+      - ./containers/nexus/src:/app/src
+      - ./containers/nexus/tests:/app/tests
+      - nexus-dev-cache:/cache
+    environment:
+      - PYTHONPATH=/app/src
+      - DEBUG=1
+      - ENVIRONMENT=development
+    ports:
+      - "8002:8002"
+      - "5680:5680"  # For debugger
+
+  frontend:
+    build:
+      context: containers/frontend
+      dockerfile: Dockerfile
+      target: development
+    volumes:
+      - ./containers/frontend/src:/app/src
+      - ./containers/frontend/static:/app/static
+      - frontend-dev-cache:/app/.svelte-kit
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "3000:3000"
+      - "24678:24678"  # For HMR
+
+volumes:
+  lake-dev-data:
+    driver: local
+  lake-dev-cache:
+    driver: local
+  stream-dev-data:
+    driver: local
+  stream-dev-cache:
+    driver: local
+  nexus-dev-cache:
+    driver: local
+  frontend-dev-cache:
+    driver: local 
