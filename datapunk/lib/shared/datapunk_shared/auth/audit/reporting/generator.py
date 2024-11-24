@@ -1,12 +1,20 @@
 """
 Audit report generation system.
 
-This module handles the generation of audit reports including:
-- Compliance reports
-- Security incident reports
-- Access pattern reports
-- Policy change reports
-- Key usage reports
+This module serves as the core reporting engine for the audit system, providing:
+- Flexible report generation with multiple output formats
+- Compliance validation against multiple standards
+- Security incident analysis and reporting
+- Access pattern monitoring
+- Policy change tracking
+- Cryptographic key usage auditing
+
+The system is designed to handle large volumes of audit events while maintaining
+performance through caching and selective data loading.
+
+NOTE: This system assumes audit events are stored in a cache with a specific
+key pattern: audit:events:<type>:*. Changes to this pattern require updates
+to the _get_events method.
 """
 
 from typing import Dict, List, Optional, TYPE_CHECKING, Any
@@ -27,7 +35,12 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 class ReportFormat(Enum):
-    """Supported report formats."""
+    """
+    Supported report formats.
+    
+    NOTE: PDF generation requires additional system dependencies.
+    TODO: Add support for Excel format for detailed data analysis.
+    """
     JSON = "json"
     HTML = "html"
     PDF = "pdf"
@@ -45,7 +58,17 @@ class ReportType(Enum):
 
 @dataclass
 class ReportConfig:
-    """Configuration for report generation."""
+    """
+    Configuration for report generation.
+    
+    Controls report content and formatting options. The audit_level parameter
+    determines the depth of information included:
+    - MINIMAL: Basic event information only
+    - STANDARD: Most event fields excluding internal data
+    - DETAILED: All available event data
+    
+    NOTE: Higher audit levels may impact performance with large datasets
+    """
     format: ReportFormat
     template_type: TemplateType
     include_metrics: bool = True
@@ -55,7 +78,15 @@ class ReportConfig:
     audit_level: AuditLevel = AuditLevel.STANDARD
 
 class ReportGenerator:
-    """Generates audit reports from events."""
+    """
+    Core report generation engine.
+    
+    Handles the collection, filtering, and formatting of audit events into
+    structured reports. Uses caching and metrics for performance monitoring.
+    
+    FIXME: Consider implementing batch processing for large datasets to
+    prevent memory issues with extensive time ranges.
+    """
     
     def __init__(self,
                  cache_client: 'CacheClient',
@@ -70,7 +101,18 @@ class ReportGenerator:
                             end_time: datetime,
                             config: ReportConfig,
                             filters: Optional[Dict] = None) -> Dict[str, Any]:
-        """Generate an audit report."""
+        """
+        Generate an audit report for the specified time range.
+        
+        This is the main entry point for report generation. The process:
+        1. Fetches relevant events from cache
+        2. Applies filtering and processing
+        3. Generates report sections based on configuration
+        4. Formats output according to specified format
+        
+        NOTE: Large time ranges may require significant processing time.
+        Consider implementing pagination for interactive use cases.
+        """
         try:
             # Get events for time period
             events = await self._get_events(
@@ -143,7 +185,16 @@ class ReportGenerator:
                          start_time: datetime,
                          end_time: datetime,
                          filters: Optional[Dict]) -> List[Dict]:
-        """Get events for report period."""
+        """
+        Retrieve events from cache for the specified time range.
+        
+        Uses pattern matching to find relevant events and filters them
+        based on timestamp. This approach assumes events are stored with
+        consistent timestamp formatting.
+        
+        TODO: Implement cursor-based pagination for large result sets
+        TODO: Add support for distributed cache systems
+        """
         try:
             # Get event keys for time range
             pattern = f"audit:events:{report_type.value}:*"
@@ -167,7 +218,18 @@ class ReportGenerator:
     def _filter_events(self,
                       events: List[Dict],
                       filters: Dict) -> List[Dict]:
-        """Apply filters to events."""
+        """
+        Apply filters to event set.
+        
+        Supports three types of filters:
+        - Simple equality (field == value)
+        - List membership (field in [values])
+        - Nested field matching (field.subfield == value)
+        
+        NOTE: Complex filters may significantly impact performance on
+        large datasets. Consider adding filter optimization for common
+        patterns.
+        """
         filtered_events = events
         
         for field, value in filters.items():
@@ -224,7 +286,17 @@ class ReportGenerator:
                               report_type: ReportType,
                               start_time: datetime,
                               end_time: datetime) -> Dict[str, Any]:
-        """Generate metrics for report period."""
+        """
+        Generate metrics for the report period.
+        
+        Metrics generation is type-specific and may include:
+        - Access patterns and frequencies
+        - Security incident statistics
+        - Compliance violation rates
+        
+        TODO: Add caching for frequently accessed metric calculations
+        TODO: Implement metric aggregation for longer time periods
+        """
         metrics = {}
         
         # Get relevant metrics based on report type
@@ -302,7 +374,17 @@ class ReportGenerator:
     def _filter_event_fields(self,
                            event: Dict,
                            audit_level: AuditLevel) -> Dict:
-        """Filter event fields based on audit level."""
+        """
+        Filter event fields based on audit level.
+        
+        This method implements the privacy/security boundary by controlling
+        field visibility based on the configured audit level. Internal
+        fields (prefixed with 'internal_') are only included at the
+        DETAILED level.
+        
+        NOTE: Changes to field filtering rules should be coordinated with
+        security policy updates.
+        """
         if audit_level == AuditLevel.MINIMAL:
             return {
                 k: v for k, v in event.items()
