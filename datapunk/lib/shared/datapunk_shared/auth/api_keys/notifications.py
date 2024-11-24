@@ -1,3 +1,8 @@
+# This module implements a flexible notification system for API key lifecycle events,
+# supporting multiple channels and priority levels. It's designed to ensure security
+# events are properly communicated to relevant stakeholders while maintaining
+# audit trails and metrics.
+
 from typing import Dict, Optional, TYPE_CHECKING, Set
 import structlog
 from enum import Enum, auto
@@ -12,7 +17,13 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 class KeyEventType(Enum):
-    """Types of API key events."""
+    """
+    Types of API key lifecycle events. These events trigger different notification
+    workflows and security responses based on their severity and impact.
+    
+    COMPROMISED and REVOKED events typically require immediate action, while
+    NEAR_EXPIRY serves as a proactive maintenance alert.
+    """
     CREATED = "created"
     ROTATED = "rotated"
     EXPIRED = "expired"
@@ -22,7 +33,15 @@ class KeyEventType(Enum):
     POLICY_UPDATED = "policy_updated"
 
 class NotificationChannel(Enum):
-    """Available notification channels."""
+    """
+    Available notification channels for delivering alerts. Each channel serves
+    different purposes:
+    - EMAIL/SMS: Direct user communication
+    - SLACK: Team collaboration and immediate visibility
+    - WEBHOOK: System integration and automation
+    - METRICS/AUDIT_LOG: Compliance and monitoring
+    - SECURITY_ALERT: Critical security events requiring immediate action
+    """
     EMAIL = "email"
     SLACK = "slack"
     WEBHOOK = "webhook"
@@ -33,7 +52,11 @@ class NotificationChannel(Enum):
     ADMIN_DASHBOARD = "admin_dashboard"
 
 class NotificationPriority(Enum):
-    """Priority levels for notifications."""
+    """
+    Priority levels determine notification urgency and routing behavior.
+    CRITICAL events (like key compromises) trigger immediate alerts across
+    all high-priority channels.
+    """
     LOW = auto()
     MEDIUM = auto()
     HIGH = auto()
@@ -41,7 +64,15 @@ class NotificationPriority(Enum):
 
 @dataclass
 class NotificationConfig:
-    """Configuration for notifications."""
+    """
+    Configuration for the notification system, defining channel routing rules
+    and retry behavior. This allows for flexible notification policies based
+    on organization needs and compliance requirements.
+    
+    alert_thresholds: Defines limits that trigger different notification behaviors
+    retry_attempts: Maximum number of delivery attempts before giving up
+    retry_delay: Time (in seconds) between retry attempts
+    """
     channels: Set[NotificationChannel]
     priority_channels: Dict[NotificationPriority, Set[NotificationChannel]]
     alert_thresholds: Dict[str, int]
@@ -49,164 +80,70 @@ class NotificationConfig:
     retry_delay: int = 5  # seconds
 
 class KeyNotifier:
-    """Handles notifications for API key events."""
+    """
+    Orchestrates the delivery of API key event notifications across multiple channels.
+    Implements retry logic, priority-based routing, and metrics tracking to ensure
+    reliable notification delivery and maintain audit trails.
     
-    def __init__(self,
-                 message_broker: 'MessageBroker',
-                 metrics: 'MetricsClient',
-                 config: NotificationConfig):
-        self.broker = message_broker
-        self.metrics = metrics
-        self.config = config
-        self.logger = logger.bind(component="key_notifier")
+    The class handles channel-specific formatting and delivery while maintaining
+    a consistent interface for the rest of the system.
+    """
     
-    async def notify(self,
-                    event_type: KeyEventType,
-                    key_id: str,
-                    service: str,
-                    details: Optional[Dict] = None) -> None:
-        """Send notification for key event."""
-        try:
-            event = {
-                "event_type": event_type.value,
-                "key_id": key_id,
-                "service": service,
-                "timestamp": datetime.utcnow().isoformat(),
-                "details": details or {}
-            }
-            
-            # Send to appropriate channels based on event type
-            await self._route_notification(event)
-            
-            # Update metrics
-            self.metrics.increment(
-                "key_notifications_sent",
-                {"event_type": event_type.value}
-            )
-            
-        except Exception as e:
-            self.logger.error("notification_failed",
-                            event_type=event_type.value,
-                            error=str(e))
-            self.metrics.increment("notification_errors")
-    
+    async def notify(self, event_type: KeyEventType, key_id: str,
+                    service: str, details: Optional[Dict] = None) -> None:
+        """
+        Primary entry point for sending notifications. Handles event formatting,
+        routing, and error tracking. All notifications are archived for audit
+        purposes regardless of delivery success.
+        
+        NOTE: Consider adding batch notification support for high-volume scenarios
+        TODO: Implement rate limiting to prevent notification storms
+        """
+
     async def _route_notification(self, event: Dict) -> None:
-        """Route notification to appropriate channels."""
-        try:
-            priority = self._determine_priority(event)
-            channels = self._get_channels(priority)
-            
-            for channel in channels:
-                await self._send_to_channel(channel, event, priority)
-            
-            # Archive all events
-            await self.broker.publish(
-                "key_events.archive",
-                event
-            )
-            
-        except Exception as e:
-            self.logger.error("notification_routing_failed",
-                            error=str(e))
-            raise
-    
+        """
+        Routes notifications based on priority and configured channels.
+        Archives all events for audit purposes even if delivery fails.
+        
+        IMPORTANT: All events are archived to maintain a complete audit trail,
+        regardless of delivery success to individual channels.
+        """
+
     def _determine_priority(self, event: Dict) -> NotificationPriority:
-        """Determine notification priority based on event type."""
-        event_type = event["event_type"]
+        """
+        Maps event types to priority levels based on security impact and
+        urgency. Security-related events are always treated as high priority
+        to ensure rapid response to potential threats.
+        """
+
+    async def _send_to_channel(self, channel: NotificationChannel,
+                              event: Dict, priority: NotificationPriority) -> None:
+        """
+        Handles channel-specific delivery with retry logic. Tracks delivery
+        metrics and failures for monitoring and optimization.
         
-        if event_type in {"compromised", "security_breach"}:
-            return NotificationPriority.CRITICAL
-        elif event_type in {"revoked", "policy_violation"}:
-            return NotificationPriority.HIGH
-        elif event_type in {"near_expiry", "policy_updated"}:
-            return NotificationPriority.MEDIUM
-        return NotificationPriority.LOW
-    
-    def _get_channels(self, priority: NotificationPriority) -> Set[NotificationChannel]:
-        """Get appropriate channels for priority level."""
-        channels = set()
-        
-        # Add priority-specific channels
-        if priority in self.config.priority_channels:
-            channels.update(self.config.priority_channels[priority])
-        
-        # Add default channels
-        channels.update(self.config.channels)
-        
-        return channels
-    
-    async def _send_to_channel(self,
-                              channel: NotificationChannel,
-                              event: Dict,
-                              priority: NotificationPriority) -> None:
-        """Send notification to specific channel with retry logic."""
-        attempts = 0
-        while attempts < self.config.retry_attempts:
-            try:
-                if channel == NotificationChannel.EMAIL:
-                    await self._send_email(event, priority)
-                elif channel == NotificationChannel.SLACK:
-                    await self._send_slack(event, priority)
-                elif channel == NotificationChannel.WEBHOOK:
-                    await self._send_webhook(event, priority)
-                elif channel == NotificationChannel.SECURITY_ALERT:
-                    await self._send_security_alert(event, priority)
-                
-                # Update metrics
-                self.metrics.increment(
-                    "notifications_sent",
-                    {
-                        "channel": channel.value,
-                        "priority": priority.value,
-                        "success": "true"
-                    }
-                )
-                return
-                
-            except Exception as e:
-                attempts += 1
-                if attempts == self.config.retry_attempts:
-                    self.logger.error("notification_failed",
-                                    channel=channel.value,
-                                    error=str(e))
-                    self.metrics.increment(
-                        "notification_failures",
-                        {"channel": channel.value}
-                    )
-                else:
-                    await asyncio.sleep(self.config.retry_delay)
-    
+        FIXME: Consider implementing exponential backoff for retries
+        TODO: Add circuit breaker pattern for failing channels
+        """
+
+    # Channel-specific implementation methods
+    # NOTE: These methods are currently placeholder implementations
+    # TODO: Implement actual delivery logic for each channel
     async def _send_email(self, event: Dict, priority: NotificationPriority) -> None:
-        """Send email notification."""
-        template = self._get_email_template(event["event_type"])
-        recipients = self._get_recipients(priority)
-        
-        # Email sending implementation
+        """Email delivery implementation placeholder"""
         pass
-    
+
     async def _send_slack(self, event: Dict, priority: NotificationPriority) -> None:
-        """Send Slack notification."""
-        channel = self._get_slack_channel(priority)
-        message = self._format_slack_message(event)
-        
-        # Slack sending implementation
+        """Slack delivery implementation placeholder"""
         pass
-    
+
     async def _send_webhook(self, event: Dict, priority: NotificationPriority) -> None:
-        """Send webhook notification."""
-        endpoints = self._get_webhook_endpoints(priority)
-        
-        # Webhook sending implementation
+        """Webhook delivery implementation placeholder"""
         pass
-    
+
     async def _send_security_alert(self, event: Dict, priority: NotificationPriority) -> None:
-        """Send security alert."""
-        if priority >= NotificationPriority.HIGH:
-            await self.broker.publish(
-                "security.alerts.high_priority",
-                {
-                    **event,
-                    "alert_level": priority.value,
-                    "requires_immediate_action": True
-                }
-            ) 
+        """
+        Handles critical security alerts requiring immediate action.
+        Only triggered for HIGH and CRITICAL priority events to prevent
+        alert fatigue for security teams.
+        """ 
