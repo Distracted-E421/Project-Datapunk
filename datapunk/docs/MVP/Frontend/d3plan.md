@@ -141,5 +141,3 @@ endLine: 13
 7. Run full system test
 
 Would you like me to provide specific implementation details for any of these steps?
-
-```
