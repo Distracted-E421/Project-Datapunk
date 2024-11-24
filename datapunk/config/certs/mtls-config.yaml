@@ -1,0 +1,30 @@
+certificates:
+  validity_days: 365
+  key_size: 2048
+  organization: "Datapunk"
+  country: "US"
+  
+paths:
+  ca_cert: "/etc/datapunk/certs/ca.crt"
+  ca_key: "/etc/datapunk/certs/ca.key"
+  
+services:
+  lake:
+    cert: "/etc/datapunk/certs/lake.crt"
+    key: "/etc/datapunk/certs/lake.key"
+    common_name: "lake.service.datapunk"
+    
+  stream:
+    cert: "/etc/datapunk/certs/stream.crt"
+    key: "/etc/datapunk/certs/stream.key"
+    common_name: "stream.service.datapunk"
+    
+  nexus:
+    cert: "/etc/datapunk/certs/nexus.crt"
+    key: "/etc/datapunk/certs/nexus.key"
+    common_name: "nexus.service.datapunk"
+
+verification:
+  verify_mode: "CERT_REQUIRED"
+  check_hostname: true
+  cert_reqs: "CERT_REQUIRED" 
