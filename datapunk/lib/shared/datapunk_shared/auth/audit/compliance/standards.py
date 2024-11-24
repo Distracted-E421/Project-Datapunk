@@ -1,12 +1,24 @@
 """
 Compliance standards implementation.
 
-This module defines compliance standards and their requirements including:
-- GDPR data protection requirements
-- HIPAA healthcare standards
-- SOX financial controls
-- PCI DSS payment security
-- ISO27001 security controls
+This module implements a comprehensive compliance framework that manages and enforces 
+multiple regulatory standards (GDPR, HIPAA, PCI DSS) in a unified way. It provides:
+
+Key Features:
+- Hierarchical organization of compliance requirements and controls
+- Data classification-based filtering of requirements
+- Standardized security control definitions
+- Automated compliance monitoring integration
+- Audit trail support
+
+Architecture Notes:
+- Uses composition pattern to allow easy addition of new standards
+- Leverages metrics client for operational monitoring
+- Implements strict type checking for reliability
+
+Usage:
+standards = ComplianceStandards(metrics_client)
+gdpr_reqs = standards.get_requirements("GDPR", DataClassification.PII)
 """
 
 from typing import Dict, List, Set, Optional, Any, TYPE_CHECKING
@@ -21,24 +33,38 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 class ComplianceLevel(Enum):
-    """Compliance requirement levels."""
-    REQUIRED = "required"      # Must be implemented
-    RECOMMENDED = "recommended"  # Should be implemented
-    OPTIONAL = "optional"      # Nice to have
+    """
+    Defines the mandatory level of compliance requirements.
+    
+    Used to prioritize implementation and risk assessment:
+    - REQUIRED: Must be implemented to maintain compliance
+    - RECOMMENDED: Important for security but not strictly mandatory
+    - OPTIONAL: Enhances security posture but discretionary
+    """
 
 class DataClassification(Enum):
-    """Data sensitivity levels."""
-    PUBLIC = "public"           # No restrictions
-    INTERNAL = "internal"       # Internal use only
-    CONFIDENTIAL = "confidential"  # Limited access
-    RESTRICTED = "restricted"   # Strictly controlled
-    PII = "pii"                # Personal data
-    PHI = "phi"                # Health data
-    PCI = "pci"                # Payment data
+    """
+    Hierarchical data sensitivity classification system.
+    
+    Classifications are ordered from least to most sensitive:
+    PUBLIC -> INTERNAL -> CONFIDENTIAL -> RESTRICTED
+    
+    Special categories:
+    - PII: Personally Identifiable Information (GDPR scope)
+    - PHI: Protected Health Information (HIPAA scope)
+    - PCI: Payment Card Industry data (PCI DSS scope)
+    """
 
 @dataclass
 class SecurityControl:
-    """Security control requirement."""
+    """
+    Defines specific security measures required for compliance.
+    
+    Implementation Notes:
+    - verification_method should align with audit procedures
+    - monitoring_requirements dict keys should match metrics client fields
+    - implementation_guide should reference approved security patterns
+    """
     name: str
     description: str
     level: ComplianceLevel
@@ -48,7 +74,16 @@ class SecurityControl:
 
 @dataclass
 class ComplianceRequirement:
-    """Individual compliance requirement."""
+    """
+    Represents a specific compliance mandate from a standard.
+    
+    Design Notes:
+    - Links multiple SecurityControls to enable layered security
+    - Uses audit_frequency for automated compliance checking
+    - Supports multiple data classifications for flexible application
+    
+    TODO: Add support for control dependencies and prerequisites
+    """
     id: str
     standard: str
     section: str
@@ -60,7 +95,17 @@ class ComplianceRequirement:
     documentation_required: bool = True
 
 class GDPRStandard:
-    """GDPR compliance requirements."""
+    """
+    GDPR (General Data Protection Regulation) compliance implementation.
+    
+    Focuses on EU data protection requirements including:
+    - Data subject rights
+    - Consent management
+    - Data protection measures
+    - Cross-border transfer controls
+    
+    NOTE: Requirements list is not exhaustive - expand based on specific use cases
+    """
     
     @staticmethod
     def get_requirements() -> List[ComplianceRequirement]:
@@ -105,7 +150,16 @@ class GDPRStandard:
         ]
 
 class HIPAAStandard:
-    """HIPAA compliance requirements."""
+    """
+    HIPAA (Health Insurance Portability and Accountability Act) implementation.
+    
+    Covers US healthcare data protection including:
+    - Privacy Rule requirements
+    - Security Rule controls
+    - Breach notification procedures
+    
+    FIXME: Add Business Associate Agreement requirements
+    """
     
     @staticmethod
     def get_requirements() -> List[ComplianceRequirement]:
@@ -139,7 +193,17 @@ class HIPAAStandard:
         ]
 
 class PCIStandard:
-    """PCI DSS compliance requirements."""
+    """
+    Payment Card Industry Data Security Standard (PCI DSS) implementation.
+    
+    Implements payment card security requirements:
+    - Card data protection
+    - Network security
+    - Access controls
+    - Regular security testing
+    
+    NOTE: Version-specific requirements should be maintained separately
+    """
     
     @staticmethod
     def get_requirements() -> List[ComplianceRequirement]:
@@ -173,7 +237,26 @@ class PCIStandard:
         ]
 
 class ComplianceStandards:
-    """Manages compliance standards and requirements."""
+    """
+    Central compliance management system coordinating multiple standards.
+    
+    Design Patterns:
+    - Factory pattern for standard instantiation
+    - Strategy pattern for requirement filtering
+    - Observer pattern for metrics integration
+    
+    Error Handling:
+    - Validates standard names before access
+    - Logs all compliance checks for audit
+    - Provides detailed error context
+    
+    Performance Considerations:
+    - Caching might be needed for frequent requirement checks
+    - Consider bulk loading for large requirement sets
+    
+    TODO: Implement requirement dependency resolution
+    TODO: Add compliance report generation
+    """
     
     def __init__(self, metrics: 'MetricsClient'):
         self.metrics = metrics
@@ -187,7 +270,17 @@ class ComplianceStandards:
     def get_requirements(self,
                         standard: str,
                         data_classification: Optional[DataClassification] = None) -> List[ComplianceRequirement]:
-        """Get requirements for a compliance standard."""
+        """
+        Retrieves and filters compliance requirements.
+        
+        Performance Note:
+        - Filtering happens in memory - consider database filtering for large sets
+        - Metrics are updated synchronously - might need async for high load
+        
+        Error Handling:
+        - Validates standard existence before processing
+        - Provides context in error messages for troubleshooting
+        """
         try:
             if standard not in self.standards:
                 raise ValueError(f"Unknown standard: {standard}")
@@ -220,7 +313,13 @@ class ComplianceStandards:
     def get_controls(self,
                     standard: str,
                     requirement_id: str) -> List[SecurityControl]:
-        """Get security controls for a requirement."""
+        """
+        Retrieves security controls for specific requirements.
+        
+        Implementation Note:
+        - Linear search through requirements - consider indexing for performance
+        - Control lists are immutable after creation
+        """
         try:
             requirements = self.get_requirements(standard)
             
@@ -240,7 +339,15 @@ class ComplianceStandards:
     def get_monitoring_requirements(self,
                                   standard: str,
                                   requirement_id: str) -> Dict[str, Any]:
-        """Get monitoring requirements for controls."""
+        """
+        Aggregates monitoring requirements across controls.
+        
+        Design Note:
+        - Merges requirements from multiple controls
+        - Later controls override earlier ones for same keys
+        
+        TODO: Add conflict resolution for contradictory requirements
+        """
         try:
             controls = self.get_controls(standard, requirement_id)
             
