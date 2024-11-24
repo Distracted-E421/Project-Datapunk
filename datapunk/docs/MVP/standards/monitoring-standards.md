@@ -1,10 +1,13 @@
 # Metrics and Monitoring Standards
 
 ## Purpose
+
 Define standardized metrics collection, monitoring, and alerting patterns across the Datapunk platform to ensure comprehensive observability and proactive issue detection.
 
 ## Context
+
 Monitoring is implemented across multiple layers:
+
 1. Infrastructure metrics (system resources)
 2. Service metrics (application performance)
 3. Business metrics (operational KPIs)
@@ -586,4 +589,4 @@ monitoring_tests:
     - access_control
     - data_protection
     - audit_logging
-``` 
+```
