@@ -15,12 +15,36 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 class ApprovalManager:
-    """Manages approval workflow for policy changes."""
+    """
+    Manages the approval workflow for policy changes with configurable approval levels.
+    
+    This class handles the lifecycle of approval requests including creation, storage,
+    validation, and status tracking. It integrates with caching and metrics systems
+    for persistence and monitoring.
+    
+    Key responsibilities:
+    - Determining appropriate approval levels based on risk assessment
+    - Managing approval request lifecycle
+    - Tracking request status and expiration
+    - Monitoring approval metrics
+    
+    Dependencies:
+    - CacheClient: For persistent storage of approval requests
+    - MetricsClient: For tracking approval-related metrics
+    """
     
     def __init__(self,
                  cache_client: 'CacheClient',
                  metrics: 'MetricsClient',
                  approval_ttl: timedelta = timedelta(days=1)):
+        """
+        Initialize approval manager with required dependencies.
+        
+        Args:
+            cache_client: Handles persistent storage of approval requests
+            metrics: Tracks approval-related metrics
+            approval_ttl: Time-to-live for approval requests (defaults to 24 hours)
+        """
         self.cache = cache_client
         self.metrics = metrics
         self.approval_ttl = approval_ttl
@@ -31,7 +55,27 @@ class ApprovalManager:
                                     policy_type: PolicyType,
                                     validation_result: RollbackValidationResult,
                                     metadata: Optional[Dict] = None) -> ApprovalRequest:
-        """Create new approval request."""
+        """
+        Create and store a new approval request with appropriate validation.
+        
+        The approval level is determined based on the risk level and presence of
+        breaking changes in the validation result. Requests are validated before
+        storage and metrics are recorded for monitoring.
+        
+        Args:
+            requester_id: Unique identifier of the requesting user/system
+            policy_type: Type of policy being modified
+            validation_result: Results from rollback validation including risk assessment
+            metadata: Optional additional context for the request
+            
+        Returns:
+            ApprovalRequest: The created and stored approval request
+            
+        Raises:
+            ApprovalError: If request creation or validation fails
+        
+        NOTE: Request IDs are generated using UTC timestamp to ensure uniqueness
+        """
         try:
             # Determine required approval level
             required_level = self._determine_approval_level(
@@ -82,7 +126,23 @@ class ApprovalManager:
     
     async def get_pending_requests(self,
                                  policy_type: Optional[PolicyType] = None) -> List[ApprovalRequest]:
-        """Get all pending approval requests."""
+        """
+        Retrieve all pending approval requests, optionally filtered by policy type.
+        
+        Uses cache scanning to find all approval requests and filters for pending
+        status. Performance may degrade with large numbers of requests.
+        
+        Args:
+            policy_type: Optional filter to return only requests for specific policy type
+            
+        Returns:
+            List[ApprovalRequest]: List of pending approval requests
+            
+        Raises:
+            ApprovalError: If request fetching fails
+            
+        TODO: Consider implementing pagination for large result sets
+        """
         try:
             pattern = f"approval:request:*"
             keys = await self.cache.scan(pattern)
@@ -103,7 +163,25 @@ class ApprovalManager:
     
     async def check_request_status(self,
                                  request_id: str) -> Dict[str, Any]:
-        """Check status of an approval request."""
+        """
+        Check the current status of an approval request.
+        
+        Provides detailed status information including approvers and expiration.
+        The metadata field can be used to track custom workflow states.
+        
+        Args:
+            request_id: Unique identifier of the approval request
+            
+        Returns:
+            Dict containing status details:
+            - status: Current approval status
+            - approvers: List of users who have approved
+            - expires_at: ISO formatted expiration timestamp
+            - metadata: Custom workflow metadata
+            
+        Raises:
+            ApprovalError: If request is not found or status check fails
+        """
         try:
             request = await self._get_request(request_id)
             if not request:
