@@ -3,6 +3,7 @@ from enum import Enum
 import asyncio
 import aiohttp
 import structlog
+from ..tracing import trace_method
 
 logger = structlog.get_logger()
 
@@ -39,28 +40,39 @@ class HealthCheck:
                 "message": str(e)
             }
 
+    @trace_method("check_health")
     async def check_health(self) -> Dict:
         """Run all health checks and return aggregated status."""
-        results = await asyncio.gather(*[
-            self.check_dependency(**check) for check in self.checks
-        ])
-        
-        # Determine overall status
-        if any(r["status"] == HealthStatus.UNHEALTHY for r in results):
-            status = HealthStatus.UNHEALTHY
-        elif any(r["status"] == HealthStatus.DEGRADED for r in results):
-            status = HealthStatus.DEGRADED
-        else:
-            status = HealthStatus.HEALTHY
+        with self.tracer.start_span("run_health_checks") as span:
+            span.set_attribute("total_checks", len(self.checks))
             
-        self._status = status
-        
-        return {
-            "service": self.service_name,
-            "status": status.value,
-            "checks": results,
-            "timestamp": structlog.get_timestamp()
-        }
+            results = await asyncio.gather(*[
+                self.check_dependency(**check) for check in self.checks
+            ])
+            
+            # Determine overall status
+            unhealthy = sum(1 for r in results if r["status"] == HealthStatus.UNHEALTHY)
+            degraded = sum(1 for r in results if r["status"] == HealthStatus.DEGRADED)
+            
+            span.set_attribute("unhealthy_count", unhealthy)
+            span.set_attribute("degraded_count", degraded)
+            
+            if unhealthy > 0:
+                status = HealthStatus.UNHEALTHY
+            elif degraded > 0:
+                status = HealthStatus.DEGRADED
+            else:
+                status = HealthStatus.HEALTHY
+                
+            self._status = status
+            span.set_attribute("final_status", status.value)
+            
+            return {
+                "service": self.service_name,
+                "status": status.value,
+                "checks": results,
+                "timestamp": structlog.get_timestamp()
+            }
 
     def add_check(self, name: str, url: str):
         """Add a new dependency to check."""
