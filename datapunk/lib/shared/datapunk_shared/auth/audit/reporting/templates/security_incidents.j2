@@ -1,4 +1,22 @@
-{# Security incidents template #}
+{# 
+    Security Incidents Report Template
+    --------------------------------
+    Purpose: Generates a standardized JSON report for security incidents and their remediation actions.
+    
+    Expected incident object structure:
+    - id: Unique identifier for the incident
+    - type: Classification of the incident (e.g., "unauthorized_access", "data_breach")
+    - severity: Impact level of the incident
+    - timestamp: When the incident occurred
+    - description: Detailed explanation of the incident
+    - status: Current state of the incident (e.g., "open", "resolved")
+    - affected_resources: List/object of impacted systems or data
+    - actions_taken: Array of remediation steps taken
+    
+    NOTE: The template uses the tojson filter for affected_resources to ensure proper JSON encoding
+    of complex nested structures while maintaining valid JSON output.
+#}
+
 {
     "incidents": [
         {% for incident in incidents %}
@@ -10,6 +28,10 @@
             "description": "{{ incident.description }}",
             "status": "{{ incident.status }}",
             "affected_resources": {{ incident.affected_resources | tojson }},
+            {# 
+                Actions taken are rendered as a nested array to maintain chronological order
+                and attribution of remediation steps
+            #}
             "actions_taken": [
                 {% for action in incident.actions_taken %}
                 {

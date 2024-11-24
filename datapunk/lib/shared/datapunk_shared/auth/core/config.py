@@ -1,12 +1,34 @@
 """
 Core configuration for auth components.
 
-This module provides centralized configuration management for:
-- API key settings
-- Policy enforcement rules
-- Audit requirements
-- Security controls
-- Integration settings
+This module implements a comprehensive configuration management system for authentication
+and security settings. It provides:
+
+Key Features:
+- Dynamic configuration loading from files and environment variables
+- Real-time config reloading with file watching
+- Validation of security parameters with strict enforcement
+- Centralized management of auth-related settings
+- Support for different security levels and compliance standards
+
+Architecture Notes:
+- Uses dataclasses for type-safe config structures
+- Implements the Observer pattern for config changes
+- Provides rollback capability on failed validation
+- Supports hierarchical configuration inheritance
+
+Security Considerations:
+- Enforces minimum security standards through validation
+- Supports multiple encryption levels including E2E and mTLS
+- Implements secure defaults for all critical parameters
+- Provides audit logging for configuration changes
+
+Usage:
+    config = AuthConfig(
+        config_path=Path("/path/to/config.yaml"),
+        env_prefix="AUTH_",
+        auto_reload=True
+    )
 """
 
 from typing import Dict, Optional, Set, Any, List, Callable
@@ -29,7 +51,14 @@ from ..audit.types import ComplianceStandard
 logger = structlog.get_logger()
 
 class SecurityLevel(Enum):
-    """Security level configurations."""
+    """
+    Defines the security posture for the entire authentication system.
+    
+    BASIC: Development/testing environments only
+    STANDARD: Minimum for production deployments
+    HIGH: Regulated environments (e.g., financial services)
+    CRITICAL: High-security environments (e.g., healthcare, government)
+    """
     BASIC = "basic"         # Basic security controls
     STANDARD = "standard"   # Standard security measures
     HIGH = "high"          # Enhanced security
@@ -52,7 +81,15 @@ class ConfigReloadError(Exception):
 
 @dataclass
 class APIKeyConfig:
-    """API key configuration."""
+    """
+    API key configuration and lifecycle management.
+    
+    NOTE: default_ttl and rotation_window must be carefully balanced:
+    - Too short: Excessive rotation overhead
+    - Too long: Increased security risk
+    
+    SECURITY: min_length should never be set below 32 for production use
+    """
     default_ttl: timedelta = timedelta(days=90)
     min_length: int = 32
     max_length: int = 64
@@ -63,7 +100,14 @@ class APIKeyConfig:
 
 @dataclass
 class PolicyConfig:
-    """Policy enforcement configuration."""
+    """
+    Policy enforcement configuration for access control.
+    
+    IMPORTANT: strict_mode=True enforces immediate termination on policy violations
+    while False allows graceful degradation with logging
+    
+    TODO: Add support for policy inheritance and override mechanisms
+    """
     enabled_policies: Set[PolicyType]
     strict_mode: bool = True
     require_approval: bool = True
@@ -107,7 +151,16 @@ class ValidationResult:
     warnings: List[str]
 
 class ConfigValidator:
-    """Validates configuration values."""
+    """
+    Validates configuration values against security best practices and operational requirements.
+    
+    Implementation follows defense-in-depth principle:
+    1. Validates basic operational parameters
+    2. Enforces security minimums
+    3. Checks for potential security/performance conflicts
+    
+    FIXME: Add validation for cross-cutting concerns between different config sections
+    """
     
     @staticmethod
     def validate_api_keys(config: APIKeyConfig) -> ValidationResult:
@@ -192,7 +245,16 @@ class ConfigValidator:
         )
 
 class ConfigFileHandler(FileSystemEventHandler):
-    """Handles configuration file changes."""
+    """
+    Handles real-time configuration file changes with atomic updates.
+    
+    Design Considerations:
+    - Uses file system events to minimize polling overhead
+    - Implements debouncing to prevent reload storms
+    - Maintains config consistency during reloads
+    
+    NOTE: File permissions changes are not currently monitored
+    """
     
     def __init__(self, config_path: Path, reload_callback: Callable):
         self.config_path = config_path
@@ -210,7 +272,25 @@ class ConfigFileHandler(FileSystemEventHandler):
                                 error=str(e))
 
 class AuthConfig:
-    """Central configuration manager for auth components."""
+    """
+    Central configuration manager implementing a secure configuration lifecycle.
+    
+    Architecture:
+    1. Loads base configuration from files
+    2. Overlays environment variables
+    3. Validates complete configuration
+    4. Monitors for changes (when auto_reload=True)
+    
+    SECURITY: Configuration rollback is atomic to prevent partial updates
+    
+    Error Handling:
+    - Invalid configurations trigger immediate rollback
+    - Validation failures are logged with specific violations
+    - File permission issues are treated as security events
+    
+    TODO: Add support for encrypted configuration values
+    TODO: Implement configuration version tracking
+    """
     
     def __init__(self,
                  config_path: Optional[Path] = None,
@@ -247,7 +327,16 @@ class AuthConfig:
         self.integration = IntegrationConfig()
     
     def _validate_all(self) -> None:
-        """Validate all configurations."""
+        """
+        Performs comprehensive validation of all configuration sections.
+        
+        Validation Hierarchy:
+        1. Individual section validation
+        2. Cross-section consistency checks
+        3. Security minimum enforcement
+        
+        SECURITY: Validation failures in security-critical sections trigger immediate shutdown
+        """
         issues = []
         warnings = []
         
@@ -278,7 +367,16 @@ class AuthConfig:
             )
     
     def _setup_file_watcher(self) -> None:
-        """Set up file watcher for auto-reload."""
+        """
+        Initializes configuration file monitoring for hot-reloading.
+        
+        Implementation Notes:
+        - Uses non-blocking observer pattern
+        - Maintains single source of truth
+        - Prevents concurrent reloads
+        
+        FIXME: Add support for handling rapid successive changes
+        """
         try:
             self._observer = Observer()
             handler = ConfigFileHandler(self.config_path, self.reload)

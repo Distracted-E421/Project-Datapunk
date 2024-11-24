@@ -1,4 +1,18 @@
-{# Overview section template #}
+{# 
+    Audit Report Overview Template
+    
+    Purpose: Generates a standardized JSON structure for audit report overviews,
+    providing a consistent format for summarizing security and access events.
+
+    Structure:
+    - summary: Core metrics and report metadata
+    - highlights: Optional section for notable events or findings
+    - scope: Comprehensive coverage details of the audit
+    
+    Note: This template expects a 'data' object containing all necessary audit information
+    and uses the tojson filter for proper JSON escaping of complex objects.
+#}
+
 {
     "summary": {
         "total_events": {{ data.total_events }},
@@ -6,18 +20,20 @@
         "report_type": "{{ data.report_type }}"
     },
     {% if data.highlights %}
+    {# Optional highlights section for significant findings or anomalies #}
     "highlights": [
         {% for highlight in data.highlights %}
             {
                 "type": "{{ highlight.type }}",
                 "message": "{{ highlight.message }}",
                 "severity": "{{ highlight.severity }}"
-            }{% if not loop.last %},{% endif %}
+            }{% if not loop.last %},{% endif %}  {# Ensures proper JSON array formatting #}
         {% endfor %}
     ],
     {% endif %}
+    {# Scope section defines the audit boundaries and coverage #}
     "scope": {
-        "services": {{ data.scope.services | tojson }},
+        "services": {{ data.scope.services | tojson }},  {# Uses tojson filter for proper array/object serialization #}
         "resources": {{ data.scope.resources | tojson }},
         "users": {{ data.scope.users | tojson }}
     }

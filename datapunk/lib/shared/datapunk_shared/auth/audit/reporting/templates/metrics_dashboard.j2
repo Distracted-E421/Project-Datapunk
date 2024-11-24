@@ -1,18 +1,39 @@
-{# Metrics dashboard template #}
+{# 
+    Metrics Dashboard Template
+    -------------------------
+    Purpose: Generates a JSON structure for displaying metric data in a dashboard format.
+    
+    Expected Input:
+    - metrics: Dictionary of metric objects containing:
+        - value: Current metric value
+        - unit: Measurement unit (e.g., "requests/sec", "%", etc.)
+        - trend: Direction of change ("up", "down", "stable")
+        - change: Numerical change value
+        - thresholds (optional): Warning and critical levels
+        - graph: Visualization configuration
+    - graph_format: Global format setting for all graphs
+    
+    Note: The template ensures proper JSON formatting by handling comma separation
+    between multiple metrics using loop.last condition
+#}
+
 {
     "metrics": {
         {% for metric_name, metric_data in metrics.items() %}
+        {# Each metric is rendered as a self-contained object with its metadata and visualization config #}
         "{{ metric_name }}": {
             "value": {{ metric_data.value }},
             "unit": "{{ metric_data.unit }}",
             "trend": "{{ metric_data.trend }}",
             "change": {{ metric_data.change }},
             {% if metric_data.thresholds %}
+            {# Thresholds are optional - only included if defined in the metric data #}
             "thresholds": {
                 "warning": {{ metric_data.thresholds.warning }},
                 "critical": {{ metric_data.thresholds.critical }}
             },
             {% endif %}
+            {# Graph configuration for metric visualization #}
             "graph": {
                 "type": "{{ metric_data.graph.type }}",
                 "data": {{ metric_data.graph.data | tojson }},

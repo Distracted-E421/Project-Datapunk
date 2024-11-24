@@ -1,4 +1,24 @@
-{# Base template for all reports #}
+{# 
+Base template for compliance and audit report generation
+
+This template serves as the foundation for all compliance reports, providing:
+- Consistent metadata structure across different report types
+- Flexible section handling for various compliance standards
+- JSON output format for easy parsing and API integration
+
+Usage:
+- Extend this template for specific report types (GDPR, HIPAA, PCI)
+- All timestamps should be in ISO 8601 format
+- Sections are optional but should follow consistent structure
+
+NOTE: This template assumes all input data is properly sanitized
+TODO: Add schema version field to metadata
+#}
+
+{# 
+Metadata section provides report context and temporal bounds
+time_range allows for both point-in-time and period-based reporting 
+#}
 {
     "metadata": {
         "generated_at": "{{ metadata.generated_at }}",
@@ -9,6 +29,13 @@
             "end": "{{ metadata.time_range.end }}"
         }
     },
+    
+    {# 
+    Dynamic sections block allows flexible report content
+    - Sections are rendered as JSON for consistency
+    - tojson filter ensures proper escaping and formatting
+    - Comma handling prevents invalid JSON syntax
+    #}
     {% if sections %}
     "sections": {
         {% for section_name, section_content in sections.items() %}

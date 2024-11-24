@@ -1,9 +1,42 @@
-{# Compliance matrix template #}
+{# 
+    Compliance Matrix Template
+    -------------------------
+    Purpose: Generates a JSON structure for security compliance reporting
+    
+    Input data structure expected:
+    {
+        "standard_name": {
+            "compliant": boolean,
+            "violations": [
+                {
+                    "rule": str,
+                    "severity": str,
+                    "description": str
+                }
+            ],
+            "recommendations": [
+                {
+                    "action": str,
+                    "priority": str,
+                    "details": str
+                }
+            ]
+        }
+    }
+    
+    NOTE: All string values are automatically escaped by Jinja2's templating engine
+    to prevent XSS and injection attacks
+    
+    TODO: Consider adding metadata fields like timestamp, report version, and audit context
+#}
+
 {
     "standards": {
         {% for standard, details in data.items() %}
+        {# Each standard entry contains compliance status, violations, and recommendations #}
         "{{ standard }}": {
             "compliant": {{ details.compliant | tojson }},
+            {# violations array tracks all compliance rule violations with severity levels #}
             "violations": [
                 {% for violation in details.violations %}
                 {
@@ -13,6 +46,7 @@
                 }{% if not loop.last %},{% endif %}
                 {% endfor %}
             ],
+            {# recommendations provide actionable steps to achieve compliance #}
             "recommendations": [
                 {% for rec in details.recommendations %}
                 {
