@@ -1,9 +1,11 @@
 # API Standards
 
 ## Purpose
+
 Define consistent API design patterns, versioning strategies, and documentation standards across all Datapunk services.
 
 ## Context
+
 APIs serve as the primary interface between services and clients, requiring standardization for maintainability, security, and usability.
 
 ## Design/Details
@@ -364,4 +366,4 @@ api_testing:
     - response_time
     - concurrent_requests
     - rate_limit_behavior
-``` 
+```
