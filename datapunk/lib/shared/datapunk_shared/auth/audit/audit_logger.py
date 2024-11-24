@@ -1,12 +1,24 @@
 """
-Enhanced audit logging system.
+Enhanced audit logging system for security and compliance tracking.
 
-This module provides comprehensive audit logging with:
-- Structured event logging
-- Compliance tracking
-- Security event monitoring
-- Performance metrics
-- Data integrity verification
+Key Features:
+- Structured event logging with categorization and severity levels
+- Compliance tracking for multiple standards (e.g., SOX, GDPR, HIPAA)
+- Security event monitoring with integrity verification
+- Performance metrics for audit trail analysis
+- Data integrity through hashing and optional encryption
+- PII detection and masking capabilities
+- Event persistence with configurable retention
+
+Architecture:
+- Uses a multi-layer storage approach (cache + persistent storage)
+- Implements pub/sub pattern for real-time event notifications
+- Supports distributed systems through message broker integration
+
+Security Considerations:
+- Cryptographic event signing for non-repudiation
+- PII detection and masking for data privacy
+- Configurable encryption for sensitive data
 """
 
 from typing import Dict, Optional, Any, TYPE_CHECKING, List, Set
@@ -30,7 +42,12 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 class EventCategory(Enum):
-    """Categories of audit events."""
+    """
+    Categories for audit event classification and routing.
+    
+    NOTE: When adding new categories, ensure corresponding metrics and 
+    storage partitioning strategies are updated.
+    """
     SECURITY = "security"       # Security-related events
     ACCESS = "access"          # Access control events
     DATA = "data"             # Data operations
@@ -41,7 +58,14 @@ class EventCategory(Enum):
     API = "api"              # API operations
 
 class EventSeverity(Enum):
-    """Severity levels for audit events."""
+    """
+    Severity levels for event prioritization and alerting.
+    
+    The hierarchy (CRITICAL -> INFO) determines:
+    - Alert triggering thresholds
+    - Retention policies
+    - Real-time monitoring requirements
+    """
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
@@ -50,7 +74,14 @@ class EventSeverity(Enum):
 
 @dataclass
 class AuditConfig:
-    """Configuration for audit logging."""
+    """
+    Configuration for audit logging behavior and compliance requirements.
+    
+    IMPORTANT: Changes to these settings may impact compliance status.
+    Consider regulatory requirements when modifying.
+    
+    TODO: Add validation for compliance standard combinations
+    """
     enabled_categories: Set[EventCategory]
     min_severity: EventSeverity
     retention_period: timedelta
@@ -61,7 +92,20 @@ class AuditConfig:
     store_metadata: bool = True
 
 class AuditLogger:
-    """Enhanced audit logging system."""
+    """
+    Core audit logging system implementing comprehensive event tracking.
+    
+    Architecture Notes:
+    - Uses cache for high-speed access to recent events
+    - Implements persistent storage for long-term retention
+    - Publishes events for real-time monitoring
+    - Tracks metrics for system health and compliance reporting
+    
+    Performance Considerations:
+    - Event creation is CPU-intensive due to hashing and PII detection
+    - Storage operations are async to prevent blocking
+    - Cache usage optimizes frequent access patterns
+    """
     
     def __init__(self,
                  cache: 'CacheClient',
@@ -83,7 +127,14 @@ class AuditLogger:
                        data: Dict[str, Any],
                        context: Optional[AuditContext] = None) -> str:
         """
-        Log an audit event.
+        Logs an audit event with full integrity and compliance checks.
+        
+        Implementation Notes:
+        - Events are processed synchronously to maintain sequence integrity
+        - Failed events are logged but don't block system operation
+        - PII detection may impact performance on large data sets
+        
+        FIXME: Add retry logic for storage and broker operations
         
         Args:
             category: Event category
@@ -136,7 +187,26 @@ class AuditLogger:
                            event_type: str,
                            data: Dict[str, Any],
                            context: Optional[AuditContext]) -> Dict[str, Any]:
-        """Create structured audit event."""
+        """
+        Creates a structured audit event with integrity controls.
+        
+        Security Notes:
+        - Event IDs are UUIDs to prevent enumeration
+        - Timestamps use UTC to ensure consistency
+        - Hash chain maintains event sequence integrity
+        
+        TODO: Consider adding event correlation IDs for distributed tracing
+        
+        Args:
+            category: Event category
+            severity: Event severity
+            event_type: Type of event
+            data: Event data
+            context: Additional context
+        
+        Returns:
+            Dict: Structured audit event
+        """
         event_id = str(uuid.uuid4())
         timestamp = datetime.utcnow()
         
@@ -254,7 +324,22 @@ class AuditLogger:
         return await self.cache.incr("audit:sequence")
     
     async def _detect_pii(self, event: Dict) -> Dict:
-        """Detect and handle PII in event data."""
+        """
+        Detects and masks PII in event data using regex patterns.
+        
+        Limitations:
+        - Current implementation uses basic regex patterns
+        - May produce false positives/negatives
+        - Performance scales linearly with data size
+        
+        TODO: Implement ML-based PII detection for improved accuracy
+        
+        Args:
+            event: Audit event
+        
+        Returns:
+            Dict: Processed event
+        """
         pii_patterns = {
             "email": r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
             "ssn": r"\d{3}-\d{2}-\d{4}",
@@ -295,13 +380,39 @@ class AuditLogger:
         return event
     
     async def _encrypt_sensitive_data(self, event: Dict) -> Dict:
-        """Encrypt sensitive data in event."""
+        """
+        Placeholder for sensitive data encryption.
+        
+        SECURITY CRITICAL: Current implementation is a stub.
+        Must be implemented before production use.
+        
+        TODO: Implement proper encryption using KMS integration
+        
+        Args:
+            event: Audit event
+        
+        Returns:
+            Dict: Encrypted event
+        """
         # Implementation would use proper encryption
         # This is a placeholder
         return event
     
     async def _sign_event(self, event: Dict) -> str:
-        """Add digital signature to event."""
+        """
+        Placeholder for event signing implementation.
+        
+        SECURITY CRITICAL: Current implementation is a stub.
+        Must be implemented before production use.
+        
+        TODO: Implement proper digital signing using HSM integration
+        
+        Args:
+            event: Audit event
+        
+        Returns:
+            str: Digital signature
+        """
         # Implementation would use proper digital signing
         # This is a placeholder
         event_hash = self._generate_hash(event)
