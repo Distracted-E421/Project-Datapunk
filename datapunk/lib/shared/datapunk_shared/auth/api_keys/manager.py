@@ -18,7 +18,22 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 class APIKeyManager:
-    """Manages API key lifecycle."""
+    """
+    Manages the complete lifecycle of API keys including creation, validation, revocation, and policy updates.
+    
+    This manager implements a secure key management system with the following features:
+    - Secure key generation and hashing
+    - Policy-based access control
+    - Audit logging
+    - Metrics tracking
+    - Cache-based storage with optional TTL
+    - Event notifications for key lifecycle changes
+    
+    Security considerations:
+    - Keys are never stored in plain text, only their hashes are persisted
+    - All operations are audited and metrics are collected
+    - Optional TTL support for automatic key expiration
+    """
     
     def __init__(self,
                  cache_client: 'CacheClient',
@@ -26,6 +41,12 @@ class APIKeyManager:
                  audit_logger: 'AuditLogger',
                  validator: KeyValidator,
                  key_ttl: Optional[timedelta] = None):
+        """
+        Initialize the API Key Manager with required dependencies.
+        
+        NOTE: The key_ttl parameter determines the lifetime of all keys created by this manager.
+        If not specified, keys will not expire automatically.
+        """
         self.cache = cache_client
         self.metrics = metrics
         self.audit = audit_logger
@@ -38,7 +59,19 @@ class APIKeyManager:
                         policy: KeyPolicy,
                         created_by: str,
                         metadata: Optional[Dict] = None) -> Dict:
-        """Create new API key."""
+        """
+        Create and store a new API key with associated policy and metadata.
+        
+        Security workflow:
+        1. Generate random key and compute its hash
+        2. Validate key against policy requirements
+        3. Store key data with hash (never the plain text key)
+        4. Audit the creation event
+        5. Update usage metrics
+        
+        IMPORTANT: This is the only time the plain text key is available.
+        It must be securely transmitted to the client and cannot be retrieved later.
+        """
         try:
             # Generate key
             key_secret = self._generate_key()
@@ -106,15 +139,35 @@ class APIKeyManager:
             raise AuthError(f"Failed to create API key: {str(e)}")
     
     def _generate_key(self) -> str:
-        """Generate secure random API key."""
+        """
+        Generate a cryptographically secure random API key.
+        
+        Uses secrets.token_urlsafe for:
+        - URL-safe character set
+        - Cryptographic randomness
+        - 32 bytes of entropy (resulting in ~43 characters)
+        """
         return secrets.token_urlsafe(32)
     
     def _hash_key(self, key: str) -> str:
-        """Hash API key for storage."""
+        """
+        Hash API key for secure storage using SHA-256.
+        
+        NOTE: This is a one-way operation. The original key cannot be recovered
+        from this hash, which is why we only return the plain text key once
+        during creation.
+        """
         return hashlib.sha256(key.encode()).hexdigest()
     
     async def _store_key(self, key_id: str, key_data: Dict) -> None:
-        """Store key data in cache."""
+        """
+        Store key data in the cache with optional TTL.
+        
+        NOTE: The cache implementation should guarantee:
+        - Atomic operations
+        - Durability of key data
+        - Proper handling of TTL expiration
+        """
         await self.cache.set(
             f"api_key:{key_id}",
             key_data,
@@ -125,7 +178,17 @@ class APIKeyManager:
                         key_id: str,
                         reason: str,
                         revoked_by: str) -> bool:
-        """Revoke an API key."""
+        """
+        Permanently revoke an API key.
+        
+        Security implications:
+        - Revocation is immediate and permanent
+        - The key remains in storage with revoked status for audit purposes
+        - All services must check key status before accepting it
+        
+        NOTE: Consider implementing a grace period or scheduled revocation
+        for production-critical keys to prevent immediate service disruption.
+        """
         try:
             key_data = await self._get_key(key_id)
             if not key_data:
@@ -180,7 +243,16 @@ class APIKeyManager:
                           key_id: str,
                           new_policy: KeyPolicy,
                           updated_by: str) -> Dict:
-        """Update key policy."""
+        """
+        Update the policy associated with an existing API key.
+        
+        IMPORTANT: Policy updates take effect immediately. Ensure that:
+        1. The new policy is compatible with existing integrations
+        2. All affected services are prepared for the policy change
+        3. The update is performed during a low-traffic period
+        
+        The old policy is preserved in audit logs for tracking changes.
+        """
         try:
             key_data = await self._get_key(key_id)
             if not key_data:
@@ -244,5 +316,10 @@ class APIKeyManager:
             raise AuthError(f"Failed to update policy: {str(e)}")
     
     async def _get_key(self, key_id: str) -> Optional[Dict]:
-        """Get key data from cache."""
+        """
+        Retrieve key data from cache.
+        
+        IMPORTANT: This method only returns metadata and the key hash.
+        The original API key is never stored or retrievable.
+        """
         return await self.cache.get(f"api_key:{key_id}")
