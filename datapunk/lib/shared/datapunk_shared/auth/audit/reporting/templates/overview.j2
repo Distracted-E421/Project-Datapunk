@@ -1,0 +1,24 @@
+{# Overview section template #}
+{
+    "summary": {
+        "total_events": {{ data.total_events }},
+        "time_period": "{{ data.time_period }}",
+        "report_type": "{{ data.report_type }}"
+    },
+    {% if data.highlights %}
+    "highlights": [
+        {% for highlight in data.highlights %}
+            {
+                "type": "{{ highlight.type }}",
+                "message": "{{ highlight.message }}",
+                "severity": "{{ highlight.severity }}"
+            }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ],
+    {% endif %}
+    "scope": {
+        "services": {{ data.scope.services | tojson }},
+        "resources": {{ data.scope.resources | tojson }},
+        "users": {{ data.scope.users | tojson }}
+    }
+} 

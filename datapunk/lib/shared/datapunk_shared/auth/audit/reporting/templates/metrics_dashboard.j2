@@ -1,0 +1,24 @@
+{# Metrics dashboard template #}
+{
+    "metrics": {
+        {% for metric_name, metric_data in metrics.items() %}
+        "{{ metric_name }}": {
+            "value": {{ metric_data.value }},
+            "unit": "{{ metric_data.unit }}",
+            "trend": "{{ metric_data.trend }}",
+            "change": {{ metric_data.change }},
+            {% if metric_data.thresholds %}
+            "thresholds": {
+                "warning": {{ metric_data.thresholds.warning }},
+                "critical": {{ metric_data.thresholds.critical }}
+            },
+            {% endif %}
+            "graph": {
+                "type": "{{ metric_data.graph.type }}",
+                "data": {{ metric_data.graph.data | tojson }},
+                "format": "{{ graph_format }}"
+            }
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    }
+} 

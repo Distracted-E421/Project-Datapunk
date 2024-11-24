@@ -1,0 +1,12 @@
+{
+    "cursor.aipreview.enabled": true,
+    "cursor.general.enableShadowWorkspace": true,
+    "window.autoDetectColorScheme": false,
+    "accessibility.underlineLinks": true,
+    "explorer.fileNesting.enabled": false,
+    "debug.allowBreakpointsEverywhere": true,
+    "testing.automaticallyOpenPeekViewDuringAutoRun": true,
+    "dotnetAcquisitionExtension.enablePreviewFeatures": true,
+    "application.experimental.rendererProfiling": true,
+    "cursor.chat.smoothStreaming": true
+}

@@ -1,0 +1,26 @@
+{# Security incidents template #}
+{
+    "incidents": [
+        {% for incident in incidents %}
+        {
+            "id": "{{ incident.id }}",
+            "type": "{{ incident.type }}",
+            "severity": "{{ incident.severity }}",
+            "timestamp": "{{ incident.timestamp }}",
+            "description": "{{ incident.description }}",
+            "status": "{{ incident.status }}",
+            "affected_resources": {{ incident.affected_resources | tojson }},
+            "actions_taken": [
+                {% for action in incident.actions_taken %}
+                {
+                    "action": "{{ action.action }}",
+                    "timestamp": "{{ action.timestamp }}",
+                    "by": "{{ action.by }}",
+                    "result": "{{ action.result }}"
+                }{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ]
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ]
+} 

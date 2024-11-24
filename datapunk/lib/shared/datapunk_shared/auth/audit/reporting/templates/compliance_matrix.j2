@@ -1,0 +1,28 @@
+{# Compliance matrix template #}
+{
+    "standards": {
+        {% for standard, details in data.items() %}
+        "{{ standard }}": {
+            "compliant": {{ details.compliant | tojson }},
+            "violations": [
+                {% for violation in details.violations %}
+                {
+                    "rule": "{{ violation.rule }}",
+                    "severity": "{{ violation.severity }}",
+                    "description": "{{ violation.description }}"
+                }{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ],
+            "recommendations": [
+                {% for rec in details.recommendations %}
+                {
+                    "action": "{{ rec.action }}",
+                    "priority": "{{ rec.priority }}",
+                    "details": "{{ rec.details }}"
+                }{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ]
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    }
+} 

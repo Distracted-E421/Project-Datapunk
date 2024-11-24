@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import aiohttp
 from datapunk_shared.mesh.mesh import DatapunkMesh, MeshConfig
 from datapunk_shared.mesh.service import ServiceConfig
-from datapunk_shared.mesh.load_balancer import LoadBalancerStrategy
+from datapunk.lib.shared.datapunk_shared.mesh.load_balancer.load_balancer import LoadBalancerStrategy
 from datapunk_shared.mesh.retry import RetryConfig
 
 @pytest.fixture

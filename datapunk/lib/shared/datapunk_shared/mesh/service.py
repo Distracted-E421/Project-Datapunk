@@ -4,7 +4,7 @@ import structlog
 from dataclasses import dataclass
 import socket
 import json
-from .load_balancer import LoadBalancer, LoadBalancerStrategy, ServiceInstance
+from .load_balancer.load_balancer import LoadBalancer, LoadBalancerStrategy, ServiceInstance
 from datetime import timedelta
 from ..tracing import trace_method
 

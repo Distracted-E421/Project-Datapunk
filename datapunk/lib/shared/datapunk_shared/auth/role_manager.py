@@ -3,11 +3,11 @@ import structlog
 from dataclasses import dataclass
 import json
 from datetime import datetime
-from .access_control import Role, ResourcePolicy, Permission
+from .core.access_control import Role, ResourcePolicy, Permission
 from ..cache import CacheClient
 from ..monitoring import MetricsClient
 from ..exceptions import AuthError
-from .audit import AuditEvent, AuditLogger
+from .audit.audit import AuditEvent, AuditLogger
 
 logger = structlog.get_logger()
 

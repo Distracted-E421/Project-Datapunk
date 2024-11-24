@@ -1,7 +1,7 @@
 from typing import Dict, Any, Optional
 import structlog
 from .discovery import ServiceDiscovery
-from .circuit_breaker import CircuitBreakerRegistry
+from .circuit_breaker.circuit_breaker import CircuitBreakerRegistry
 from ..utils.retry import RetryConfig
 
 logger = structlog.get_logger(__name__)

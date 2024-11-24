@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List, Dict, Optional
 from datetime import datetime
 from .role_manager import RoleManager, RoleAssignment
-from .access_control import Role, ResourcePolicy, Permission
+from .core.access_control import Role, ResourcePolicy, Permission
 
 router = APIRouter(prefix="/auth/roles", tags=["roles"])
 

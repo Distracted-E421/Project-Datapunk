@@ -1,0 +1,19 @@
+{# Base template for all reports #}
+{
+    "metadata": {
+        "generated_at": "{{ metadata.generated_at }}",
+        "report_type": "{{ metadata.report_type }}",
+        "template_type": "{{ metadata.template_type }}",
+        "time_range": {
+            "start": "{{ metadata.time_range.start }}",
+            "end": "{{ metadata.time_range.end }}"
+        }
+    },
+    {% if sections %}
+    "sections": {
+        {% for section_name, section_content in sections.items() %}
+            "{{ section_name }}": {{ section_content | tojson }}{% if not loop.last %},{% endif %}
+        {% endfor %}
+    }
+    {% endif %}
+} 

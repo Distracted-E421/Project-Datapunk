@@ -1,5 +1,5 @@
 import pytest
-from datapunk_shared.mesh.load_balancer import LoadBalancer, LoadBalancerStrategy, ServiceInstance
+from datapunk.lib.shared.datapunk_shared.mesh.load_balancer.load_balancer import LoadBalancer, LoadBalancerStrategy, ServiceInstance
 from datapunk_shared.mesh.metrics import LoadBalancerMetrics
 
 @pytest.fixture

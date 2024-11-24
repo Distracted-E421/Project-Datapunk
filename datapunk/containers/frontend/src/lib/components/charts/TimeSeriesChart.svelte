@@ -91,10 +91,10 @@
                 
             validateScaleLinear(yScale, 'TimeSeriesChart.updateChart');
             
-            // Create line generator
+            // Create line generator with explicit types
             const line = d3.line<ChartData>()
-                .x(d => xScale(new Date(d[xKey])))
-                .y(d => yScale(d[yKey]));
+                .x((d: ChartData) => xScale(new Date(d[xKey])))
+                .y((d: ChartData) => yScale(d[yKey]));
             
             // Update axes
             const xAxis = d3.axisBottom(xScale);
