@@ -1,4 +1,13 @@
-"""Utilities for template cache warming and consistency checks."""
+"""
+Template cache management utilities for efficient template loading and consistency maintenance.
+
+This module provides two main components:
+1. TemplateCacheWarmer: Proactively loads and updates templates in cache to improve performance
+2. TemplateCacheConsistencyChecker: Ensures synchronization between filesystem templates and cache
+
+The caching system uses SHA-256 hashing of template content to detect changes and maintain consistency.
+Templates are stored in the cache with a 'template:' prefix followed by their content hash.
+"""
 from typing import Dict, List, Set, Optional, Any, TYPE_CHECKING
 import structlog
 from datetime import datetime, timedelta
@@ -14,7 +23,16 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 class TemplateCacheWarmer:
-    """Handles template cache warming and preloading."""
+    """
+    Manages template preloading and periodic cache updates.
+    
+    Implements a background process that periodically scans template files and ensures
+    they are cached for optimal performance. Uses content-based hashing to detect
+    changes and avoid unnecessary cache updates.
+    
+    NOTE: The warmer runs continuously until explicitly stopped. Consider implementing
+    a max retry count for error scenarios in production environments.
+    """
     
     def __init__(self,
                  cache_client: 'CacheClient',
@@ -49,7 +67,20 @@ class TemplateCacheWarmer:
         self._warming = False
     
     async def warm_cache(self) -> None:
-        """Warm the template cache with all templates."""
+        """
+        Warm the template cache with all templates.
+        
+        Scans the template directory for .j2 files and caches them if not already present.
+        Uses content hashing to determine if templates need updating.
+        
+        IMPORTANT: This method handles each template independently to ensure partial success
+        in case of individual template failures.
+        
+        Metrics tracked:
+        - cache_warming_duration_seconds: Total time taken for warming
+        - templates_loaded: Number of new templates cached
+        - cache_warming_errors: Count of warming operation failures
+        """
         try:
             start_time = datetime.utcnow()
             templates_loaded = 0
@@ -108,12 +139,30 @@ class TemplateCacheWarmer:
     def _generate_cache_key(self,
                            template_name: str,
                            template_source: str) -> str:
-        """Generate cache key based on template content."""
+        """
+        Generates a unique cache key using template name and content.
+        
+        Uses SHA-256 to create a deterministic hash that changes whenever
+        template content changes, ensuring cache invalidation on updates.
+        
+        NOTE: The template name is included in the hash to prevent collisions
+        between different templates with identical content.
+        """
         content = f"{template_name}:{template_source}"
         return hashlib.sha256(content.encode()).hexdigest()
 
 class TemplateCacheConsistencyChecker:
-    """Checks template cache consistency."""
+    """
+    Validates and maintains cache-filesystem template consistency.
+    
+    Performs bidirectional verification:
+    1. Ensures all filesystem templates are properly cached
+    2. Ensures no orphaned templates exist in cache
+    3. Verifies template content matches between cache and filesystem
+    
+    TODO: Consider adding periodic automatic consistency checks on a schedule
+    TODO: Add configuration for maximum allowed inconsistencies before alerting
+    """
     
     def __init__(self,
                  cache_client: 'CacheClient',
@@ -126,14 +175,17 @@ class TemplateCacheConsistencyChecker:
     
     async def check_consistency(self) -> Dict[str, Any]:
         """
-        Check cache consistency with filesystem templates.
+        Performs comprehensive cache-filesystem consistency verification.
         
-        Returns:
-            Dict containing:
-            - consistent: bool
-            - missing_templates: List[str]
-            - outdated_templates: List[str]
-            - orphaned_keys: List[str]
+        The check identifies three types of inconsistencies:
+        1. missing_templates: Templates present in filesystem but not in cache
+        2. outdated_templates: Templates with content mismatch between cache and filesystem
+        3. orphaned_keys: Cache entries without corresponding filesystem templates
+        
+        Returns a detailed report of inconsistencies for either manual or automatic resolution.
+        
+        NOTE: This operation can be resource-intensive for large template sets.
+        Consider rate limiting or scheduling during off-peak hours.
         """
         try:
             # Get all cached templates
@@ -199,13 +251,18 @@ class TemplateCacheConsistencyChecker:
     async def fix_inconsistencies(self,
                                 auto_fix: bool = False) -> Dict[str, Any]:
         """
-        Fix cache inconsistencies.
+        Resolves cache-filesystem inconsistencies either automatically or reports them.
         
-        Args:
-            auto_fix: If True, automatically fix issues
+        When auto_fix is enabled:
+        - Adds missing templates to cache
+        - Updates outdated template content
+        - Removes orphaned cache entries
         
-        Returns:
-            Dict containing actions taken and remaining issues
+        IMPORTANT: This method performs a final consistency check after fixes to verify
+        all issues were resolved. In some edge cases (e.g., concurrent template updates),
+        inconsistencies might persist.
+        
+        Returns both initial and final consistency states for verification and auditing.
         """
         try:
             # Check consistency
@@ -275,6 +332,14 @@ class TemplateCacheConsistencyChecker:
     def _generate_cache_key(self,
                            template_name: str,
                            template_source: str) -> str:
-        """Generate cache key based on template content."""
+        """
+        Generates a unique cache key using template name and content.
+        
+        Uses SHA-256 to create a deterministic hash that changes whenever
+        template content changes, ensuring cache invalidation on updates.
+        
+        NOTE: The template name is included in the hash to prevent collisions
+        between different templates with identical content.
+        """
         content = f"{template_name}:{template_source}"
         return hashlib.sha256(content.encode()).hexdigest() 
