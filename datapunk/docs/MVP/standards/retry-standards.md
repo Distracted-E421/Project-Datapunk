@@ -1,9 +1,11 @@
 # Retry Policy Standards
 
 ## Purpose
+
 Define standardized retry mechanisms across all Datapunk services to ensure resilient service communication with distributed coordination and idempotency guarantees.
 
 ## Context
+
 This document outlines retry policies used in service-to-service communication, focusing on coordinated retries in a distributed system.
 
 ## Design/Details
@@ -73,6 +75,7 @@ components:
 ### 2. Implementation Patterns
 
 #### Decorator Usage
+
 ```python
 @with_retry(
     retry_config=RetryConfig(max_attempts=3),
@@ -84,6 +87,7 @@ async def call_service():
 ```
 
 #### Direct Usage
+
 ```python
 retry_policy = RetryPolicy(RetryConfig(max_attempts=3))
 result = await retry_policy.execute_with_retry(
@@ -131,12 +135,14 @@ retry_error_categories:
 ## Prerequisites
 
 ### Dependencies
+
 - Python 3.11+
 - `structlog` for logging
 - `prometheus_client` for metrics
 - `asyncio` for async support
 
 ### Configuration
+
 ```python
 required_environment_variables = {
     "RETRY_MAX_ATTEMPTS": "3",
@@ -148,6 +154,7 @@ required_environment_variables = {
 ## Testing Notes
 
 ### Unit Test Cases
+
 ```python
 test_scenarios = [
     "successful_operation_no_retries",
@@ -159,6 +166,7 @@ test_scenarios = [
 ```
 
 ### Integration Test Scenarios
+
 ```yaml
 integration_tests:
   - scenario: "service_temporary_unavailable"
@@ -172,6 +180,7 @@ integration_tests:
 ## Error Handling and Logging
 
 ### Log Format
+
 ```json
 {
     "timestamp": "ISO8601",
@@ -186,6 +195,7 @@ integration_tests:
 ```
 
 ### Monitoring Integration
+
 ```yaml
 monitoring:
   alerts:
@@ -249,6 +259,7 @@ monitoring:
 ## Usage Examples
 
 ### Basic Implementation
+
 ```python
 @with_retry(
     retry_config=RetryConfig(),
@@ -259,6 +270,7 @@ async def basic_operation():
 ```
 
 ### Advanced Configuration
+
 ```python
 @with_retry(
     retry_config=RetryConfig(
@@ -276,10 +288,11 @@ async def advanced_operation():
 ```
 
 ### Error Handling
+
 ```python
 try:
     result = await operation_with_retry()
 except MaxRetriesExceeded as e:
     logger.error("Operation failed after max retries", error=str(e))
     # Handle failure
-``` 
+```
