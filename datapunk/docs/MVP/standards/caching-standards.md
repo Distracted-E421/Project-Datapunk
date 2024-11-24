@@ -1,10 +1,13 @@
 # Distributed Caching Standards
 
 ## Purpose
+
 Define standardized caching patterns for the Datapunk platform, supporting both application caching and service coordination.
 
 ## Context
+
 The caching system serves multiple critical functions:
+
 1. Service mesh coordination
 2. Application data caching
 3. Performance optimization
@@ -238,6 +241,7 @@ class CacheConsistencyError(CacheError):
 **Problem**: Multiple concurrent requests for expired/missing keys.
 
 **Solution**:
+
 ```python
 class StampedeProtector:
     async def get_with_protection(self, key: str, fetch_func) -> Any:
@@ -262,6 +266,7 @@ class StampedeProtector:
 **Problem**: Mass expiration of cached items.
 
 **Solution**:
+
 ```python
 class ExpirationManager:
     def __init__(self, jitter_range: float = 0.1):
@@ -281,6 +286,7 @@ class ExpirationManager:
 **Problem**: Inconsistency between cache and primary storage.
 
 **Solution**:
+
 ```python
 class CoherencyManager:
     async def write_coherent(self,
