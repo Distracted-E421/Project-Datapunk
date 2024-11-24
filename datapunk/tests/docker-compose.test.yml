@@ -1,0 +1,58 @@
+services:
+  # Test infrastructure
+  test-consul:
+    image: consul:1.15
+    command: ["agent", "-dev", "-client", "0.0.0.0"]
+    ports:
+      - "8500:8500"
+    networks:
+      - test-network
+
+  test-redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - test-network
+
+  test-prometheus:
+    image: prom/prometheus:v2.44.0
+    volumes:
+      - ./config/prometheus:/etc/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - test-network
+
+  test-jaeger:
+    image: jaegertracing/all-in-one:1.45
+    ports:
+      - "16686:16686"
+      - "14250:14250"
+    networks:
+      - test-network
+
+  # Test runners
+  integration-tests:
+    build:
+      context: ..
+      dockerfile: tests/Dockerfile.test
+    depends_on:
+      - test-consul
+      - test-redis
+      - test-prometheus
+      - test-jaeger
+    environment:
+      - CONSUL_HOST=test-consul
+      - REDIS_HOST=test-redis
+      - PROMETHEUS_HOST=test-prometheus
+      - JAEGER_HOST=test-jaeger
+      - TEST_ENV=integration
+    volumes:
+      - ../:/app
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge 
