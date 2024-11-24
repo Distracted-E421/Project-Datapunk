@@ -1,0 +1,21 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY pyproject.toml poetry.lock ./
+RUN pip install poetry && \
+    poetry config virtualenvs.create false && \
+    poetry install --no-dev
+
+# Copy test files
+COPY tests/ ./tests/
+COPY lib/ ./lib/
+
+# Run tests
+CMD ["pytest", "-v", "--cov=datapunk_shared", "tests/"] 
