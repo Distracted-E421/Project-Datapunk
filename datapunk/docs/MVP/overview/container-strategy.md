@@ -7,6 +7,7 @@ To define an optimized container architecture that supports the complex microser
 ## Context
 
 Based on the system architecture diagram (referencing lines 1-325 in datapunk/docs/graphs/sys-arch.mmd), we need to organize our containers to support multiple layers:
+
 - Frontend Layer
 - Gateway Layer
 - Core Services Layer
