@@ -1,138 +1,234 @@
-from typing import Dict, Any, Optional, List
-import asyncio
-import consul.aio
+from typing import Dict, List, Optional, Any
 import structlog
-from datetime import datetime, timedelta
-from ..utils.retry import with_retry, RetryConfig
+import consul
+import aiohttp
+import asyncio
+from dataclasses import dataclass
+from datetime import datetime
+from .metrics import ServiceDiscoveryMetrics
+from ..cache import CacheClient
+from ..tracing import trace_method
+from ..exceptions import ServiceDiscoveryError
 
-logger = structlog.get_logger(__name__)
+logger = structlog.get_logger()
 
-class ServiceDiscovery:
-    """Service discovery using Consul"""
+@dataclass
+class ServiceEndpoint:
+    """Service endpoint details."""
+    id: str
+    address: str
+    port: int
+    healthy: bool = True
+    last_check: Optional[datetime] = None
+    metadata: Dict[str, str] = None
+
+@dataclass
+class ServiceDiscoveryConfig:
+    """Configuration for service discovery."""
+    consul_host: str = "consul"
+    consul_port: int = 8500
+    cache_ttl: int = 30  # seconds
+    health_check_interval: int = 10  # seconds
+    deregister_critical_timeout: str = "1m"
+    enable_caching: bool = True
+
+class ServiceDiscoveryManager:
+    """Manages service discovery and health monitoring."""
     
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self,
+                 config: ServiceDiscoveryConfig,
+                 cache_client: Optional[CacheClient] = None,
+                 metrics_client = None):
         self.config = config
-        self.consul_client = None
-        self.service_cache: Dict[str, Dict[str, Any]] = {}
-        self.cache_ttl = timedelta(minutes=5)
-        self.retry_config = RetryConfig(
-            max_attempts=3,
-            base_delay=1.0,
-            max_delay=15.0
+        self.consul = consul.Consul(
+            host=config.consul_host,
+            port=config.consul_port
         )
+        self.cache = cache_client
+        self.metrics = ServiceDiscoveryMetrics(metrics_client)
+        self.logger = logger.bind(component="service_discovery")
         
-    async def initialize(self):
-        """Initialize Consul client"""
-        try:
-            self.consul_client = consul.aio.Consul(
-                host=self.config.get('consul_host', 'consul'),
-                port=self.config.get('consul_port', 8500),
-                scheme=self.config.get('consul_scheme', 'http')
-            )
-            logger.info("Service discovery initialized")
-        except Exception as e:
-            logger.error("Failed to initialize service discovery", error=str(e))
-            raise
+        # Local cache for quick lookups
+        self._local_cache: Dict[str, List[ServiceEndpoint]] = {}
+        self._cache_timestamps: Dict[str, datetime] = {}
     
-    @with_retry()
-    async def register_service(
-        self,
-        service_name: str,
-        host: str,
-        port: int,
-        tags: List[str] = None,
-        health_check_url: Optional[str] = None
-    ) -> bool:
-        """Register service with Consul"""
+    @trace_method("register_service")
+    async def register_service(self,
+                             service_name: str,
+                             host: str,
+                             port: int,
+                             tags: List[str] = None,
+                             metadata: Dict[str, str] = None) -> str:
+        """Register service with Consul."""
         try:
             service_id = f"{service_name}-{host}-{port}"
+            
+            # Create service definition
             service_def = {
-                'name': service_name,
-                'service_id': service_id,
-                'address': host,
-                'port': port,
-                'tags': tags or []
+                "Name": service_name,
+                "ID": service_id,
+                "Address": host,
+                "Port": port,
+                "Tags": tags or [],
+                "Meta": metadata or {},
+                "Check": {
+                    "HTTP": f"http://{host}:{port}/health",
+                    "Method": "GET",
+                    "Interval": f"{self.config.health_check_interval}s",
+                    "Timeout": "5s",
+                    "DeregisterCriticalServiceAfter": self.config.deregister_critical_timeout
+                }
             }
             
-            if health_check_url:
-                service_def['check'] = {
-                    'http': health_check_url,
-                    'interval': '10s',
-                    'timeout': '5s',
-                    'deregister_critical_service_after': '1m'
-                }
+            # Register with Consul
+            self.consul.agent.service.register(**service_def)
             
-            await self.consul_client.agent.service.register(**service_def)
-            logger.info(f"Service registered: {service_name}", service_id=service_id)
-            return True
+            # Update metrics
+            self.metrics.record_registration(service_name)
+            
+            self.logger.info("service_registered",
+                           service_name=service_name,
+                           service_id=service_id)
+            
+            return service_id
             
         except Exception as e:
-            logger.error(f"Failed to register service: {service_name}", error=str(e))
-            raise
+            self.logger.error("service_registration_failed",
+                            service_name=service_name,
+                            error=str(e))
+            raise ServiceDiscoveryError(f"Failed to register service: {str(e)}")
     
-    @with_retry()
-    async def deregister_service(self, service_id: str) -> bool:
-        """Deregister service from Consul"""
+    @trace_method("discover_service")
+    async def discover_service(self,
+                             service_name: str,
+                             use_cache: bool = True) -> List[ServiceEndpoint]:
+        """Discover healthy service instances."""
         try:
-            await self.consul_client.agent.service.deregister(service_id)
-            logger.info(f"Service deregistered", service_id=service_id)
-            return True
-        except Exception as e:
-            logger.error(f"Failed to deregister service", service_id=service_id, error=str(e))
-            raise
-    
-    @with_retry()
-    async def discover_service(self, service_name: str) -> Optional[Dict[str, Any]]:
-        """Discover service with caching"""
-        # Check cache first
-        if service_name in self.service_cache:
-            cached = self.service_cache[service_name]
-            if datetime.now() - cached['timestamp'] < self.cache_ttl:
-                return cached['data']
-        
-        try:
-            _, services = await self.consul_client.health.service(
+            # Check cache first if enabled
+            if use_cache and self.config.enable_caching:
+                cached = await self._get_cached_service(service_name)
+                if cached:
+                    return cached
+            
+            # Query Consul for healthy instances
+            _, nodes = await self.consul.health.service(
                 service_name,
                 passing=True
             )
             
-            if not services:
-                logger.warning(f"No healthy instances found", service=service_name)
-                return None
-            
-            # Basic load balancing - round robin
-            service = services[0]['Service']
-            service_data = {
-                'id': service['ID'],
-                'address': service['Address'],
-                'port': service['Port'],
-                'tags': service['Tags'],
-                'meta': service.get('Meta', {})
-            }
+            endpoints = [
+                ServiceEndpoint(
+                    id=node["Service"]["ID"],
+                    address=node["Service"]["Address"],
+                    port=node["Service"]["Port"],
+                    healthy=True,
+                    last_check=datetime.utcnow(),
+                    metadata=node["Service"].get("Meta", {})
+                )
+                for node in nodes
+            ]
             
             # Update cache
-            self.service_cache[service_name] = {
-                'timestamp': datetime.now(),
-                'data': service_data
-            }
+            if self.config.enable_caching:
+                await self._cache_service_endpoints(service_name, endpoints)
             
-            return service_data
+            # Update metrics
+            self.metrics.record_discovery(
+                service_name,
+                len(endpoints),
+                cached=False
+            )
+            
+            return endpoints
             
         except Exception as e:
-            logger.error(f"Service discovery failed", service=service_name, error=str(e))
-            raise
+            self.logger.error("service_discovery_failed",
+                            service_name=service_name,
+                            error=str(e))
+            raise ServiceDiscoveryError(f"Failed to discover service: {str(e)}")
     
-    async def watch_service_health(self, service_name: str, callback):
-        """Watch service health changes"""
+    @trace_method("watch_service")
+    async def watch_service(self,
+                          service_name: str,
+                          callback: callable) -> None:
+        """Watch for service changes."""
         index = None
         while True:
             try:
-                index, services = await self.consul_client.health.service(
+                # Long polling for changes
+                index, nodes = await self.consul.health.service(
                     service_name,
                     index=index,
-                    wait='30s'
+                    passing=True,
+                    wait="30s"
                 )
-                await callback(services)
+                
+                endpoints = [
+                    ServiceEndpoint(
+                        id=node["Service"]["ID"],
+                        address=node["Service"]["Address"],
+                        port=node["Service"]["Port"],
+                        healthy=True,
+                        last_check=datetime.utcnow(),
+                        metadata=node["Service"].get("Meta", {})
+                    )
+                    for node in nodes
+                ]
+                
+                # Update cache
+                if self.config.enable_caching:
+                    await self._cache_service_endpoints(service_name, endpoints)
+                
+                # Notify callback
+                await callback(endpoints)
+                
             except Exception as e:
-                logger.error(f"Health watch failed", service=service_name, error=str(e))
-                await asyncio.sleep(5)  # Back off on error 
+                self.logger.error("service_watch_error",
+                                service_name=service_name,
+                                error=str(e))
+                await asyncio.sleep(5)  # Backoff on error
+    
+    async def _get_cached_service(self,
+                                service_name: str) -> Optional[List[ServiceEndpoint]]:
+        """Get service endpoints from cache."""
+        if not self.cache:
+            return None
+            
+        try:
+            cache_key = f"service:discovery:{service_name}"
+            cached = await self.cache.get(cache_key)
+            
+            if cached:
+                self.metrics.record_discovery(
+                    service_name,
+                    len(cached),
+                    cached=True
+                )
+                return [ServiceEndpoint(**endpoint) for endpoint in cached]
+                
+        except Exception as e:
+            self.logger.warning("cache_retrieval_failed",
+                              service_name=service_name,
+                              error=str(e))
+            
+        return None
+    
+    async def _cache_service_endpoints(self,
+                                     service_name: str,
+                                     endpoints: List[ServiceEndpoint]) -> None:
+        """Cache service endpoints."""
+        if not self.cache:
+            return
+            
+        try:
+            cache_key = f"service:discovery:{service_name}"
+            await self.cache.set(
+                cache_key,
+                [vars(endpoint) for endpoint in endpoints],
+                ttl=self.config.cache_ttl
+            )
+            
+        except Exception as e:
+            self.logger.warning("cache_update_failed",
+                              service_name=service_name,
+                              error=str(e))
