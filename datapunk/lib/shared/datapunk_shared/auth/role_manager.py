@@ -10,10 +10,28 @@ from ..exceptions import AuthError
 from .audit.audit import AuditEvent, AuditLogger
 
 logger = structlog.get_logger()
+ 
+"""Role-Based Access Control (RBAC) Management System
+
+This module implements a distributed role management system with caching and audit capabilities.
+It handles role creation, assignment, revocation, and inheritance while maintaining
+consistency across distributed systems.
+
+SECURITY: This implementation assumes role definitions and assignments are security-critical
+operations that require strict access control and comprehensive audit logging.
+
+PERFORMANCE: Uses a distributed cache to optimize role lookups and minimize database load.
+Role inheritance resolution is cached to prevent recursive database queries.
+"""
 
 @dataclass
 class RoleAssignment:
-    """Role assignment details."""
+    """Represents a role assignment with temporal and contextual metadata.
+    
+    NOTE: expires_at enables temporary role assignments for time-bound access.
+    metadata field allows storing approval chains, justifications, or other
+    organization-specific context.
+    """
     user_id: str
     role_name: str
     assigned_by: str
@@ -22,12 +40,27 @@ class RoleAssignment:
     metadata: Optional[Dict] = None
 
 class RoleManager:
-    """Manages role definitions and assignments."""
+    """Manages role lifecycle and assignments in a distributed system.
+    
+    This class handles:
+    - Role creation and inheritance management
+    - Role assignments with expiration
+    - Cache invalidation across distributed systems
+    - Audit logging for compliance
+    
+    IMPORTANT: All operations are atomic and maintain cache consistency
+    across distributed deployments.
+    """
     
     def __init__(self,
                  cache_client: CacheClient,
                  metrics: MetricsClient,
                  audit_logger: AuditLogger):
+        """Initialize role manager with required dependencies.
+        
+        NOTE: Requires a distributed cache implementation that supports
+        atomic operations and pattern-based key scanning.
+        """
         self.cache = cache_client
         self.metrics = metrics
         self.audit = audit_logger
@@ -36,7 +69,14 @@ class RoleManager:
     async def create_role(self,
                          role: Role,
                          created_by: str) -> bool:
-        """Create a new role."""
+        """Create a new role with inheritance support.
+        
+        SECURITY: Parent role validation prevents privilege escalation
+        through circular inheritance or non-existent parent roles.
+        
+        TODO: Add validation for maximum inheritance depth to prevent
+        performance issues with deeply nested role hierarchies.
+        """
         try:
             # Check if role already exists
             if await self._role_exists(role.name):
@@ -75,7 +115,16 @@ class RoleManager:
     
     async def assign_role(self,
                          assignment: RoleAssignment) -> bool:
-        """Assign role to user."""
+        """Assign role to user with cache consistency guarantees.
+        
+        This operation:
+        1. Validates role existence
+        2. Creates assignment record
+        3. Updates user's compiled role cache
+        
+        PERFORMANCE: User role cache is invalidated rather than updated
+        to prevent race conditions in distributed environments.
+        """
         try:
             # Validate role exists
             if not await self._role_exists(assignment.role_name):
@@ -116,7 +165,11 @@ class RoleManager:
                          user_id: str,
                          role_name: str,
                          revoked_by: str) -> bool:
-        """Revoke role from user."""
+        """Revoke role assignment with cache invalidation.
+        
+        NOTE: Returns False if assignment didn't exist rather than raising
+        an exception to support idempotent revocation operations.
+        """
         try:
             # Remove assignment
             assignment_key = f"role:assignment:{user_id}:{role_name}"
@@ -142,7 +195,15 @@ class RoleManager:
             raise
     
     async def get_user_roles(self, user_id: str) -> List[Role]:
-        """Get all roles assigned to user."""
+        """Retrieve user's compiled role set with caching.
+        
+        PERFORMANCE: Uses a two-level caching strategy:
+        1. Compiled role cache (1 hour TTL)
+        2. Individual role assignments
+        
+        This approach optimizes for read-heavy workloads while ensuring
+        eventual consistency after role changes.
+        """
         try:
             # Try cache first
             cache_key = f"user:roles:{user_id}"
@@ -178,12 +239,20 @@ class RoleManager:
             raise
     
     async def _role_exists(self, role_name: str) -> bool:
-        """Check if role exists."""
+        """Verify role existence in cache.
+        
+        PERFORMANCE: Direct cache lookup avoids database queries for
+        common role validation operations.
+        """
         role_key = f"role:def:{role_name}"
         return await self.cache.exists(role_key)
     
     async def _get_role(self, role_name: str) -> Optional[Role]:
-        """Get role definition."""
+        """Retrieve and reconstruct role definition from cache.
+        
+        NOTE: Role reconstruction includes policy parsing to ensure
+        proper permission evaluation in the auth system.
+        """
         role_key = f"role:def:{role_name}"
         role_data = await self.cache.get(role_key)
         if role_data:
@@ -197,7 +266,14 @@ class RoleManager:
         return None
     
     async def _update_user_roles_cache(self, user_id: str):
-        """Update user's roles cache."""
+        """Invalidate user's compiled role cache.
+        
+        CONSISTENCY: Simple cache invalidation is used instead of updates
+        to prevent race conditions in distributed environments.
+        
+        TODO: Consider implementing distributed locks for more efficient
+        cache updates in specific scenarios.
+        """
         cache_key = f"user:roles:{user_id}"
         await self.cache.delete(cache_key)
     
@@ -206,7 +282,16 @@ class RoleManager:
                                    created_by: str,
                                    ip_address: Optional[str] = None,
                                    session_id: Optional[str] = None) -> bool:
-        """Create role with audit logging."""
+        """Create role with comprehensive audit trail.
+        
+        COMPLIANCE: Captures all context required by common security
+        frameworks (e.g., SOC 2, ISO 27001) including:
+        - Actor identification
+        - IP address
+        - Session context
+        - Operation details
+        - Timestamp
+        """
         try:
             # Create role
             success = await self.create_role(role, created_by)
@@ -251,7 +336,14 @@ class RoleManager:
                                    assignment: RoleAssignment,
                                    ip_address: Optional[str] = None,
                                    session_id: Optional[str] = None) -> bool:
-        """Assign role with audit logging."""
+        """Assign role with audit logging for compliance requirements.
+        
+        SECURITY: Audit trail includes full assignment context to support
+        security investigations and compliance reporting.
+        
+        NOTE: Failed assignments are also logged to maintain complete
+        audit trails of attempted security changes.
+        """
         try:
             # Assign role
             success = await self.assign_role(assignment)

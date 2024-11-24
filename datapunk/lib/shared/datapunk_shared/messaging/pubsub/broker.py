@@ -1,11 +1,45 @@
-from typing import Dict, List, Any, Optional, Callable, Pattern
-import asyncio
-import re
+from typing import Optional, Dict, Any, List, Set, Callable, Generic, TypeVar
 from dataclasses import dataclass
-import json
+import asyncio
 from datetime import datetime
-from ..queue.manager import QueueManager, QueueConfig
+from enum import Enum
+import json
+from ..patterns.retry import RetryPolicy
+from ..patterns.dlq import DeadLetterQueue, FailureReason
 from ...monitoring import MetricsCollector
+
+T = TypeVar('T')  # Message type
+R = TypeVar('R')  # Result type
+
+class DeliveryMode(Enum):
+    """Message delivery modes"""
+    AT_LEAST_ONCE = "at_least_once"
+    AT_MOST_ONCE = "at_most_once"
+    EXACTLY_ONCE = "exactly_once"
+
+class TopicType(Enum):
+    """Topic types"""
+    FANOUT = "fanout"      # Broadcast to all subscribers
+    DIRECT = "direct"      # Route to specific subscribers
+    TOPIC = "topic"        # Pattern-based routing
+    HEADERS = "headers"    # Header-based routing
+
+@dataclass
+class BrokerConfig:
+    """Configuration for message broker"""
+    delivery_mode: DeliveryMode = DeliveryMode.AT_LEAST_ONCE
+    topic_type: TopicType = TopicType.FANOUT
+    max_message_size: int = 1024 * 1024  # 1MB
+    enable_persistence: bool = True
+    storage_path: Optional[str] = None
+    enable_compression: bool = True
+    compression_threshold: int = 1024  # bytes
+    max_retry_attempts: int = 3
+    retry_delay: float = 1.0  # seconds
+    enable_dlq: bool = True
+    cleanup_interval: int = 3600  # 1 hour in seconds
+    max_queue_size: int = 10000
+    batch_size: int = 100
 
 @dataclass
 class TopicConfig:
@@ -29,230 +63,266 @@ class SubscriptionConfig:
     max_retry: int = 3
     backoff_base: float = 2.0
 
-class PubSubBroker:
-    """Manages pub/sub topics and subscriptions"""
+class MessageBroker(Generic[T, R]):
+    """Implements pub/sub message broker"""
     def __init__(
         self,
-        queue_manager: QueueManager,
+        config: BrokerConfig,
+        retry_policy: Optional[RetryPolicy] = None,
+        dlq: Optional[DeadLetterQueue] = None,
         metrics_collector: Optional[MetricsCollector] = None
     ):
-        self.queue_manager = queue_manager
+        self.config = config
+        self.retry_policy = retry_policy
+        self.dlq = dlq
         self.metrics = metrics_collector
-        self._topics: Dict[str, TopicConfig] = {}
-        self._subscribers: Dict[str, Dict[str, SubscriptionConfig]] = {}
-        self._filters: Dict[str, Pattern] = {}
-        self._handlers: Dict[str, List[Callable]] = {}
-        self._active_subscriptions: Dict[str, asyncio.Task] = {}
+        self._topics: Dict[str, Set[str]] = {}  # topic -> subscriber_ids
+        self._subscribers: Dict[str, Callable] = {}  # subscriber_id -> callback
+        self._messages: Dict[str, List[Dict]] = {}  # topic -> messages
+        self._cleanup_task: Optional[asyncio.Task] = None
+        self._running = False
+        self._lock = asyncio.Lock()
 
-    async def create_topic(self, config: TopicConfig):
-        """Create a new topic"""
-        if config.name in self._topics:
-            raise ValueError(f"Topic {config.name} already exists")
+    async def start(self):
+        """Start message broker"""
+        self._running = True
+        if self.config.enable_persistence:
+            await self._load_state()
+        self._cleanup_task = asyncio.create_task(self._cleanup_loop())
 
-        # Compile filter pattern if provided
-        if config.pattern:
+    async def stop(self):
+        """Stop message broker"""
+        self._running = False
+        if self._cleanup_task:
+            self._cleanup_task.cancel()
             try:
-                self._filters[config.name] = re.compile(config.pattern)
-            except re.error as e:
-                raise ValueError(f"Invalid topic pattern: {str(e)}")
-
-        # Create underlying queue
-        await self.queue_manager.declare_queue(
-            queue_name=f"topic.{config.name}",
-            routing_key=config.name,
-            dead_letter=bool(config.dead_letter_topic)
-        )
-
-        self._topics[config.name] = config
-
-        if self.metrics:
-            await self.metrics.increment(
-                "pubsub.topics.created",
-                tags={"topic": config.name}
-            )
-
-    async def delete_topic(self, topic_name: str):
-        """Delete a topic and all its subscriptions"""
-        if topic_name not in self._topics:
-            raise ValueError(f"Topic {topic_name} does not exist")
-
-        # Cancel all active subscriptions
-        for sub_name in self._subscribers.get(topic_name, {}):
-            await self.unsubscribe(topic_name, sub_name)
-
-        # Clean up resources
-        del self._topics[topic_name]
-        self._subscribers.pop(topic_name, None)
-        self._filters.pop(topic_name, None)
-        self._handlers.pop(topic_name, None)
-
-        if self.metrics:
-            await self.metrics.increment(
-                "pubsub.topics.deleted",
-                tags={"topic": topic_name}
-            )
+                await self._cleanup_task
+            except asyncio.CancelledError:
+                pass
+        if self.config.enable_persistence:
+            await self._save_state()
 
     async def publish(
         self,
         topic: str,
-        message: Dict[str, Any],
+        message: T,
         headers: Optional[Dict[str, str]] = None
-    ):
+    ) -> bool:
         """Publish message to topic"""
-        if topic not in self._topics:
-            raise ValueError(f"Topic {topic} does not exist")
-
-        # Check message against topic pattern
-        if self._filters.get(topic):
-            message_str = json.dumps(message)
-            if not self._filters[topic].search(message_str):
-                raise ValueError("Message does not match topic pattern")
-
-        # Add metadata
-        full_message = {
-            "payload": message,
-            "metadata": {
-                "topic": topic,
-                "timestamp": datetime.utcnow().isoformat(),
-                "headers": headers or {}
-            }
-        }
-
-        try:
-            await self.queue_manager.publish(
-                routing_key=topic,
-                message=full_message,
-                headers=headers
-            )
-
+        if not self._validate_message_size(message):
             if self.metrics:
                 await self.metrics.increment(
-                    "pubsub.messages.published",
+                    "broker.message.size_exceeded",
                     tags={"topic": topic}
                 )
+            return False
 
-        except Exception as e:
-            if self.metrics:
-                await self.metrics.increment(
-                    "pubsub.messages.publish_failed",
-                    tags={"topic": topic, "error": str(e)}
-                )
-            raise
-
-    async def subscribe(
-        self,
-        config: SubscriptionConfig,
-        handler: Callable[[Dict[str, Any], Dict[str, str]], Any]
-    ):
-        """Subscribe to topic with handler"""
-        if config.topic not in self._topics:
-            raise ValueError(f"Topic {config.topic} does not exist")
-
-        topic_config = self._topics[config.topic]
-        
-        # Check subscription limits
-        current_subs = len(self._subscribers.get(config.topic, {}))
-        if current_subs >= topic_config.max_subscribers:
-            raise ValueError(f"Maximum subscribers reached for topic {config.topic}")
-
-        # Compile subscription filter if provided
-        sub_filter = None
-        if config.filter_pattern:
+        async with self._lock:
             try:
-                sub_filter = re.compile(config.filter_pattern)
-            except re.error as e:
-                raise ValueError(f"Invalid subscription pattern: {str(e)}")
+                # Prepare message
+                msg_data = {
+                    "payload": message,
+                    "headers": headers or {},
+                    "timestamp": datetime.utcnow().isoformat(),
+                    "attempts": 0
+                }
 
-        # Store subscription
-        if config.topic not in self._subscribers:
-            self._subscribers[config.topic] = {}
-        self._subscribers[config.topic][config.name] = config
+                # Store message
+                if topic not in self._messages:
+                    self._messages[topic] = []
+                self._messages[topic].append(msg_data)
 
-        # Create subscription handler
-        async def subscription_handler(message: Dict[str, Any], headers: Dict[str, str]):
-            try:
-                # Apply subscription filter
-                if sub_filter:
-                    message_str = json.dumps(message["payload"])
-                    if not sub_filter.search(message_str):
-                        return
-
-                # Process message
-                await handler(message["payload"], message["metadata"])
+                # Deliver to subscribers
+                await self._deliver_message(topic, msg_data)
 
                 if self.metrics:
                     await self.metrics.increment(
-                        "pubsub.messages.processed",
+                        "broker.message.published",
+                        tags={"topic": topic}
+                    )
+
+                return True
+
+            except Exception as e:
+                if self.metrics:
+                    await self.metrics.increment(
+                        "broker.publish.error",
                         tags={
-                            "topic": config.topic,
-                            "subscription": config.name
+                            "topic": topic,
+                            "error": str(e)
+                        }
+                    )
+                return False
+
+    async def subscribe(
+        self,
+        topic: str,
+        callback: Callable[[T], R],
+        subscriber_id: Optional[str] = None
+    ) -> str:
+        """Subscribe to topic"""
+        async with self._lock:
+            # Generate subscriber ID if not provided
+            subscriber_id = subscriber_id or f"{topic}_{len(self._subscribers)}"
+
+            # Register subscriber
+            if topic not in self._topics:
+                self._topics[topic] = set()
+            self._topics[topic].add(subscriber_id)
+            self._subscribers[subscriber_id] = callback
+
+            if self.metrics:
+                await self.metrics.increment(
+                    "broker.subscriber.added",
+                    tags={"topic": topic}
+                )
+
+            return subscriber_id
+
+    async def unsubscribe(self, subscriber_id: str):
+        """Unsubscribe from topic"""
+        async with self._lock:
+            # Remove subscriber
+            self._subscribers.pop(subscriber_id, None)
+            for subscribers in self._topics.values():
+                subscribers.discard(subscriber_id)
+
+            if self.metrics:
+                await self.metrics.increment("broker.subscriber.removed")
+
+    async def _deliver_message(self, topic: str, message: Dict):
+        """Deliver message to subscribers"""
+        if topic not in self._topics:
+            return
+
+        for subscriber_id in self._topics[topic]:
+            callback = self._subscribers.get(subscriber_id)
+            if not callback:
+                continue
+
+            try:
+                if self.retry_policy:
+                    # Wrap callback with retry policy
+                    callback = self.retry_policy.wrap(callback)
+
+                await callback(message["payload"])
+
+                if self.metrics:
+                    await self.metrics.increment(
+                        "broker.message.delivered",
+                        tags={
+                            "topic": topic,
+                            "subscriber": subscriber_id
                         }
                     )
 
             except Exception as e:
                 if self.metrics:
                     await self.metrics.increment(
-                        "pubsub.messages.processing_failed",
+                        "broker.delivery.error",
                         tags={
-                            "topic": config.topic,
-                            "subscription": config.name,
+                            "topic": topic,
+                            "subscriber": subscriber_id,
                             "error": str(e)
                         }
                     )
-                raise
 
-        # Start subscription
-        subscription_task = asyncio.create_task(
-            self.queue_manager.subscribe(
-                queue_name=f"sub.{config.topic}.{config.name}",
-                routing_key=config.topic,
-                callback=subscription_handler,
-                batch_size=config.batch_size
-            )
-        )
+                # Handle failed delivery
+                message["attempts"] += 1
+                if message["attempts"] >= self.config.max_retry_attempts:
+                    if self.dlq:
+                        await self.dlq.add_message(
+                            message_id=f"{topic}_{message['timestamp']}",
+                            message=message["payload"],
+                            reason=FailureReason.PROCESSING_ERROR,
+                            error=str(e),
+                            metadata={
+                                "topic": topic,
+                                "subscriber": subscriber_id,
+                                "attempts": message["attempts"]
+                            }
+                        )
 
-        self._active_subscriptions[f"{config.topic}.{config.name}"] = subscription_task
+    def _validate_message_size(self, message: T) -> bool:
+        """Validate message size"""
+        try:
+            size = len(json.dumps(message))
+            return size <= self.config.max_message_size
+        except Exception:
+            return False
 
-        if self.metrics:
-            await self.metrics.increment(
-                "pubsub.subscriptions.created",
-                tags={"topic": config.topic, "subscription": config.name}
-            )
+    async def _cleanup_loop(self):
+        """Periodic cleanup of old messages"""
+        while self._running:
+            try:
+                await asyncio.sleep(self.config.cleanup_interval)
+                await self._cleanup_messages()
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                if self.metrics:
+                    await self.metrics.increment(
+                        "broker.cleanup.error",
+                        tags={"error": str(e)}
+                    )
 
-    async def unsubscribe(self, topic: str, subscription_name: str):
-        """Unsubscribe from topic"""
-        if topic not in self._subscribers:
+    async def _cleanup_messages(self):
+        """Remove old messages"""
+        async with self._lock:
+            for topic in self._messages:
+                if len(self._messages[topic]) > self.config.max_queue_size:
+                    # Keep only the most recent messages
+                    self._messages[topic] = self._messages[topic][-self.config.max_queue_size:]
+
+    async def _load_state(self):
+        """Load broker state from storage"""
+        if not self.config.storage_path:
             return
 
-        if subscription_name not in self._subscribers[topic]:
+        try:
+            with open(self.config.storage_path, 'r') as f:
+                data = json.load(f)
+                self._topics = {k: set(v) for k, v in data["topics"].items()}
+                self._messages = data["messages"]
+
+        except FileNotFoundError:
+            pass
+        except Exception as e:
+            if self.metrics:
+                await self.metrics.increment(
+                    "broker.storage.load_error",
+                    tags={"error": str(e)}
+                )
+
+    async def _save_state(self):
+        """Save broker state to storage"""
+        if not self.config.storage_path:
             return
 
-        # Cancel subscription task
-        sub_key = f"{topic}.{subscription_name}"
-        if sub_key in self._active_subscriptions:
-            self._active_subscriptions[sub_key].cancel()
-            del self._active_subscriptions[sub_key]
+        try:
+            with open(self.config.storage_path, 'w') as f:
+                data = {
+                    "topics": {k: list(v) for k, v in self._topics.items()},
+                    "messages": self._messages
+                }
+                json.dump(data, f)
 
-        # Clean up subscription
-        del self._subscribers[topic][subscription_name]
-        if not self._subscribers[topic]:
-            del self._subscribers[topic]
+        except Exception as e:
+            if self.metrics:
+                await self.metrics.increment(
+                    "broker.storage.save_error",
+                    tags={"error": str(e)}
+                )
 
-        if self.metrics:
-            await self.metrics.increment(
-                "pubsub.subscriptions.deleted",
-                tags={"topic": topic, "subscription": subscription_name}
-            )
-
-    async def get_topic_stats(self, topic: str) -> Dict[str, Any]:
-        """Get statistics for a topic"""
-        if topic not in self._topics:
-            raise ValueError(f"Topic {topic} does not exist")
-
+    async def get_stats(self) -> Dict[str, Any]:
+        """Get broker statistics"""
         return {
-            "name": topic,
-            "config": vars(self._topics[topic]),
-            "subscriber_count": len(self._subscribers.get(topic, {})),
-            "subscribers": list(self._subscribers.get(topic, {}).keys()),
-            "has_filter": bool(self._filters.get(topic))
+            "topics": len(self._topics),
+            "subscribers": len(self._subscribers),
+            "messages": {
+                topic: len(messages)
+                for topic, messages in self._messages.items()
+            },
+            "delivery_mode": self.config.delivery_mode.value,
+            "topic_type": self.config.topic_type.value
         } 

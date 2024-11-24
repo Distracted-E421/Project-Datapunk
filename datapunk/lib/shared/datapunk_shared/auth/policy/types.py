@@ -3,79 +3,104 @@ from datetime import datetime, time
 from enum import Enum
 from dataclasses import dataclass
 
+# Core security policy type definitions aligned with NIST SP 800-53
+# These types correspond to common security control families
 class PolicyType(Enum):
     """Types of security policies."""
-    ACCESS = "access"         # Access control
-    AUTHENTICATION = "auth"   # Authentication
-    ENCRYPTION = "encrypt"    # Encryption
-    AUDIT = "audit"          # Audit logging
-    COMPLIANCE = "comply"     # Compliance
-    ROTATION = "rotate"      # Key rotation
-    RATE_LIMIT = "rate"      # Rate limiting
+    ACCESS = "access"         # Identity and access management controls
+    AUTHENTICATION = "auth"   # User authentication mechanisms and requirements
+    ENCRYPTION = "encrypt"    # Data protection and cryptographic controls
+    AUDIT = "audit"          # Security logging and monitoring requirements
+    COMPLIANCE = "comply"     # Regulatory and standards compliance rules
+    ROTATION = "rotate"      # Credential and key lifecycle management
+    RATE_LIMIT = "rate"      # Request rate and resource usage controls
 
 class PolicyStatus(Enum):
-    """Status of policy."""
-    DRAFT = "draft"          # Not yet active
-    ACTIVE = "active"        # Currently enforced
-    DISABLED = "disabled"    # Temporarily disabled
-    ARCHIVED = "archived"    # No longer used
-    PENDING = "pending"      # Awaiting approval
+    """
+    Lifecycle states for security policies.
+    Follows a standard workflow: DRAFT -> PENDING -> ACTIVE -> (DISABLED/ARCHIVED)
+    """
+    DRAFT = "draft"          # Initial creation/modification state
+    ACTIVE = "active"        # Production enforcement state
+    DISABLED = "disabled"    # Temporarily suspended but retaining config
+    ARCHIVED = "archived"    # Permanently deactivated for historical reference
+    PENDING = "pending"      # Under review/approval process
 
 class RiskLevel(Enum):
-    """Risk levels for policy changes."""
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    CRITICAL = "critical"
+    """
+    Risk classification levels for policy changes.
+    Used in change management and approval workflows.
+    Aligned with standard risk management frameworks.
+    """
+    LOW = "low"          # Minimal impact, routine changes
+    MEDIUM = "medium"    # Moderate impact, requires review
+    HIGH = "high"        # Significant impact, requires approval
+    CRITICAL = "critical"  # Maximum impact, requires executive approval
 
 @dataclass
 class TimeWindow:
-    """Time window for policy enforcement."""
-    start_time: time
-    end_time: time
-    days: Set[int]  # 0=Monday, 6=Sunday
-    timezone: str = "UTC"
+    """
+    Defines temporal bounds for policy enforcement.
+    Used for scheduling policy activation periods and maintenance windows.
+    """
+    start_time: time     # Daily start time for policy enforcement
+    end_time: time      # Daily end time for policy enforcement
+    days: Set[int]      # Days of week (0=Monday, 6=Sunday) for enforcement
+    timezone: str = "UTC"  # Reference timezone for time calculations
 
 @dataclass
 class PolicyRule:
-    """Individual policy rule."""
-    rule_id: str
-    rule_type: str
-    conditions: Dict[str, Any]
-    actions: List[str]
-    priority: int = 0
-    metadata: Optional[Dict[str, Any]] = None
+    """
+    Atomic policy enforcement unit containing conditions and resulting actions.
+    Forms the building blocks of complex policy definitions.
+    """
+    rule_id: str        # Unique identifier for the rule
+    rule_type: str      # Classification of rule behavior
+    conditions: Dict[str, Any]  # Criteria that trigger rule evaluation
+    actions: List[str]  # Actions to take when conditions are met
+    priority: int = 0   # Execution priority (higher = evaluated first)
+    metadata: Optional[Dict[str, Any]] = None  # Additional rule context/tags
 
 @dataclass
 class Policy:
-    """Security policy definition."""
-    policy_id: str
-    type: PolicyType
-    status: PolicyStatus
-    rules: List[PolicyRule]
-    version: str
-    created_at: datetime
-    created_by: str
-    effective_from: datetime
-    effective_until: Optional[datetime] = None
-    description: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    """
+    Complete security policy definition combining rules and metadata.
+    Represents a versioned, time-bound security control implementation.
+    """
+    policy_id: str      # Unique policy identifier
+    type: PolicyType    # Security control category
+    status: PolicyStatus  # Current lifecycle state
+    rules: List[PolicyRule]  # Ordered list of enforcement rules
+    version: str        # Semantic version of policy
+    created_at: datetime  # Creation timestamp
+    created_by: str     # Identity of policy author
+    effective_from: datetime  # Policy activation timestamp
+    effective_until: Optional[datetime] = None  # Optional expiration
+    description: Optional[str] = None  # Human-readable policy summary
+    metadata: Optional[Dict[str, Any]] = None  # Additional policy context
 
 @dataclass
 class PolicyValidationResult:
-    """Result of policy validation."""
-    valid: bool
-    issues: List[str]
-    warnings: List[str]
-    risk_level: RiskLevel
-    breaking_changes: List[str]
-    metadata: Optional[Dict[str, Any]] = None
+    """
+    Validation outcome for policy changes.
+    Used in policy review and approval workflows.
+    """
+    valid: bool         # Overall validation status
+    issues: List[str]   # Critical problems blocking implementation
+    warnings: List[str]  # Non-blocking concerns requiring attention
+    risk_level: RiskLevel  # Assessed impact level of changes
+    breaking_changes: List[str]  # Backwards compatibility impacts
+    metadata: Optional[Dict[str, Any]] = None  # Validation context
 
 @dataclass
 class PolicyEvaluationResult:
-    """Result of policy evaluation."""
-    allowed: bool
-    matched_rules: List[str]
-    reason: Optional[str] = None
-    context: Optional[Dict[str, Any]] = None
-    metadata: Optional[Dict[str, Any]] = None 
+    """
+    Runtime evaluation result for policy enforcement.
+    Captures decision outcome and supporting context.
+    """
+    allowed: bool       # Final authorization decision
+    matched_rules: List[str]  # Rules that influenced decision
+    reason: Optional[str] = None  # Human-readable explanation
+    context: Optional[Dict[str, Any]] = None  # Evaluation parameters
+    metadata: Optional[Dict[str, Any]] = None  # Additional decision context
+  

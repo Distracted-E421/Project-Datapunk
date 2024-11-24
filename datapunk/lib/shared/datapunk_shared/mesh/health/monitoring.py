@@ -1,16 +1,16 @@
-from typing import Dict, List, Any, Optional, Callable
+from typing import Optional, Dict, Any, List, Set
 from dataclasses import dataclass
 import asyncio
 from datetime import datetime, timedelta
 from enum import Enum
 from .checks import HealthCheck, HealthStatus
-from ..discovery.registry import ServiceRegistration
-import json
-import logging
+from ..discovery.registry import ServiceRegistry, ServiceRegistration
+from ...monitoring import MetricsCollector
+import psutil
+import statistics
 
 class MonitoringLevel(Enum):
     """Monitoring severity levels"""
-    DEBUG = "debug"
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -18,271 +18,297 @@ class MonitoringLevel(Enum):
 
 @dataclass
 class HealthMetrics:
-    """Health metrics for a service"""
-    uptime: float
+    """Health metrics data point"""
+    service_id: str
+    status: HealthStatus
     error_rate: float
     response_time: float
     memory_usage: float
     cpu_usage: float
-    active_connections: int
+    connections: int
     last_check: datetime
-    status: HealthStatus
+    level: MonitoringLevel
 
 @dataclass
 class MonitoringConfig:
     """Configuration for health monitoring"""
-    check_interval: int = 30  # seconds
+    check_interval: float = 15.0  # seconds
     metrics_retention: int = 24 * 60 * 60  # 24 hours in seconds
-    alert_threshold: float = 0.8  # 80% threshold for alerts
-    log_level: MonitoringLevel = MonitoringLevel.INFO
-    enable_persistence: bool = True
-    persistence_path: str = "./health_metrics"
+    error_threshold: float = 0.1  # 10% error rate
+    response_time_threshold: float = 1.0  # 1 second
+    memory_threshold: float = 0.9  # 90% usage
+    cpu_threshold: float = 0.8  # 80% usage
+    connection_threshold: int = 1000
+    enable_alerts: bool = True
+    alert_cooldown: int = 300  # 5 minutes between similar alerts
 
 class HealthMonitor:
-    """Monitors service health and collects metrics"""
+    """Monitors service health metrics"""
     def __init__(
         self,
         config: MonitoringConfig,
-        health_check: HealthCheck
+        health_check: HealthCheck,
+        registry: ServiceRegistry,
+        metrics_collector: Optional[MetricsCollector] = None
     ):
         self.config = config
         self.health_check = health_check
+        self.registry = registry
+        self.metrics = metrics_collector
+        self._monitoring_task: Optional[asyncio.Task] = None
         self._metrics_history: Dict[str, List[HealthMetrics]] = {}
-        self._alert_handlers: List[Callable] = []
-        self._monitor_task: Optional[asyncio.Task] = None
-        self._start_time = datetime.utcnow()
-        self.logger = logging.getLogger("health_monitor")
-        self._setup_logging()
-
-    def _setup_logging(self):
-        """Configure logging for the monitor"""
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        )
-        handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
-        self.logger.setLevel(
-            getattr(logging, self.config.log_level.name)
-        )
+        self._last_alerts: Dict[str, datetime] = {}
+        self._running = False
 
     async def start(self):
         """Start health monitoring"""
-        if self.config.enable_persistence:
-            await self._load_metrics()
-        self._monitor_task = asyncio.create_task(self._monitoring_loop())
-        self.logger.info("Health monitoring started")
+        self._running = True
+        self._monitoring_task = asyncio.create_task(self._monitoring_loop())
 
     async def stop(self):
         """Stop health monitoring"""
-        if self._monitor_task:
-            self._monitor_task.cancel()
+        self._running = False
+        if self._monitoring_task:
+            self._monitoring_task.cancel()
             try:
-                await self._monitor_task
+                await self._monitoring_task
             except asyncio.CancelledError:
                 pass
-        if self.config.enable_persistence:
-            await self._save_metrics()
-        self.logger.info("Health monitoring stopped")
 
     async def _monitoring_loop(self):
         """Main monitoring loop"""
-        while True:
+        while self._running:
             try:
-                metrics = await self._collect_metrics()
-                self._update_metrics_history(metrics)
-                await self._check_alerts(metrics)
+                await self._check_all_services()
                 await asyncio.sleep(self.config.check_interval)
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                self.logger.error(f"Monitoring error: {str(e)}")
-                await asyncio.sleep(self.config.check_interval)
+                if self.metrics:
+                    await self.metrics.increment(
+                        "health.monitoring.error",
+                        tags={"error": str(e)}
+                    )
 
-    async def _collect_metrics(self) -> HealthMetrics:
-        """Collect current health metrics"""
-        start_time = datetime.utcnow()
-        is_healthy = await self.health_check.check_health()
-        response_time = (datetime.utcnow() - start_time).total_seconds()
+    async def _check_all_services(self):
+        """Check health of all registered services"""
+        services = await self.registry.get_services()
+        
+        for service in services:
+            try:
+                metrics = await self._collect_service_metrics(service)
+                await self._process_metrics(metrics)
+                
+                if self.config.enable_alerts:
+                    await self._check_alerts(metrics)
+                    
+            except Exception as e:
+                if self.metrics:
+                    await self.metrics.increment(
+                        "health.monitoring.service_error",
+                        tags={
+                            "service": service.id,
+                            "error": str(e)
+                        }
+                    )
 
-        # Get system metrics (implement these based on your needs)
-        memory_usage = await self._get_memory_usage()
-        cpu_usage = await self._get_cpu_usage()
-        active_connections = await self._get_active_connections()
+    async def _collect_service_metrics(
+        self,
+        service: ServiceRegistration
+    ) -> HealthMetrics:
+        """Collect health metrics for a service"""
+        # Check basic health
+        is_healthy = await self.health_check.check_instance_health(service)
+        status = HealthStatus.HEALTHY if is_healthy else HealthStatus.UNHEALTHY
+
+        # Get resource usage
+        try:
+            process = psutil.Process(service.pid) if hasattr(service, 'pid') else None
+            if process:
+                memory_usage = process.memory_percent() / 100.0
+                cpu_usage = process.cpu_percent() / 100.0
+                connections = len(process.connections())
+            else:
+                memory_usage = 0.0
+                cpu_usage = 0.0
+                connections = 0
+        except Exception:
+            memory_usage = 0.0
+            cpu_usage = 0.0
+            connections = 0
+
+        # Calculate error rate and response time from history
+        history = self._metrics_history.get(service.id, [])[-100:]  # Last 100 checks
+        if history:
+            error_rate = sum(1 for m in history if m.status == HealthStatus.UNHEALTHY) / len(history)
+            response_time = statistics.mean(m.response_time for m in history)
+        else:
+            error_rate = 0.0
+            response_time = 0.0
+
+        # Determine monitoring level
+        level = self._determine_level(
+            error_rate,
+            response_time,
+            memory_usage,
+            cpu_usage,
+            connections
+        )
 
         return HealthMetrics(
-            uptime=(datetime.utcnow() - self._start_time).total_seconds(),
-            error_rate=self._calculate_error_rate(),
+            service_id=service.id,
+            status=status,
+            error_rate=error_rate,
             response_time=response_time,
             memory_usage=memory_usage,
             cpu_usage=cpu_usage,
-            active_connections=active_connections,
+            connections=connections,
             last_check=datetime.utcnow(),
-            status=HealthStatus.HEALTHY if is_healthy else HealthStatus.UNHEALTHY
+            level=level
         )
 
-    def _update_metrics_history(self, metrics: HealthMetrics):
-        """Update metrics history with new data"""
-        service_id = self.health_check.service_id
+    def _determine_level(
+        self,
+        error_rate: float,
+        response_time: float,
+        memory_usage: float,
+        cpu_usage: float,
+        connections: int
+    ) -> MonitoringLevel:
+        """Determine monitoring level based on metrics"""
+        if (
+            error_rate > self.config.error_threshold * 2 or
+            memory_usage > self.config.memory_threshold * 1.2 or
+            cpu_usage > self.config.cpu_threshold * 1.2
+        ):
+            return MonitoringLevel.CRITICAL
+            
+        elif (
+            error_rate > self.config.error_threshold or
+            response_time > self.config.response_time_threshold * 2 or
+            memory_usage > self.config.memory_threshold or
+            cpu_usage > self.config.cpu_threshold or
+            connections > self.config.connection_threshold
+        ):
+            return MonitoringLevel.ERROR
+            
+        elif (
+            error_rate > self.config.error_threshold * 0.5 or
+            response_time > self.config.response_time_threshold or
+            memory_usage > self.config.memory_threshold * 0.8 or
+            cpu_usage > self.config.cpu_threshold * 0.8 or
+            connections > self.config.connection_threshold * 0.8
+        ):
+            return MonitoringLevel.WARNING
+            
+        return MonitoringLevel.INFO
+
+    async def _process_metrics(self, metrics: HealthMetrics):
+        """Process and store metrics"""
+        service_id = metrics.service_id
+        
+        # Update metrics history
         if service_id not in self._metrics_history:
             self._metrics_history[service_id] = []
-
+            
         self._metrics_history[service_id].append(metrics)
-
-        # Cleanup old metrics
-        cutoff_time = datetime.utcnow() - timedelta(
-            seconds=self.config.metrics_retention
-        )
+        
+        # Clean up old metrics
+        cutoff_time = datetime.utcnow() - timedelta(seconds=self.config.metrics_retention)
         self._metrics_history[service_id] = [
             m for m in self._metrics_history[service_id]
             if m.last_check > cutoff_time
         ]
+        
+        # Record metrics
+        if self.metrics:
+            tags = {"service": service_id}
+            
+            await self.metrics.gauge(
+                "health.service.error_rate",
+                metrics.error_rate,
+                tags=tags
+            )
+            await self.metrics.gauge(
+                "health.service.response_time",
+                metrics.response_time,
+                tags=tags
+            )
+            await self.metrics.gauge(
+                "health.service.memory_usage",
+                metrics.memory_usage,
+                tags=tags
+            )
+            await self.metrics.gauge(
+                "health.service.cpu_usage",
+                metrics.cpu_usage,
+                tags=tags
+            )
+            await self.metrics.gauge(
+                "health.service.connections",
+                metrics.connections,
+                tags=tags
+            )
 
     async def _check_alerts(self, metrics: HealthMetrics):
-        """Check metrics against alert thresholds"""
-        if metrics.cpu_usage > self.config.alert_threshold:
-            await self._trigger_alert(
-                "High CPU Usage",
-                f"CPU usage at {metrics.cpu_usage*100}%",
-                MonitoringLevel.WARNING
+        """Check if alerts should be triggered"""
+        if metrics.level in (MonitoringLevel.ERROR, MonitoringLevel.CRITICAL):
+            alert_key = f"{metrics.service_id}:{metrics.level.value}"
+            last_alert = self._last_alerts.get(alert_key)
+            
+            if not last_alert or (
+                datetime.utcnow() - last_alert
+            ).total_seconds() > self.config.alert_cooldown:
+                await self._trigger_alert(metrics)
+                self._last_alerts[alert_key] = datetime.utcnow()
+
+    async def _trigger_alert(self, metrics: HealthMetrics):
+        """Trigger health alert"""
+        if self.metrics:
+            await self.metrics.increment(
+                "health.alerts",
+                tags={
+                    "service": metrics.service_id,
+                    "level": metrics.level.value
+                }
             )
 
-        if metrics.memory_usage > self.config.alert_threshold:
-            await self._trigger_alert(
-                "High Memory Usage",
-                f"Memory usage at {metrics.memory_usage*100}%",
-                MonitoringLevel.WARNING
-            )
-
-        if metrics.status == HealthStatus.UNHEALTHY:
-            await self._trigger_alert(
-                "Service Unhealthy",
-                "Health check failed",
-                MonitoringLevel.CRITICAL
-            )
-
-    async def _trigger_alert(
+    async def get_service_metrics(
         self,
-        title: str,
-        message: str,
-        level: MonitoringLevel
-    ):
-        """Trigger alerts through registered handlers"""
-        alert = {
-            "title": title,
-            "message": message,
-            "level": level.value,
-            "timestamp": datetime.utcnow().isoformat(),
-            "service": self.health_check.service_id
-        }
-
-        for handler in self._alert_handlers:
-            try:
-                await handler(alert)
-            except Exception as e:
-                self.logger.error(f"Alert handler error: {str(e)}")
-
-    def add_alert_handler(self, handler: Callable):
-        """Add an alert handler"""
-        self._alert_handlers.append(handler)
-
-    async def get_health_report(self) -> Dict[str, Any]:
-        """Generate health report"""
-        service_id = self.health_check.service_id
+        service_id: str,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None
+    ) -> List[HealthMetrics]:
+        """Get metrics history for a service"""
         metrics = self._metrics_history.get(service_id, [])
         
-        if not metrics:
-            return {
-                "service_id": service_id,
-                "status": "UNKNOWN",
-                "metrics": None
-            }
+        if start_time:
+            metrics = [m for m in metrics if m.last_check >= start_time]
+        if end_time:
+            metrics = [m for m in metrics if m.last_check <= end_time]
+            
+        return metrics
 
-        latest = metrics[-1]
-        return {
-            "service_id": service_id,
-            "status": latest.status.value,
-            "uptime": latest.uptime,
-            "metrics": {
+    async def get_monitoring_stats(self) -> Dict[str, Any]:
+        """Get monitoring statistics"""
+        stats = {
+            "services": len(self._metrics_history),
+            "total_metrics": sum(len(m) for m in self._metrics_history.values()),
+            "alerts": len(self._last_alerts),
+            "service_status": {}
+        }
+        
+        for service_id, metrics in self._metrics_history.items():
+            if not metrics:
+                continue
+                
+            latest = metrics[-1]
+            stats["service_status"][service_id] = {
+                "status": latest.status.value,
+                "level": latest.level.value,
                 "error_rate": latest.error_rate,
                 "response_time": latest.response_time,
-                "memory_usage": latest.memory_usage,
-                "cpu_usage": latest.cpu_usage,
-                "active_connections": latest.active_connections
-            },
-            "last_check": latest.last_check.isoformat(),
-            "historical_data": {
-                "error_rates": [m.error_rate for m in metrics[-60:]],  # Last hour
-                "response_times": [m.response_time for m in metrics[-60:]]
+                "last_check": latest.last_check.isoformat()
             }
-        }
-
-    async def _save_metrics(self):
-        """Save metrics to persistent storage"""
-        if not self.config.enable_persistence:
-            return
-
-        try:
-            metrics_data = {
-                service_id: [
-                    {
-                        **vars(m),
-                        "last_check": m.last_check.isoformat(),
-                        "status": m.status.value
-                    }
-                    for m in metrics
-                ]
-                for service_id, metrics in self._metrics_history.items()
-            }
-
-            async with aiofiles.open(
-                f"{self.config.persistence_path}/metrics.json", "w"
-            ) as f:
-                await f.write(json.dumps(metrics_data))
-        except Exception as e:
-            self.logger.error(f"Failed to save metrics: {str(e)}")
-
-    async def _load_metrics(self):
-        """Load metrics from persistent storage"""
-        try:
-            async with aiofiles.open(
-                f"{self.config.persistence_path}/metrics.json", "r"
-            ) as f:
-                data = json.loads(await f.read())
-                
-            for service_id, metrics in data.items():
-                self._metrics_history[service_id] = [
-                    HealthMetrics(
-                        **{
-                            **m,
-                            "last_check": datetime.fromisoformat(m["last_check"]),
-                            "status": HealthStatus(m["status"])
-                        }
-                    )
-                    for m in metrics
-                ]
-        except FileNotFoundError:
-            self.logger.info("No saved metrics found")
-        except Exception as e:
-            self.logger.error(f"Failed to load metrics: {str(e)}")
-
-    # Placeholder methods for system metrics
-    async def _get_memory_usage(self) -> float:
-        """Get current memory usage"""
-        # Implement based on your system
-        return 0.0
-
-    async def _get_cpu_usage(self) -> float:
-        """Get current CPU usage"""
-        # Implement based on your system
-        return 0.0
-
-    async def _get_active_connections(self) -> int:
-        """Get current active connections"""
-        # Implement based on your system
-        return 0
-
-    def _calculate_error_rate(self) -> float:
-        """Calculate current error rate"""
-        # Implement based on your error tracking
-        return 0.0 
+            
+        return stats

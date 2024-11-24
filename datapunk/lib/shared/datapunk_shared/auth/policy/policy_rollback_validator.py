@@ -9,25 +9,46 @@ from ...exceptions import RollbackError, ValidationError
 logger = structlog.get_logger()
 
 class RollbackRisk(Enum):
-    """Risk levels for policy rollback."""
-    LOW = "low"           # Minor changes, low impact
-    MEDIUM = "medium"     # Significant changes, moderate impact
-    HIGH = "high"         # Major changes, high impact
-    CRITICAL = "critical" # Breaking changes, severe impact
+    """
+    Risk classification for policy rollbacks aligned with NIST risk management framework.
+    Used to determine approval requirements and implementation strategies.
+    """
+    LOW = "low"           # Configuration changes without security impact
+    MEDIUM = "medium"     # Changes affecting non-critical security controls
+    HIGH = "high"         # Changes to critical security controls
+    CRITICAL = "critical" # Changes violating compliance requirements or security boundaries
 
 @dataclass
 class RollbackValidationResult:
-    """Result of rollback validation."""
-    is_valid: bool
-    risk_level: RollbackRisk
-    breaking_changes: List[str]
-    warnings: List[str]
-    recommendations: List[str]
+    """
+    Comprehensive validation outcome for policy rollback operations.
+    Captures both immediate impacts and recommended mitigations.
+    """
+    is_valid: bool           # Whether rollback can proceed safely
+    risk_level: RollbackRisk # Assessed impact level
+    breaking_changes: List[str]  # Changes that could break existing integrations
+    warnings: List[str]      # Non-blocking issues requiring attention
+    recommendations: List[str]  # Suggested mitigations or alternatives
 
 class PolicyRollbackValidator:
-    """Validates policy rollbacks for safety and consistency."""
+    """
+    Validates security policy rollbacks for safety and compliance.
+    
+    Performs multi-dimensional analysis of policy changes including:
+    - Resource access modifications
+    - Security control impacts
+    - Compliance requirement violations
+    - Performance implications
+    
+    NOTE: This validator assumes policies are well-formed and already validated
+    for syntax and structure. Use PolicyValidator first if needed.
+    """
     
     def __init__(self, metrics_client):
+        """
+        Initialize validator with metrics tracking.
+        Metrics are used for rollback trend analysis and alerting.
+        """
         self.metrics = metrics_client
         self.logger = logger.bind(component="rollback_validator")
     
@@ -35,13 +56,27 @@ class PolicyRollbackValidator:
                               current_policy: AdvancedKeyPolicy,
                               rollback_policy: AdvancedKeyPolicy,
                               affected_keys: List[str]) -> RollbackValidationResult:
-        """Validate a policy rollback operation."""
+        """
+        Comprehensive validation of policy rollback safety.
+        
+        Performs staged validation across multiple security dimensions:
+        1. Resource access changes (permissions)
+        2. Security control modifications
+        3. Compliance requirement impacts
+        4. Performance implications
+        
+        IMPORTANT: Validation occurs in order of decreasing criticality to fail fast
+        on serious issues before checking less critical aspects.
+        
+        NOTE: Large numbers of affected keys (>1000) automatically elevate risk level
+        due to broader blast radius.
+        """
         try:
             breaking_changes = []
             warnings = []
             recommendations = []
             
-            # Check resource access changes
+            # Staged validation pipeline
             self._validate_resource_access(
                 current_policy,
                 rollback_policy,
@@ -49,7 +84,6 @@ class PolicyRollbackValidator:
                 warnings
             )
             
-            # Check security implications
             self._validate_security_changes(
                 current_policy,
                 rollback_policy,
@@ -58,7 +92,6 @@ class PolicyRollbackValidator:
                 recommendations
             )
             
-            # Check compliance impact
             self._validate_compliance_changes(
                 current_policy,
                 rollback_policy,
@@ -67,7 +100,6 @@ class PolicyRollbackValidator:
                 recommendations
             )
             
-            # Check performance impact
             self._validate_performance_changes(
                 current_policy,
                 rollback_policy,
@@ -75,20 +107,18 @@ class PolicyRollbackValidator:
                 recommendations
             )
             
-            # Determine risk level
             risk_level = self._assess_risk_level(
                 breaking_changes,
                 warnings,
                 affected_keys
             )
             
-            # Log validation results
+            # Telemetry for monitoring rollback patterns
             self.logger.info("rollback_validation_complete",
                            risk_level=risk_level.value,
                            breaking_changes=len(breaking_changes),
                            warnings=len(warnings))
             
-            # Update metrics
             self.metrics.increment(
                 "rollback_validations_total",
                 {"risk_level": risk_level.value}
@@ -112,7 +142,15 @@ class PolicyRollbackValidator:
                                 rollback: AdvancedKeyPolicy,
                                 breaking_changes: List[str],
                                 warnings: List[str]) -> None:
-        """Validate changes in resource access."""
+        """
+        Validates changes to resource access permissions.
+        
+        IMPORTANT: Any reduction in resource access is considered a breaking change
+        as it may disrupt existing integrations. New restrictions are warnings
+        as they only affect future access attempts.
+        
+        NOTE: Empty resource sets are skipped as they indicate unrestricted access
+        """
         if current.allowed_resources and rollback.allowed_resources:
             removed_resources = current.allowed_resources - rollback.allowed_resources
             if removed_resources:
@@ -133,26 +171,32 @@ class PolicyRollbackValidator:
                                  breaking_changes: List[str],
                                  warnings: List[str],
                                  recommendations: List[str]) -> None:
-        """Validate security-related changes."""
-        # Check encryption requirements
+        """
+        Validates changes to security controls.
+        
+        Critical security controls (encryption, MFA) being disabled are breaking changes.
+        Secondary controls (IP restrictions, monitoring) generate warnings.
+        
+        NOTE: Security downgrades always include recommendations for alternatives
+        or compensating controls.
+        """
+        # Core security requirements
         if current.encryption_required and not rollback.encryption_required:
             breaking_changes.append(
                 "Rollback removes encryption requirement"
             )
         
-        # Check MFA requirements
         if current.require_mfa and not rollback.require_mfa:
             breaking_changes.append(
                 "Rollback removes MFA requirement"
             )
         
-        # Check IP restrictions
+        # Secondary controls
         if current.ip_whitelist and not rollback.ip_whitelist:
             warnings.append(
                 "Rollback removes IP whitelist restrictions"
             )
         
-        # Check monitoring level
         if (current.monitoring_level == "debug" and 
             rollback.monitoring_level != "debug"):
             recommendations.append(
@@ -165,11 +209,18 @@ class PolicyRollbackValidator:
                                   breaking_changes: List[str],
                                   warnings: List[str],
                                   recommendations: List[str]) -> None:
-        """Validate compliance-related changes."""
+        """
+        Validates compliance requirement impacts.
+        
+        IMPORTANT: Compliance violations are always breaking changes as they may
+        affect regulatory status. Reduced controls generate warnings for audit purposes.
+        
+        NOTE: Early return if either policy lacks compliance settings to avoid
+        null reference issues.
+        """
         if not current.compliance or not rollback.compliance:
             return
             
-        # Check compliance requirements
         if (current.compliance.encryption_required and 
             not rollback.compliance.encryption_required):
             breaking_changes.append(
@@ -182,7 +233,6 @@ class PolicyRollbackValidator:
                 "Rollback reduces audit logging level"
             )
         
-        # Check retention periods
         if (rollback.compliance.retention_period < 
             current.compliance.retention_period):
             warnings.append(
@@ -194,20 +244,25 @@ class PolicyRollbackValidator:
                                    rollback: AdvancedKeyPolicy,
                                    warnings: List[str],
                                    recommendations: List[str]) -> None:
-        """Validate performance-related changes."""
-        # Check rate limits
+        """
+        Validates performance-related changes.
+        
+        Reduced limits generate warnings as they may affect service quality.
+        Recommendations are provided for maintaining higher limits where feasible.
+        
+        NOTE: Performance changes never generate breaking changes as they don't
+        affect security posture directly.
+        """
         if rollback.rate_limit < current.rate_limit:
             warnings.append(
                 f"Rollback reduces rate limit from {current.rate_limit} to {rollback.rate_limit}"
             )
         
-        # Check burst limits
         if rollback.burst_limit < current.burst_limit:
             warnings.append(
                 f"Rollback reduces burst limit from {current.burst_limit} to {rollback.burst_limit}"
             )
         
-        # Check connection limits
         if rollback.max_parallel < current.max_parallel:
             recommendations.append(
                 f"Consider maintaining higher parallel connection limit of {current.max_parallel}"
@@ -217,7 +272,18 @@ class PolicyRollbackValidator:
                           breaking_changes: List[str],
                           warnings: List[str],
                           affected_keys: List[str]) -> RollbackRisk:
-        """Assess the risk level of the rollback."""
+        """
+        Determines overall risk level of rollback operation.
+        
+        Risk assessment hierarchy:
+        1. Breaking changes -> CRITICAL (automatic)
+        2. Many warnings or keys -> HIGH
+        3. Some warnings or keys -> MEDIUM
+        4. Minor changes -> LOW
+        
+        NOTE: Large scale (>1000 keys) automatically elevates to HIGH risk
+        due to potential impact breadth.
+        """
         if len(breaking_changes) > 0:
             return RollbackRisk.CRITICAL
             

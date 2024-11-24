@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "datapunk-lake"
 version = "0.1.0"
-description = "Lake service for Datapunk"
+description = "Lake service for Datapunk - data storage and processing"
 authors = ["Your Name <your.email@example.com>"]
 
 [tool.poetry.dependencies]
@@ -9,7 +9,7 @@ python = "^3.11"
 datapunk-shared = { path = "../../lib/shared" }
 fastapi = "^0.104.1"
 uvicorn = "^0.24.0"
-asyncpg = "^0.29.0"
+asyncpg = "^0.28.0"
 redis = "^5.0.1"
 numpy = "^1.26.2"
 scipy = "^1.11.4"

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="DataPunk Nexus Service")
+app = FastAPI(title="DataPunk Stream Service")
 
 # Configure CORS
 app.add_middleware(
@@ -18,4 +18,4 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8002)
+    uvicorn.run(app, host="0.0.0.0", port=8001) 

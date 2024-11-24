@@ -1,0 +1,28 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'consul'
+    consul_sd_configs:
+      - server: 'consul:8500'
+        services: []
+    relabel_configs:
+      - source_labels: [__meta_consul_service]
+        target_label: service
+      - source_labels: [__meta_consul_service_id]
+        target_label: service_id
+      - source_labels: [__meta_consul_dc]
+        target_label: dc
+      - source_labels: [__meta_consul_tags]
+        target_label: tags
+
+  - job_name: 'datapunk-services'
+    metrics_path: '/metrics'
+    consul_sd_configs:
+      - server: 'consul:8500'
+        services: ['lake', 'stream', 'cortex', 'forge', 'nexus'] 

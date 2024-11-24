@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any, Callable, Awaitable
+from typing import Optional, Dict, Any, Callable, Awaitable, Type
 from dataclasses import dataclass, field
 from aiohttp import web
 import asyncio
@@ -56,17 +56,19 @@ class RestServer:
         self,
         config: RestServerConfig,
         security_validator: Optional[SecurityValidator] = None,
-        health_check: Optional[HealthCheck] = None
+        health_check: Optional[HealthCheck] = None,
+        metrics_collector: Optional[MetricsCollector] = None
     ):
         self.config = config
         self.security_validator = security_validator
         self.health_check = health_check
-        self.app = web.Application(
-            client_max_size=config.max_request_size
-        )
+        self.metrics = metrics_collector
         self.rate_limiter = RateLimiter(
             config.rate_limit_requests,
             config.rate_limit_burst
+        )
+        self.app = web.Application(
+            client_max_size=config.max_request_size
         )
         self._setup_middleware()
         self._setup_routes()
@@ -221,7 +223,7 @@ class RestServer:
             )
             ssl_context.verify_mode = ssl.CERT_REQUIRED
 
-        # Start the server
+        # Start server
         self.runner = web.AppRunner(self.app)
         await self.runner.setup()
         
@@ -233,10 +235,16 @@ class RestServer:
         )
         
         await site.start()
+        
+        if self.metrics:
+            await self.metrics.increment("rest.server.started")
+            
         print(f"REST server started on {self.config.host}:{self.config.port}")
 
     async def stop(self):
         """Stop the server"""
         if self.runner:
             await self.runner.cleanup()
+            if self.metrics:
+                await self.metrics.increment("rest.server.stopped")
             print("REST server stopped") 

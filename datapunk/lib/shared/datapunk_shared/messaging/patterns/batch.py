@@ -1,206 +1,233 @@
-from typing import List, Dict, Any, Optional, Callable, TypeVar, Generic
+from typing import Optional, Dict, Any, List, Generic, TypeVar, Callable
 from dataclasses import dataclass
 import asyncio
 from datetime import datetime, timedelta
-from ..queue.manager import QueueManager
+from enum import Enum
 from ...monitoring import MetricsCollector
 
-T = TypeVar('T')
+T = TypeVar('T')  # Type of message
+R = TypeVar('R')  # Type of result
+
+class BatchTrigger(Enum):
+    """Batch processing triggers"""
+    SIZE = "size"           # Trigger on batch size
+    TIMEOUT = "timeout"     # Trigger on time elapsed
+    BOTH = "both"          # Trigger on either condition
+    ALL = "all"            # Trigger when both conditions met
 
 @dataclass
 class BatchConfig:
     """Configuration for batch processing"""
-    max_size: int = 100
-    max_wait: float = 1.0  # seconds
-    min_size: int = 1
-    process_timeout: float = 30.0  # seconds
-    retry_count: int = 3
+    max_size: int = 100  # Maximum batch size
+    max_wait: float = 5.0  # Maximum wait time in seconds
+    trigger: BatchTrigger = BatchTrigger.BOTH
+    retry_failed: bool = True
+    max_retries: int = 3
     retry_delay: float = 1.0  # seconds
     enable_partial_batches: bool = True
-    enable_ordered_processing: bool = False
-    buffer_size: int = 1000
+    enable_parallel_processing: bool = True
+    max_concurrent_batches: int = 5
+    compression_threshold: int = 1024  # bytes
 
-class BatchProcessor(Generic[T]):
-    """Handles batch message processing"""
+class BatchProcessor(Generic[T, R]):
+    """Handles batch processing of messages"""
     def __init__(
         self,
         config: BatchConfig,
-        queue_manager: QueueManager,
+        processor: Callable[[List[T]], List[R]],
         metrics_collector: Optional[MetricsCollector] = None
     ):
         self.config = config
-        self.queue_manager = queue_manager
+        self.processor = processor
         self.metrics = metrics_collector
-        self._buffer = asyncio.Queue(maxsize=config.buffer_size)
-        self._processing = False
-        self._batch_task: Optional[asyncio.Task] = None
         self._current_batch: List[T] = []
-        self._last_process_time = datetime.utcnow()
-        self._batch_lock = asyncio.Lock()
+        self._batch_start: Optional[datetime] = None
+        self._processing = False
+        self._lock = asyncio.Lock()
+        self._semaphore = asyncio.Semaphore(config.max_concurrent_batches)
+        self._batch_task: Optional[asyncio.Task] = None
 
     async def start(self):
-        """Start batch processing"""
-        if self._processing:
-            return
+        """Start batch processor"""
         self._processing = True
-        self._batch_task = asyncio.create_task(self._process_batches())
+        self._batch_task = asyncio.create_task(self._batch_loop())
 
     async def stop(self):
-        """Stop batch processing"""
+        """Stop batch processor"""
         self._processing = False
         if self._batch_task:
-            await self._batch_task
-            self._batch_task = None
+            self._batch_task.cancel()
+            try:
+                await self._batch_task
+            except asyncio.CancelledError:
+                pass
+            # Process any remaining messages
+            if self._current_batch:
+                await self._process_batch(self._current_batch)
 
-    async def add_item(self, item: T):
-        """Add item to batch processing queue"""
-        await self._buffer.put(item)
+    async def add_message(self, message: T):
+        """Add message to current batch"""
+        async with self._lock:
+            if not self._batch_start:
+                self._batch_start = datetime.utcnow()
 
-    async def _process_batches(self):
+            self._current_batch.append(message)
+
+            if self._should_process_batch():
+                await self._process_current_batch()
+
+    async def _batch_loop(self):
         """Main batch processing loop"""
         while self._processing:
             try:
-                batch = await self._collect_batch()
-                if batch:
-                    await self._process_batch(batch)
+                if self._batch_start:
+                    elapsed = (datetime.utcnow() - self._batch_start).total_seconds()
+                    if elapsed >= self.config.max_wait:
+                        async with self._lock:
+                            if self._current_batch:  # Check again under lock
+                                await self._process_current_batch()
+                
+                await asyncio.sleep(0.1)  # Small delay to prevent busy loop
+                
+            except asyncio.CancelledError:
+                break
             except Exception as e:
                 if self.metrics:
                     await self.metrics.increment(
-                        "batch.processing.error",
+                        "batch.loop.error",
                         tags={"error": str(e)}
                     )
-                # Sleep briefly to prevent tight loop on error
-                await asyncio.sleep(0.1)
 
-    async def _collect_batch(self) -> List[T]:
-        """Collect items into a batch"""
-        batch = []
-        start_time = datetime.utcnow()
+    def _should_process_batch(self) -> bool:
+        """Check if batch should be processed"""
+        if not self._current_batch:
+            return False
 
-        while len(batch) < self.config.max_size:
-            # Check if we've waited long enough
-            if batch and (datetime.utcnow() - start_time).total_seconds() >= self.config.max_wait:
-                break
+        size_trigger = len(self._current_batch) >= self.config.max_size
+        time_trigger = False
+        
+        if self._batch_start:
+            elapsed = (datetime.utcnow() - self._batch_start).total_seconds()
+            time_trigger = elapsed >= self.config.max_wait
 
-            try:
-                # Try to get an item with timeout
-                item = await asyncio.wait_for(
-                    self._buffer.get(),
-                    timeout=max(0, self.config.max_wait - (datetime.utcnow() - start_time).total_seconds())
-                )
-                batch.append(item)
-            except asyncio.TimeoutError:
-                break
+        if self.config.trigger == BatchTrigger.SIZE:
+            return size_trigger
+        elif self.config.trigger == BatchTrigger.TIMEOUT:
+            return time_trigger
+        elif self.config.trigger == BatchTrigger.BOTH:
+            return size_trigger or time_trigger
+        else:  # BatchTrigger.ALL
+            return size_trigger and time_trigger
 
-        # Return batch if it meets minimum size or partial batches are enabled
-        if len(batch) >= self.config.min_size or (
-            batch and self.config.enable_partial_batches
-        ):
-            return batch
-        return []
+    async def _process_current_batch(self):
+        """Process current batch of messages"""
+        batch = self._current_batch
+        self._current_batch = []
+        self._batch_start = None
+        
+        if batch:  # Double check we have messages
+            await self._process_batch(batch)
 
     async def _process_batch(self, batch: List[T]):
-        """Process a batch of items"""
-        async with self._batch_lock:
-            try:
-                start_time = datetime.utcnow()
-                
-                # Process with timeout
+        """Process a batch of messages"""
+        if not batch:
+            return
+
+        async with self._semaphore:
+            start_time = datetime.utcnow()
+            retries = 0
+            
+            while retries <= self.config.max_retries:
                 try:
-                    await asyncio.wait_for(
-                        self._handle_batch(batch),
-                        timeout=self.config.process_timeout
+                    # Process batch
+                    results = await asyncio.get_event_loop().run_in_executor(
+                        None, self.processor, batch
                     )
                     
+                    duration = (datetime.utcnow() - start_time).total_seconds()
+                    
                     if self.metrics:
-                        duration = (datetime.utcnow() - start_time).total_seconds()
                         await self.metrics.timing(
                             "batch.processing.duration",
                             duration,
-                            tags={"size": len(batch)}
+                            tags={
+                                "size": len(batch),
+                                "retries": retries
+                            }
                         )
                         await self.metrics.increment(
                             "batch.processing.success",
                             tags={"size": len(batch)}
                         )
-                        
-                except asyncio.TimeoutError:
+                    
+                    return results
+
+                except Exception as e:
+                    retries += 1
+                    
                     if self.metrics:
                         await self.metrics.increment(
-                            "batch.processing.timeout",
-                            tags={"size": len(batch)}
+                            "batch.processing.error",
+                            tags={
+                                "error": str(e),
+                                "retry": retries
+                            }
                         )
-                    raise
                     
-            except Exception as e:
-                if self.metrics:
-                    await self.metrics.increment(
-                        "batch.processing.failure",
-                        tags={"error": str(e), "size": len(batch)}
+                    if retries > self.config.max_retries:
+                        if self.config.enable_partial_batches and len(batch) > 1:
+                            # Split batch and retry
+                            mid = len(batch) // 2
+                            await self._process_batch(batch[:mid])
+                            await self._process_batch(batch[mid:])
+                            return
+                        raise  # Re-raise the last error
+                        
+                    # Wait before retry
+                    await asyncio.sleep(
+                        self.config.retry_delay * (2 ** (retries - 1))
                     )
-                # Handle failed batch
-                await self._handle_failed_batch(batch, e)
 
-    async def _handle_batch(self, batch: List[T]):
-        """Override this method to implement batch processing logic"""
-        raise NotImplementedError()
+    def _compress_batch(self, batch: List[T]) -> bytes:
+        """Compress batch data if it exceeds threshold"""
+        data = self._serialize_batch(batch)
+        if len(data) > self.config.compression_threshold:
+            import zlib
+            return zlib.compress(data)
+        return data
 
-    async def _handle_failed_batch(self, batch: List[T], error: Exception):
-        """Handle failed batch processing"""
-        if len(batch) == 1 or not self.config.enable_partial_batches:
-            # Single item or no partial processing - send to DLQ
-            await self._send_to_dlq(batch, error)
-            return
-
-        # Split batch and retry smaller batches
-        mid = len(batch) // 2
-        await self._retry_batch(batch[:mid])
-        await self._retry_batch(batch[mid:])
-
-    async def _retry_batch(self, batch: List[T], retry_count: int = 0):
-        """Retry processing a batch"""
-        if retry_count >= self.config.retry_count:
-            await self._send_to_dlq(batch, Exception("Max retries exceeded"))
-            return
-
-        # Add exponential backoff delay
-        await asyncio.sleep(self.config.retry_delay * (2 ** retry_count))
-
+    def _decompress_batch(self, data: bytes) -> List[T]:
+        """Decompress batch data"""
         try:
-            await self._process_batch(batch)
-        except Exception as e:
-            await self._retry_batch(batch, retry_count + 1)
+            import zlib
+            data = zlib.decompress(data)
+        except zlib.error:
+            pass  # Data wasn't compressed
+        return self._deserialize_batch(data)
 
-    async def _send_to_dlq(self, batch: List[T], error: Exception):
-        """Send failed items to Dead Letter Queue"""
-        try:
-            # Format DLQ message
-            dlq_message = {
-                "items": batch,
-                "error": str(error),
-                "timestamp": datetime.utcnow().isoformat(),
-                "retry_count": self.config.retry_count
+    def _serialize_batch(self, batch: List[T]) -> bytes:
+        """Serialize batch for storage/transmission"""
+        import pickle
+        return pickle.dumps(batch)
+
+    def _deserialize_batch(self, data: bytes) -> List[T]:
+        """Deserialize batch from storage/transmission"""
+        import pickle
+        return pickle.loads(data)
+
+    async def get_stats(self) -> Dict[str, Any]:
+        """Get batch processor statistics"""
+        return {
+            "current_batch_size": len(self._current_batch),
+            "batch_age": (
+                (datetime.utcnow() - self._batch_start).total_seconds()
+                if self._batch_start else 0
+            ),
+            "is_processing": self._processing,
+            "config": {
+                "max_size": self.config.max_size,
+                "max_wait": self.config.max_wait,
+                "trigger": self.config.trigger.value,
+                "max_retries": self.config.max_retries
             }
-            
-            # Send to DLQ
-            await self.queue_manager.publish(
-                routing_key="dlq",
-                message=dlq_message,
-                headers={"error": str(error)}
-            )
-            
-            if self.metrics:
-                await self.metrics.increment(
-                    "batch.dlq.sent",
-                    tags={
-                        "error": str(error),
-                        "size": len(batch)
-                    }
-                )
-                
-        except Exception as e:
-            if self.metrics:
-                await self.metrics.increment(
-                    "batch.dlq.error",
-                    tags={"error": str(e)}
-                ) 
+        } 

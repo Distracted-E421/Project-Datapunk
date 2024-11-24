@@ -1,35 +1,55 @@
-FROM datapunk-base-python:latest as builder
+FROM datapunk-base-python:dev as builder
 
 WORKDIR /app
 
+USER app
+
 # Copy service-specific files
-COPY pyproject.toml poetry.lock ./
-COPY src/ ./src/
-COPY config/ ./config/
+COPY --chown=app:datapunk pyproject.toml poetry.lock ./
+COPY --chown=app:datapunk src/ ./src/
+COPY --chown=app:datapunk scripts/ ./scripts/
 
 # Install dependencies
 RUN poetry install --no-dev
 
-# Runtime stage
-FROM datapunk-base-python:latest as runtime
+# Development stage
+FROM datapunk-base-python:dev as development
 
 WORKDIR /app
 
+USER app
+
+# Copy service-specific files
+COPY --chown=app:datapunk pyproject.toml poetry.lock ./
+COPY --chown=app:datapunk src/ ./src/
+COPY --chown=app:datapunk scripts/ ./scripts/
+
+# Install all dependencies including dev dependencies
+RUN poetry install
+
+# Set up development environment
+ENV PYTHONPATH=/app/src
+ENV DEBUG=1
+ENV ENVIRONMENT=development
+
+# Set up debugger port
+EXPOSE 5680
+
+# Runtime stage
+FROM datapunk-base-python:dev as runtime
+
+WORKDIR /app
+
+USER app
+
 # Copy built files from builder
-COPY --from=builder /app/src ./src
-COPY --from=builder /app/config ./config
-COPY --from=builder ${PYSETUP_PATH}/.venv ${PYSETUP_PATH}/.venv
+COPY --chown=app:datapunk --from=builder /app/src ./src
+COPY --chown=app:datapunk --from=builder /app/scripts ./scripts
+COPY --chown=app:datapunk --from=builder ${PYSETUP_PATH}/.venv ${PYSETUP_PATH}/.venv
 
 # Set up healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8002/health || exit 1
-
-# Create non-root user
-RUN addgroup --system --gid 1003 datapunk && \
-    adduser --system --uid 1003 nexus && \
-    chown -R nexus:datapunk /app
-
-USER nexus
+    CMD ./scripts/healthcheck.sh
 
 EXPOSE 8002
 

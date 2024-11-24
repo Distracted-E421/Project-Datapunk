@@ -1,3 +1,12 @@
+"""Role-based access control (RBAC) API endpoints.
+
+This module implements FastAPI routes for managing role-based access control,
+including role creation, assignment, revocation, and auditing capabilities.
+
+NOTE: This implementation assumes a distributed system where role management
+operations need to be atomic and consistent across multiple services.
+"""
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List, Dict, Optional
 from datetime import datetime
@@ -7,8 +16,11 @@ from .core.access_control import Role, ResourcePolicy, Permission
 router = APIRouter(prefix="/auth/roles", tags=["roles"])
 
 async def get_role_manager() -> RoleManager:
-    # Initialize and return RoleManager instance
-    # This would be properly configured in your app startup
+    # TODO: Implement proper dependency injection for RoleManager
+    # Should consider:
+    # - Database connection pooling
+    # - Caching strategy for frequently accessed roles
+    # - Distributed locking mechanism for concurrent operations
     pass
 
 @router.post("/")
@@ -17,11 +29,17 @@ async def create_role(
     created_by: str,
     role_manager: RoleManager = Depends(get_role_manager)
 ) -> Dict:
-    """Create a new role."""
+    """Create a new role in the system.
+    
+    IMPORTANT: Role names must be unique across the entire system to prevent
+    privilege escalation vulnerabilities. This operation should be restricted
+    to administrative users only.
+    """
     try:
         success = await role_manager.create_role(role, created_by)
         return {"success": success, "role": role.name}
     except Exception as e:
+        # NOTE: Consider more granular error handling based on exception types
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/assign")
@@ -33,7 +51,14 @@ async def assign_role(
     metadata: Optional[Dict] = None,
     role_manager: RoleManager = Depends(get_role_manager)
 ) -> Dict:
-    """Assign role to user."""
+    """Assign a role to a user with optional expiration and metadata.
+    
+    The metadata parameter allows for storing context-specific information
+    about the assignment (e.g., reason for assignment, approval references).
+    
+    SECURITY: This endpoint should verify that the assigner has sufficient
+    privileges to assign the specified role.
+    """
     try:
         assignment = RoleAssignment(
             user_id=user_id,
@@ -84,7 +109,17 @@ async def create_role_with_audit(
     request: Request,
     role_manager: RoleManager = Depends(get_role_manager)
 ) -> Dict:
-    """Create a new role with audit logging."""
+    """Create a new role with comprehensive audit logging.
+    
+    This endpoint extends the basic role creation with additional
+    audit context including IP address and session information.
+    
+    NOTE: The session_id is expected to be available in the request session.
+    If using a custom session management system, ensure this is properly integrated.
+    
+    COMPLIANCE: This endpoint helps meet regulatory requirements for
+    maintaining audit trails of security-critical operations.
+    """
     try:
         success = await role_manager.create_role_with_audit(
             role,

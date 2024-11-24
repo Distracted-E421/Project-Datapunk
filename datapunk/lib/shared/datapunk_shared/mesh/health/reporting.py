@@ -48,154 +48,268 @@ class ReportConfig:
     auto_cleanup: bool = True
 
 class HealthReporter:
-    """Generates and manages health reports"""
-    def __init__(self, config: ReportConfig):
+    """Handles health report generation and formatting"""
+    def __init__(
+        self,
+        config: ReportConfig,
+        metrics_collector: Optional[MetricsCollector] = None
+    ):
         self.config = config
-        self._ensure_report_dir()
-        self._report_cache: Dict[str, Any] = {}
-        self._trend_data: Dict[str, List[HealthMetrics]] = {}
-        
-    def _ensure_report_dir(self):
-        """Ensure report directory exists"""
-        Path(self.config.report_dir).mkdir(parents=True, exist_ok=True)
+        self.metrics = metrics_collector
+        Path(config.report_dir).mkdir(parents=True, exist_ok=True)
 
     async def generate_report(
         self,
-        metrics: Dict[str, List[HealthMetrics]],
         report_type: ReportType,
         format: Optional[ReportFormat] = None,
         start_time: Optional[datetime] = None,
-        end_time: Optional[datetime] = None
+        end_time: Optional[datetime] = None,
+        services: Optional[List[str]] = None
     ) -> Union[str, Dict]:
         """Generate health report"""
         format = format or self.config.default_format
         end_time = end_time or datetime.utcnow()
         start_time = start_time or (end_time - timedelta(hours=24))
 
-        # Filter metrics by time range
-        filtered_metrics = self._filter_metrics_by_time(
-            metrics, start_time, end_time
-        )
+        try:
+            # Generate base report data
+            if report_type == ReportType.SUMMARY:
+                report_data = await self._generate_summary_report(services)
+            elif report_type == ReportType.DETAILED:
+                report_data = await self._generate_detailed_report(services)
+            elif report_type == ReportType.METRICS:
+                report_data = await self._generate_metrics_report(start_time, end_time, services)
+            elif report_type == ReportType.ALERTS:
+                report_data = await self._generate_alerts_report(start_time, end_time, services)
+            elif report_type == ReportType.TRENDS:
+                report_data = await self._generate_trends_report(services)
+            else:
+                raise ValueError(f"Unsupported report type: {report_type}")
 
-        # Generate appropriate report
-        if report_type == ReportType.SUMMARY:
-            report_data = await self._generate_summary(filtered_metrics)
-        elif report_type == ReportType.DETAILED:
-            report_data = await self._generate_detailed_report(filtered_metrics)
-        elif report_type == ReportType.METRICS:
-            report_data = await self._generate_metrics_report(filtered_metrics)
-        elif report_type == ReportType.ALERTS:
-            report_data = await self._generate_alerts_report(filtered_metrics)
-        elif report_type == ReportType.TRENDS:
-            report_data = await self._generate_trends_report(filtered_metrics)
-        else:
-            raise ValueError(f"Unsupported report type: {report_type}")
+            # Format report
+            formatted_report = await self._format_report(report_data, format)
 
-        # Format report
-        return await self._format_report(report_data, format)
+            # Save report if directory configured
+            if self.config.report_dir:
+                await self._save_report(formatted_report, report_type, format)
 
-    async def _generate_summary(
+            if self.metrics:
+                await self.metrics.increment(
+                    "health.report.generated",
+                    tags={
+                        "type": report_type.value,
+                        "format": format.value
+                    }
+                )
+
+            return formatted_report
+
+        except Exception as e:
+            if self.metrics:
+                await self.metrics.increment(
+                    "health.report.error",
+                    tags={
+                        "type": report_type.value,
+                        "error": str(e)
+                    }
+                )
+            raise
+
+    async def _generate_summary_report(
         self,
-        metrics: Dict[str, List[HealthMetrics]]
+        services: Optional[List[str]] = None
     ) -> Dict[str, Any]:
-        """Generate summary report"""
-        summary = {
+        """Generate summary health report"""
+        report = {
             "timestamp": datetime.utcnow().isoformat(),
             "services": {},
-            "overall_health": "healthy",
-            "total_services": len(metrics),
-            "healthy_services": 0,
-            "alerts": []
+            "overall_status": "healthy",
+            "metrics": {
+                "total_services": 0,
+                "healthy_services": 0,
+                "degraded_services": 0,
+                "unhealthy_services": 0
+            }
         }
 
-        for service_id, service_metrics in metrics.items():
+        # Collect service health data
+        for service_id in (services or self._services.keys()):
+            service_metrics = await self._get_service_metrics(service_id)
             if not service_metrics:
                 continue
 
-            latest = service_metrics[-1]
-            service_summary = {
-                "status": latest.status.value,
-                "uptime": latest.uptime,
-                "error_rate": latest.error_rate,
-                "last_check": latest.last_check.isoformat()
+            latest_metric = service_metrics[-1]
+            report["services"][service_id] = {
+                "status": latest_metric.status.value,
+                "error_rate": latest_metric.error_rate,
+                "response_time": latest_metric.response_time,
+                "last_check": latest_metric.last_check.isoformat()
             }
 
-            if latest.status == "healthy":
-                summary["healthy_services"] += 1
+            # Update metrics
+            report["metrics"]["total_services"] += 1
+            if latest_metric.status == HealthStatus.HEALTHY:
+                report["metrics"]["healthy_services"] += 1
+            elif latest_metric.status == HealthStatus.DEGRADED:
+                report["metrics"]["degraded_services"] += 1
+            else:
+                report["metrics"]["unhealthy_services"] += 1
 
-            if latest.error_rate > 0.1:  # 10% error rate threshold
-                summary["alerts"].append({
-                    "service": service_id,
-                    "message": f"High error rate: {latest.error_rate*100}%",
-                    "level": "warning"
-                })
+        # Determine overall status
+        if report["metrics"]["unhealthy_services"] > 0:
+            report["overall_status"] = "unhealthy"
+        elif report["metrics"]["degraded_services"] > 0:
+            report["overall_status"] = "degraded"
 
-            summary["services"][service_id] = service_summary
-
-        summary["health_percentage"] = (
-            (summary["healthy_services"] / summary["total_services"]) * 100
-            if summary["total_services"] > 0 else 0
-        )
-
-        return summary
+        return report
 
     async def _generate_detailed_report(
         self,
-        metrics: Dict[str, List[HealthMetrics]]
+        services: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """Generate detailed health report"""
         report = {
             "timestamp": datetime.utcnow().isoformat(),
             "services": {},
-            "system_metrics": {
-                "total_memory_usage": 0,
-                "total_cpu_usage": 0,
-                "total_connections": 0
-            }
+            "alerts": [],
+            "trends": {}
         }
 
-        for service_id, service_metrics in metrics.items():
+        for service_id in (services or self._services.keys()):
+            service_metrics = await self._get_service_metrics(service_id)
             if not service_metrics:
                 continue
 
-            # Calculate service statistics
-            df = pd.DataFrame([vars(m) for m in service_metrics])
-            
-            service_report = {
-                "current_status": service_metrics[-1].status.value,
+            latest_metric = service_metrics[-1]
+            report["services"][service_id] = {
+                "current_status": latest_metric.status.value,
                 "metrics": {
                     "error_rate": {
-                        "current": service_metrics[-1].error_rate,
-                        "mean": df["error_rate"].mean(),
-                        "max": df["error_rate"].max(),
-                        "std": df["error_rate"].std()
+                        "current": latest_metric.error_rate,
+                        "threshold": self.config.error_threshold
                     },
                     "response_time": {
-                        "current": service_metrics[-1].response_time,
-                        "mean": df["response_time"].mean(),
-                        "p95": df["response_time"].quantile(0.95),
-                        "max": df["response_time"].max()
+                        "current": latest_metric.response_time,
+                        "threshold": self.config.response_time_threshold
                     },
                     "resource_usage": {
-                        "memory": service_metrics[-1].memory_usage,
-                        "cpu": service_metrics[-1].cpu_usage,
-                        "connections": service_metrics[-1].active_connections
+                        "memory": latest_metric.memory_usage,
+                        "cpu": latest_metric.cpu_usage,
+                        "connections": latest_metric.connections
                     }
                 },
-                "trends": {
-                    "error_rates": df["error_rate"].tolist()[-self.config.max_trend_points:],
-                    "response_times": df["response_time"].tolist()[-self.config.max_trend_points:]
-                }
+                "last_check": latest_metric.last_check.isoformat()
             }
 
-            report["services"][service_id] = service_report
-            
-            # Update system totals
-            report["system_metrics"]["total_memory_usage"] += service_metrics[-1].memory_usage
-            report["system_metrics"]["total_cpu_usage"] += service_metrics[-1].cpu_usage
-            report["system_metrics"]["total_connections"] += service_metrics[-1].active_connections
+            # Add alerts
+            alerts = await self._get_service_alerts(service_id)
+            report["alerts"].extend(alerts)
+
+            # Add trends
+            report["trends"][service_id] = await self._calculate_trends(service_metrics)
 
         return report
+
+    async def _save_report(
+        self,
+        report: Union[str, Dict],
+        report_type: ReportType,
+        format: ReportFormat
+    ):
+        """Save report to file"""
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        filename = f"{report_type.value}_{timestamp}.{format.value}"
+        filepath = Path(self.config.report_dir) / filename
+
+        try:
+            if isinstance(report, dict):
+                with open(filepath, 'w') as f:
+                    json.dump(report, f, indent=2)
+            else:
+                with open(filepath, 'w') as f:
+                    f.write(report)
+
+            # Cleanup old reports if enabled
+            if self.config.auto_cleanup:
+                await self._cleanup_old_reports()
+
+        except Exception as e:
+            if self.metrics:
+                await self.metrics.increment(
+                    "health.report.save_error",
+                    tags={"error": str(e)}
+                )
+            raise
+
+    async def _cleanup_old_reports(self):
+        """Clean up old reports"""
+        if not self.config.retention_days:
+            return
+
+        cutoff_time = datetime.utcnow() - timedelta(days=self.config.retention_days)
+        report_dir = Path(self.config.report_dir)
+
+        for report_file in report_dir.glob("*.*"):
+            try:
+                # Extract timestamp from filename
+                timestamp_str = report_file.stem.split("_")[-2:]
+                timestamp = datetime.strptime("_".join(timestamp_str), "%Y%m%d_%H%M%S")
+
+                if timestamp < cutoff_time:
+                    report_file.unlink()
+
+            except (ValueError, IndexError):
+                continue  # Skip files that don't match expected format
+
+    async def _calculate_trends(
+        self,
+        metrics: List[HealthMetrics]
+    ) -> Dict[str, Any]:
+        """Calculate trends from metrics"""
+        if not metrics:
+            return {}
+
+        # Calculate moving averages
+        window_size = min(len(metrics), 10)
+        error_rates = [m.error_rate for m in metrics]
+        response_times = [m.response_time for m in metrics]
+
+        return {
+            "error_rate": {
+                "trend": self._calculate_moving_average(error_rates, window_size),
+                "direction": self._calculate_trend_direction(error_rates)
+            },
+            "response_time": {
+                "trend": self._calculate_moving_average(response_times, window_size),
+                "direction": self._calculate_trend_direction(response_times)
+            }
+        }
+
+    def _calculate_moving_average(
+        self,
+        values: List[float],
+        window_size: int
+    ) -> List[float]:
+        """Calculate moving average of values"""
+        result = []
+        for i in range(len(values)):
+            window_start = max(0, i - window_size + 1)
+            window = values[window_start:i + 1]
+            result.append(sum(window) / len(window))
+        return result
+
+    def _calculate_trend_direction(self, values: List[float]) -> str:
+        """Calculate trend direction (improving, stable, degrading)"""
+        if len(values) < 2:
+            return "stable"
+
+        recent_avg = sum(values[-3:]) / min(3, len(values))
+        older_avg = sum(values[:-3]) / max(1, len(values) - 3)
+
+        diff = recent_avg - older_avg
+        if abs(diff) < 0.05:  # 5% threshold
+            return "stable"
+        return "improving" if diff < 0 else "degrading"
 
     async def _generate_metrics_report(
         self,

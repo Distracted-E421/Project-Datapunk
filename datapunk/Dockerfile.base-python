@@ -23,6 +23,12 @@ RUN apt-get update \
         libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Create app user
+RUN groupadd -r datapunk && \
+    useradd -r -g datapunk app && \
+    mkdir -p /app && \
+    chown -R app:datapunk /app
+
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
@@ -30,7 +36,7 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 WORKDIR $PYSETUP_PATH
 
 # Copy shared library
-COPY lib/shared/pyproject.toml lib/shared/poetry.lock ./
+COPY --chown=app:datapunk lib/shared/pyproject.toml lib/shared/poetry.lock ./
 
 # Install dependencies
 RUN poetry install --no-root --no-dev
@@ -47,8 +53,7 @@ FROM python-base as production
 ENV FASTAPI_ENV=production
 
 # Copy only necessary files
-COPY lib/shared/datapunk_shared ./datapunk_shared
+COPY --chown=app:datapunk lib/shared/datapunk_shared ./datapunk_shared
 RUN poetry install --no-dev
 
 WORKDIR /app
-USER app 

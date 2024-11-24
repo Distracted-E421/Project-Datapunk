@@ -9,28 +9,53 @@ from ...exceptions import MigrationError
 logger = structlog.get_logger()
 
 class MigrationStrategy(Enum):
-    """Strategy for policy migration."""
-    IMMEDIATE = "immediate"  # Apply changes immediately
-    GRADUAL = "gradual"     # Phase in changes
-    PARALLEL = "parallel"   # Run old and new simultaneously
+    """
+    Policy migration strategies aligned with organizational risk tolerance.
+    Chosen based on policy complexity and potential business impact.
+    """
+    IMMEDIATE = "immediate"  # High-risk, instant cutover for urgent changes
+    GRADUAL = "gradual"     # Controlled rollout to manage risk and monitor impact
+    PARALLEL = "parallel"   # Zero-downtime migration with fallback capability
 
 @dataclass
 class MigrationConfig:
-    """Configuration for policy migration."""
+    """
+    Migration behavior configuration and safety controls.
+    
+    IMPORTANT: grace_period_days affects migration duration and resource usage.
+    Longer periods reduce risk but increase system overhead from running
+    parallel policies.
+    """
     strategy: MigrationStrategy
-    grace_period_days: int = 30
-    allow_rollback: bool = True
-    validate_before_apply: bool = True
-    notify_affected_users: bool = True
-    backup_policies: bool = True
+    grace_period_days: int = 30  # Duration for gradual/parallel migrations
+    allow_rollback: bool = True  # Whether to permit breaking changes
+    validate_before_apply: bool = True  # Pre-migration validation
+    notify_affected_users: bool = True  # User communication
+    backup_policies: bool = True  # Policy state preservation
 
 class PolicyMigrator:
-    """Handles policy version migrations."""
+    """
+    Orchestrates policy version migrations with safety controls and monitoring.
+    
+    Supports three migration patterns:
+    1. Immediate cutover for urgent/simple changes
+    2. Gradual rollout for complex changes
+    3. Parallel operation for zero-downtime migrations
+    
+    IMPORTANT: Requires configured cache and metrics clients for state management
+    and observability.
+    
+    NOTE: All operations are logged for audit trail and debugging.
+    """
     
     def __init__(self,
                  cache_client,
                  metrics_client,
                  config: MigrationConfig):
+        """
+        Initialize migrator with required dependencies.
+        Cache client must support atomic operations for policy state management.
+        """
         self.cache = cache_client
         self.metrics = metrics_client
         self.config = config
@@ -40,37 +65,37 @@ class PolicyMigrator:
                            old_policy: AdvancedKeyPolicy,
                            new_policy: AdvancedKeyPolicy,
                            affected_keys: List[str]) -> bool:
-        """Migrate from old policy to new policy."""
+        """
+        Execute policy migration according to configured strategy.
+        
+        Migration workflow:
+        1. Optional validation of compatibility
+        2. Optional backup of current state
+        3. Strategy-specific migration execution
+        4. Optional user notification
+        
+        IMPORTANT: Failures are logged and tracked in metrics for incident response.
+        Returns False if migration fails but can be retried.
+        
+        NOTE: Large numbers of affected keys may impact performance.
+        Consider batch processing for gradual migrations.
+        """
         try:
-            # Validate new policy
+            # Safety checks and preparation
             if self.config.validate_before_apply:
                 await self._validate_migration(old_policy, new_policy)
             
-            # Backup existing policy
             if self.config.backup_policies:
                 await self._backup_policy(old_policy)
             
-            # Apply migration based on strategy
-            if self.config.strategy == MigrationStrategy.IMMEDIATE:
-                success = await self._immediate_migration(
-                    old_policy,
-                    new_policy,
-                    affected_keys
-                )
-            elif self.config.strategy == MigrationStrategy.GRADUAL:
-                success = await self._gradual_migration(
-                    old_policy,
-                    new_policy,
-                    affected_keys
-                )
-            else:  # PARALLEL
-                success = await self._parallel_migration(
-                    old_policy,
-                    new_policy,
-                    affected_keys
-                )
+            # Strategy-specific execution
+            success = await {
+                MigrationStrategy.IMMEDIATE: self._immediate_migration,
+                MigrationStrategy.GRADUAL: self._gradual_migration,
+                MigrationStrategy.PARALLEL: self._parallel_migration
+            }[self.config.strategy](old_policy, new_policy, affected_keys)
             
-            # Notify affected users
+            # Post-migration notification
             if success and self.config.notify_affected_users:
                 await self._notify_users(affected_keys, new_policy)
             
@@ -85,21 +110,33 @@ class PolicyMigrator:
     async def _validate_migration(self,
                                 old_policy: AdvancedKeyPolicy,
                                 new_policy: AdvancedKeyPolicy) -> None:
-        """Validate policy migration for compatibility."""
-        # Check for breaking changes
+        """
+        Validate policy changes for breaking changes and compatibility issues.
+        
+        Checks three critical areas:
+        1. Resource access reductions
+        2. Rate limit decreases
+        3. New compliance requirements
+        
+        IMPORTANT: Breaking changes are allowed only if rollback is enabled,
+        providing a safety net for risky migrations.
+        
+        NOTE: This is a conservative validation focusing on backward compatibility.
+        Additional policy-specific validation may be needed.
+        """
         breaking_changes = []
         
-        # Check resource access changes
+        # Resource access validation
         if (old_policy.allowed_resources and 
             new_policy.allowed_resources and
             not old_policy.allowed_resources.issubset(new_policy.allowed_resources)):
             breaking_changes.append("Reduced resource access")
         
-        # Check rate limit reductions
+        # Performance impact validation
         if new_policy.rate_limit < old_policy.rate_limit:
             breaking_changes.append("Reduced rate limit")
         
-        # Check compliance requirements
+        # Compliance requirement validation
         if (not old_policy.compliance and new_policy.compliance) or \
            (old_policy.compliance and new_policy.compliance and 
             new_policy.compliance.encryption_required and 
@@ -113,7 +150,14 @@ class PolicyMigrator:
                 raise MigrationError(f"Breaking changes detected: {breaking_changes}")
     
     async def _backup_policy(self, policy: AdvancedKeyPolicy) -> None:
-        """Backup existing policy before migration."""
+        """
+        Create timestamped backup of current policy state.
+        
+        IMPORTANT: Backups are stored in cache with UTC timestamp to ensure
+        consistent recovery points across timezones.
+        
+        TODO: Implement backup rotation/cleanup to prevent cache growth
+        """
         backup_key = f"policy_backup:{policy.type.value}:{datetime.utcnow().isoformat()}"
         await self.cache.set(backup_key, vars(policy))
         self.logger.info("policy_backed_up", key=backup_key)
@@ -122,7 +166,15 @@ class PolicyMigrator:
                                  old_policy: AdvancedKeyPolicy,
                                  new_policy: AdvancedKeyPolicy,
                                  affected_keys: List[str]) -> bool:
-        """Perform immediate policy migration."""
+        """
+        Perform immediate policy cutover.
+        
+        IMPORTANT: Highest risk strategy - all keys switch simultaneously.
+        Use only for urgent changes or simple policies.
+        
+        NOTE: Failures here affect all keys immediately.
+        Have rollback plan ready.
+        """
         try:
             for key in affected_keys:
                 await self.cache.set(f"policy:{key}", vars(new_policy))
@@ -141,7 +193,17 @@ class PolicyMigrator:
                                old_policy: AdvancedKeyPolicy,
                                new_policy: AdvancedKeyPolicy,
                                affected_keys: List[str]) -> bool:
-        """Perform gradual policy migration."""
+        """
+        Perform gradual policy rollout.
+        
+        Calculates daily batch size based on grace period to ensure
+        smooth distribution of migrations.
+        
+        IMPORTANT: Batch size calculation prevents both too-small batches
+        (migration takes too long) and too-large batches (too risky).
+        
+        NOTE: Progress tracking enables migration monitoring and resumption.
+        """
         try:
             batch_size = max(1, len(affected_keys) // self.config.grace_period_days)
             
@@ -167,9 +229,19 @@ class PolicyMigrator:
                                 old_policy: AdvancedKeyPolicy,
                                 new_policy: AdvancedKeyPolicy,
                                 affected_keys: List[str]) -> bool:
-        """Run old and new policies in parallel."""
+        """
+        Stage new policy alongside existing policy.
+        
+        IMPORTANT: This method only stages the migration. Actual cutover
+        requires separate orchestration after grace period.
+        
+        NOTE: Doubles cache storage requirements during migration period.
+        Monitor cache capacity.
+        
+        TODO: Implement automatic cutover scheduling and execution
+        """
         try:
-            # Store new policy alongside old
+            # Stage new policies with distinct key
             for key in affected_keys:
                 await self.cache.set(
                     f"policy:{key}:new",
@@ -177,8 +249,6 @@ class PolicyMigrator:
                 )
                 self.metrics.increment("policies_staged")
             
-            # After grace period, switch to new policy
-            # This would be triggered by a separate process
             self.logger.info("parallel_migration_staged",
                            affected_keys=len(affected_keys))
             return True
@@ -191,7 +261,12 @@ class PolicyMigrator:
     async def _notify_users(self,
                            affected_keys: List[str],
                            new_policy: AdvancedKeyPolicy) -> None:
-        """Notify affected users of policy changes."""
+        """
+        Notify affected users of policy changes.
+        
+        TODO: Implement actual notification logic using NotificationManager
+        Reference implementation in policy_notifications.py
+        """
         # Implementation would depend on notification system
         # This is a placeholder
         self.logger.info("policy_change_notification",

@@ -1,50 +1,48 @@
-from typing import Optional, Dict, Any, Callable, TypeVar, Generic, Union
+from typing import Optional, Dict, Any, Callable, TypeVar, Generic
 from dataclasses import dataclass
 import asyncio
 from datetime import datetime, timedelta
-import random
 from enum import Enum
+import random
 from ...monitoring import MetricsCollector
 
 T = TypeVar('T')
-R = TypeVar('R')
 
 class RetryStrategy(Enum):
-    """Available retry strategies"""
-    FIXED = "fixed"
-    EXPONENTIAL = "exponential"
-    LINEAR = "linear"
-    RANDOM = "random"
-    FIBONACCI = "fibonacci"
+    """Retry strategies"""
+    FIXED = "fixed"           # Fixed delay between retries
+    EXPONENTIAL = "exponential"  # Exponential backoff
+    LINEAR = "linear"         # Linear backoff
+    RANDOM = "random"         # Random delay within range
+    FIBONACCI = "fibonacci"   # Fibonacci sequence delay
 
 @dataclass
 class RetryConfig:
-    """Configuration for retry handling"""
-    max_attempts: int = 3
+    """Configuration for retry policy"""
+    max_retries: int = 3
     initial_delay: float = 1.0  # seconds
     max_delay: float = 30.0  # seconds
     strategy: RetryStrategy = RetryStrategy.EXPONENTIAL
-    jitter: bool = True
-    jitter_factor: float = 0.1
-    timeout: Optional[float] = None
-    backoff_base: float = 2.0
+    jitter: float = 0.1  # Add randomness to delay
+    timeout: float = 60.0  # Overall timeout
     retry_on_exceptions: tuple = (Exception,)
-    retry_on_results: Optional[Callable[[Any], bool]] = None
+    retry_on_status_codes: Optional[set] = None
+    backoff_factor: float = 2.0  # For exponential/linear backoff
 
-class RetryState:
-    """Tracks state for retry operations"""
-    def __init__(self):
-        self.attempts: int = 0
-        self.first_attempt: Optional[datetime] = None
-        self.last_attempt: Optional[datetime] = None
-        self.last_delay: float = 0
-        self.last_error: Optional[Exception] = None
-        self.total_delay: float = 0
-        self.fibonacci_prev: int = 1
-        self.fibonacci_curr: int = 1
+class RetryError(Exception):
+    """Base class for retry errors"""
+    pass
 
-class RetryHandler(Generic[T, R]):
-    """Handles retry logic with various strategies"""
+class RetryTimeoutError(RetryError):
+    """Error when retry timeout is exceeded"""
+    pass
+
+class RetryExhaustedError(RetryError):
+    """Error when max retries are exhausted"""
+    pass
+
+class RetryPolicy(Generic[T]):
+    """Implements retry patterns with various strategies"""
     def __init__(
         self,
         config: RetryConfig,
@@ -52,158 +50,138 @@ class RetryHandler(Generic[T, R]):
     ):
         self.config = config
         self.metrics = metrics_collector
-        self._state = RetryState()
 
-    async def execute(
-        self,
-        operation: Callable[..., R],
-        *args,
-        **kwargs
-    ) -> R:
-        """Execute operation with retry logic"""
-        while True:
-            try:
-                if self._state.attempts == 0:
-                    self._state.first_attempt = datetime.utcnow()
+    def wrap(self, operation: Callable[..., T]) -> Callable[..., T]:
+        """Wrap operation with retry logic"""
+        async def wrapped(*args, **kwargs) -> T:
+            start_time = datetime.utcnow()
+            attempt = 0
+            last_error = None
 
-                self._state.attempts += 1
-                self._state.last_attempt = datetime.utcnow()
-
-                # Execute with timeout if configured
-                if self.config.timeout:
-                    result = await asyncio.wait_for(
-                        operation(*args, **kwargs),
-                        timeout=self.config.timeout
-                    )
-                else:
+            while True:
+                try:
+                    attempt += 1
                     result = await operation(*args, **kwargs)
 
-                # Check result if validator provided
-                if self.config.retry_on_results and self.config.retry_on_results(result):
-                    raise RetryableResultError(f"Retry condition met for result: {result}")
+                    # Check status code if provided
+                    if (
+                        self.config.retry_on_status_codes and
+                        hasattr(result, 'status_code') and
+                        result.status_code in self.config.retry_on_status_codes
+                    ):
+                        raise RetryError(f"Status code {result.status_code} requires retry")
 
-                # Success - record metrics and return
-                if self.metrics:
-                    await self._record_success_metrics()
-                return result
+                    # Success - record metrics and return
+                    if self.metrics:
+                        await self.metrics.increment(
+                            "retry.success",
+                            tags={
+                                "attempts": attempt,
+                                "strategy": self.config.strategy.value
+                            }
+                        )
+                    return result
 
-            except asyncio.TimeoutError as e:
-                self._state.last_error = e
-                if self.metrics:
-                    await self._record_error_metrics("timeout")
-                await self._handle_retry(e)
+                except self.config.retry_on_exceptions as e:
+                    elapsed = (datetime.utcnow() - start_time).total_seconds()
+                    last_error = e
 
-            except self.config.retry_on_exceptions as e:
-                self._state.last_error = e
-                if self.metrics:
-                    await self._record_error_metrics(e.__class__.__name__)
-                await self._handle_retry(e)
+                    # Check timeout
+                    if elapsed >= self.config.timeout:
+                        if self.metrics:
+                            await self.metrics.increment(
+                                "retry.timeout",
+                                tags={"error": str(e)}
+                            )
+                        raise RetryTimeoutError(
+                            f"Operation timed out after {elapsed:.1f}s"
+                        ) from e
 
-    async def _handle_retry(self, error: Exception):
-        """Handle retry logic and delays"""
-        if self._state.attempts >= self.config.max_attempts:
-            if self.metrics:
-                await self.metrics.increment(
-                    "retry.max_attempts_reached",
-                    tags={"error": error.__class__.__name__}
-                )
-            raise MaxRetriesExceededError(
-                f"Max retry attempts ({self.config.max_attempts}) reached",
-                original_error=error,
-                retry_state=self._state
-            )
+                    # Check max retries
+                    if attempt >= self.config.max_retries:
+                        if self.metrics:
+                            await self.metrics.increment(
+                                "retry.exhausted",
+                                tags={"error": str(e)}
+                            )
+                        raise RetryExhaustedError(
+                            f"Max retries ({self.config.max_retries}) exceeded"
+                        ) from e
 
-        delay = self._calculate_delay()
-        
-        # Apply jitter if enabled
-        if self.config.jitter:
-            jitter_range = delay * self.config.jitter_factor
-            delay += random.uniform(-jitter_range, jitter_range)
+                    # Calculate delay for next attempt
+                    delay = self._calculate_delay(attempt)
+                    
+                    if self.metrics:
+                        await self.metrics.increment(
+                            "retry.attempt",
+                            tags={
+                                "attempt": attempt,
+                                "delay": delay,
+                                "error": str(e)
+                            }
+                        )
+                    
+                    # Wait before next attempt
+                    await asyncio.sleep(delay)
 
-        delay = min(delay, self.config.max_delay)
-        self._state.last_delay = delay
-        self._state.total_delay += delay
+        return wrapped
 
-        if self.metrics:
-            await self.metrics.timing(
-                "retry.delay",
-                delay,
-                tags={"attempt": self._state.attempts}
-            )
-
-        await asyncio.sleep(delay)
-
-    def _calculate_delay(self) -> float:
+    def _calculate_delay(self, attempt: int) -> float:
         """Calculate delay based on retry strategy"""
-        attempt = self._state.attempts
-        base_delay = self.config.initial_delay
-
         if self.config.strategy == RetryStrategy.FIXED:
-            return base_delay
+            delay = self.config.initial_delay
 
         elif self.config.strategy == RetryStrategy.EXPONENTIAL:
-            return base_delay * (self.config.backoff_base ** (attempt - 1))
-
-        elif self.config.strategy == RetryStrategy.LINEAR:
-            return base_delay * attempt
-
-        elif self.config.strategy == RetryStrategy.RANDOM:
-            max_delay = base_delay * (self.config.backoff_base ** (attempt - 1))
-            return random.uniform(base_delay, max_delay)
-
-        elif self.config.strategy == RetryStrategy.FIBONACCI:
-            # Calculate next Fibonacci number
-            next_fib = self._state.fibonacci_curr + self._state.fibonacci_prev
-            self._state.fibonacci_prev = self._state.fibonacci_curr
-            self._state.fibonacci_curr = next_fib
-            return base_delay * self._state.fibonacci_curr
-
-        return base_delay
-
-    async def _record_success_metrics(self):
-        """Record success metrics"""
-        if not self.metrics:
-            return
-
-        await self.metrics.increment(
-            "retry.success",
-            tags={"attempts": self._state.attempts}
-        )
-        
-        if self._state.attempts > 1:
-            await self.metrics.timing(
-                "retry.recovery_time",
-                (datetime.utcnow() - self._state.first_attempt).total_seconds(),
-                tags={"attempts": self._state.attempts}
+            delay = self.config.initial_delay * (
+                self.config.backoff_factor ** (attempt - 1)
             )
 
-    async def _record_error_metrics(self, error_type: str):
-        """Record error metrics"""
+        elif self.config.strategy == RetryStrategy.LINEAR:
+            delay = self.config.initial_delay * attempt
+
+        elif self.config.strategy == RetryStrategy.RANDOM:
+            max_delay = min(
+                self.config.initial_delay * attempt,
+                self.config.max_delay
+            )
+            delay = random.uniform(0, max_delay)
+
+        elif self.config.strategy == RetryStrategy.FIBONACCI:
+            delay = self._fibonacci_delay(attempt)
+
+        # Apply jitter
+        if self.config.jitter > 0:
+            jitter = random.uniform(
+                -self.config.jitter * delay,
+                self.config.jitter * delay
+            )
+            delay += jitter
+
+        # Ensure delay doesn't exceed max_delay
+        return min(delay, self.config.max_delay)
+
+    def _fibonacci_delay(self, attempt: int) -> float:
+        """Calculate Fibonacci sequence delay"""
+        def fib(n: int) -> int:
+            if n <= 0:
+                return 0
+            elif n == 1:
+                return 1
+            return fib(n - 1) + fib(n - 2)
+
+        return self.config.initial_delay * fib(attempt)
+
+    async def get_stats(self) -> Dict[str, Any]:
+        """Get retry statistics"""
         if not self.metrics:
-            return
+            return {}
 
-        await self.metrics.increment(
-            "retry.error",
-            tags={
-                "error": error_type,
-                "attempt": self._state.attempts
-            }
-        )
-
-class RetryableResultError(Exception):
-    """Error for retryable results"""
-    pass
-
-class MaxRetriesExceededError(Exception):
-    """Error when max retries are exceeded"""
-    def __init__(
-        self,
-        message: str,
-        original_error: Exception,
-        retry_state: RetryState
-    ):
-        super().__init__(message)
-        self.original_error = original_error
-        self.retry_state = retry_state
-        self.attempts = retry_state.attempts
-        self.total_delay = retry_state.total_delay 
+        return {
+            "total_retries": await self.metrics.get_count("retry.attempt"),
+            "successful_retries": await self.metrics.get_count("retry.success"),
+            "timeouts": await self.metrics.get_count("retry.timeout"),
+            "exhausted": await self.metrics.get_count("retry.exhausted"),
+            "strategy": self.config.strategy.value,
+            "max_retries": self.config.max_retries,
+            "timeout": self.config.timeout
+        } 

@@ -1,290 +1,200 @@
-from typing import Dict, List, Any, Optional, Callable, Union
+from typing import Optional, Dict, Any, Callable, Generic, TypeVar, List
 from dataclasses import dataclass
 import asyncio
-import json
 from datetime import datetime, timedelta
-from ..queue.manager import QueueManager
-from .broker import TopicConfig, SubscriptionConfig
+from enum import Enum
+from ..patterns.retry import RetryPolicy
+from ..patterns.batch import BatchProcessor
 from ...monitoring import MetricsCollector
 
+T = TypeVar('T')  # Message type
+R = TypeVar('R')  # Result type
+
+class SubscriptionMode(Enum):
+    """Subscription processing modes"""
+    INDIVIDUAL = "individual"  # Process messages individually
+    BATCH = "batch"           # Process messages in batches
+    STREAMING = "streaming"   # Stream messages continuously
+
 @dataclass
-class SubscriberConfig:
-    """Configuration for subscriber"""
-    client_id: str
-    max_concurrent: int = 10
-    prefetch_count: int = 100
-    auto_ack: bool = False
-    process_timeout: int = 30  # seconds
-    retry_delay: int = 5  # seconds
-    max_retries: int = 3
-    enable_dead_letter: bool = True
-    enable_batch_processing: bool = False
+class SubscriptionConfig:
+    """Configuration for message subscription"""
+    mode: SubscriptionMode = SubscriptionMode.INDIVIDUAL
     batch_size: int = 100
-    batch_timeout: float = 1.0  # seconds
+    batch_timeout: float = 5.0  # seconds
+    max_concurrent: int = 10
+    prefetch_count: int = 1000
+    enable_auto_ack: bool = False
+    ack_timeout: float = 30.0  # seconds
+    enable_retry: bool = True
+    max_retries: int = 3
+    retry_delay: float = 1.0  # seconds
+    dead_letter_topic: Optional[str] = None
 
-class MessageProcessor:
-    """Base class for message processing"""
-    async def process(self, message: Dict[str, Any], metadata: Dict[str, Any]) -> bool:
-        """Process a message - override this method"""
-        raise NotImplementedError()
-
-    async def process_batch(
-        self,
-        messages: List[Dict[str, Any]],
-        metadata: Dict[str, Any]
-    ) -> List[bool]:
-        """Process a batch of messages - override for custom batch processing"""
-        results = []
-        for message in messages:
-            try:
-                success = await self.process(message, metadata)
-                results.append(success)
-            except Exception:
-                results.append(False)
-        return results
-
-class Subscriber:
-    """Manages message subscriptions and processing"""
+class MessageSubscriber(Generic[T, R]):
+    """Handles message subscription and processing"""
     def __init__(
         self,
-        config: SubscriberConfig,
-        queue_manager: QueueManager,
+        config: SubscriptionConfig,
+        processor: Callable[[T], R],
+        retry_policy: Optional[RetryPolicy] = None,
         metrics_collector: Optional[MetricsCollector] = None
     ):
         self.config = config
-        self.queue_manager = queue_manager
+        self.processor = processor
+        self.retry_policy = retry_policy
         self.metrics = metrics_collector
-        self._processors: Dict[str, MessageProcessor] = {}
-        self._active_subscriptions: Dict[str, asyncio.Task] = {}
-        self._batch_queues: Dict[str, asyncio.Queue] = {}
-        self._processing_semaphore = asyncio.Semaphore(config.max_concurrent)
-        self._stopping = False
+        self._batch_processor: Optional[BatchProcessor] = None
+        self._processing_tasks: List[asyncio.Task] = []
+        self._unacked_messages: Dict[str, datetime] = {}
+        self._running = False
+        self._lock = asyncio.Lock()
+        self._semaphore = asyncio.Semaphore(config.max_concurrent)
 
-    async def subscribe(
-        self,
-        subscription: SubscriptionConfig,
-        processor: MessageProcessor
-    ):
-        """Subscribe to a topic with a message processor"""
-        if subscription.name in self._processors:
-            raise ValueError(f"Subscription {subscription.name} already exists")
-
-        self._processors[subscription.name] = processor
-
-        # Set up batch processing queue if needed
-        if self.config.enable_batch_processing:
-            self._batch_queues[subscription.name] = asyncio.Queue(
-                maxsize=self.config.batch_size
+    async def start(self):
+        """Start subscriber processing"""
+        self._running = True
+        
+        if self.config.mode == SubscriptionMode.BATCH:
+            self._batch_processor = BatchProcessor(
+                batch_size=self.config.batch_size,
+                batch_timeout=self.config.batch_timeout,
+                processor=self.processor,
+                metrics_collector=self.metrics
             )
-            # Start batch processor
-            self._active_subscriptions[f"{subscription.name}_batch"] = asyncio.create_task(
-                self._batch_processor(subscription)
+            await self._batch_processor.start()
+
+        # Start ack timeout checker if auto-ack is disabled
+        if not self.config.enable_auto_ack:
+            self._processing_tasks.append(
+                asyncio.create_task(self._check_ack_timeouts())
             )
-
-        # Create subscription handler
-        async def message_handler(message: Dict[str, Any], headers: Dict[str, str]):
-            async with self._processing_semaphore:
-                try:
-                    if self.config.enable_batch_processing:
-                        # Add to batch queue
-                        await self._batch_queues[subscription.name].put(
-                            (message, headers)
-                        )
-                        return
-
-                    # Process individual message
-                    success = await self._process_message(
-                        message,
-                        headers,
-                        processor,
-                        subscription
-                    )
-
-                    if self.metrics:
-                        await self.metrics.increment(
-                            "subscriber.messages.processed",
-                            tags={
-                                "subscription": subscription.name,
-                                "success": str(success)
-                            }
-                        )
-
-                except Exception as e:
-                    if self.metrics:
-                        await self.metrics.increment(
-                            "subscriber.messages.failed",
-                            tags={
-                                "subscription": subscription.name,
-                                "error": str(e)
-                            }
-                        )
-                    raise
-
-        # Start subscription
-        self._active_subscriptions[subscription.name] = asyncio.create_task(
-            self.queue_manager.subscribe(
-                queue_name=f"sub.{subscription.name}",
-                routing_key=subscription.topic,
-                callback=message_handler,
-                batch_size=None if self.config.enable_batch_processing else subscription.batch_size
-            )
-        )
-
-    async def unsubscribe(self, subscription_name: str):
-        """Unsubscribe from a topic"""
-        if subscription_name not in self._processors:
-            return
-
-        # Cancel subscription tasks
-        if subscription_name in self._active_subscriptions:
-            self._active_subscriptions[subscription_name].cancel()
-            del self._active_subscriptions[subscription_name]
-
-        # Cancel batch processor if exists
-        batch_key = f"{subscription_name}_batch"
-        if batch_key in self._active_subscriptions:
-            self._active_subscriptions[batch_key].cancel()
-            del self._active_subscriptions[batch_key]
-
-        # Clean up
-        del self._processors[subscription_name]
-        self._batch_queues.pop(subscription_name, None)
-
-        if self.metrics:
-            await self.metrics.increment(
-                "subscriber.unsubscribed",
-                tags={"subscription": subscription_name}
-            )
-
-    async def _process_message(
-        self,
-        message: Dict[str, Any],
-        headers: Dict[str, str],
-        processor: MessageProcessor,
-        subscription: SubscriptionConfig,
-        retry_count: int = 0
-    ) -> bool:
-        """Process a single message with retry logic"""
-        try:
-            # Apply message filter if configured
-            if subscription.filter_pattern:
-                message_str = json.dumps(message)
-                if not subscription.filter_pattern.search(message_str):
-                    return True  # Skip filtered messages
-
-            # Process with timeout
-            success = await asyncio.wait_for(
-                processor.process(message, headers),
-                timeout=self.config.process_timeout
-            )
-
-            if not success and retry_count < self.config.max_retries:
-                # Retry after delay
-                await asyncio.sleep(
-                    self.config.retry_delay * (2 ** retry_count)  # Exponential backoff
-                )
-                return await self._process_message(
-                    message,
-                    headers,
-                    processor,
-                    subscription,
-                    retry_count + 1
-                )
-
-            return success
-
-        except asyncio.TimeoutError:
-            if self.metrics:
-                await self.metrics.increment(
-                    "subscriber.messages.timeout",
-                    tags={"subscription": subscription.name}
-                )
-            return False
-
-        except Exception as e:
-            if self.metrics:
-                await self.metrics.increment(
-                    "subscriber.messages.error",
-                    tags={
-                        "subscription": subscription.name,
-                        "error": str(e)
-                    }
-                )
-            return False
-
-    async def _batch_processor(self, subscription: SubscriptionConfig):
-        """Process messages in batches"""
-        batch: List[tuple[Dict[str, Any], Dict[str, str]]] = []
-        last_message_time = datetime.utcnow()
-
-        while not self._stopping:
-            try:
-                # Get message from queue with timeout
-                try:
-                    message, headers = await asyncio.wait_for(
-                        self._batch_queues[subscription.name].get(),
-                        timeout=self.config.batch_timeout
-                    )
-                    batch.append((message, headers))
-                    last_message_time = datetime.utcnow()
-                except asyncio.TimeoutError:
-                    pass
-
-                # Process batch if full or timeout reached
-                if (len(batch) >= self.config.batch_size or
-                    (batch and (datetime.utcnow() - last_message_time).total_seconds() >= self.config.batch_timeout)):
-                    
-                    processor = self._processors[subscription.name]
-                    messages = [m[0] for m in batch]
-                    metadata = {
-                        "batch_size": len(batch),
-                        "subscription": subscription.name,
-                        "timestamp": datetime.utcnow().isoformat()
-                    }
-
-                    try:
-                        results = await processor.process_batch(messages, metadata)
-                        
-                        if self.metrics:
-                            success_count = sum(1 for r in results if r)
-                            await self.metrics.increment(
-                                "subscriber.batch.processed",
-                                tags={
-                                    "subscription": subscription.name,
-                                    "size": len(batch),
-                                    "success_rate": success_count / len(batch)
-                                }
-                            )
-
-                    except Exception as e:
-                        if self.metrics:
-                            await self.metrics.increment(
-                                "subscriber.batch.failed",
-                                tags={
-                                    "subscription": subscription.name,
-                                    "error": str(e)
-                                }
-                            )
-
-                    batch = []
-
-            except Exception as e:
-                self.logger.error(f"Batch processing error: {str(e)}")
-                await asyncio.sleep(1)  # Prevent tight loop on error
 
     async def stop(self):
-        """Stop all subscriptions"""
-        self._stopping = True
+        """Stop subscriber processing"""
+        self._running = False
         
-        # Cancel all subscription tasks
-        for task in self._active_subscriptions.values():
+        if self._batch_processor:
+            await self._batch_processor.stop()
+
+        # Cancel all processing tasks
+        for task in self._processing_tasks:
             task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+        self._processing_tasks.clear()
+
+    async def process_message(
+        self,
+        message_id: str,
+        message: T
+    ) -> Optional[R]:
+        """Process a single message"""
+        async with self._semaphore:
+            try:
+                if not self.config.enable_auto_ack:
+                    self._unacked_messages[message_id] = datetime.utcnow()
+
+                if self.config.mode == SubscriptionMode.BATCH:
+                    await self._batch_processor.add_message(message)
+                    result = None
+                else:
+                    # Process individual message
+                    processor = self.processor
+                    if self.config.enable_retry and self.retry_policy:
+                        processor = self.retry_policy.wrap(processor)
+
+                    result = await processor(message)
+
+                if self.config.enable_auto_ack:
+                    await self.ack_message(message_id)
+
+                if self.metrics:
+                    await self.metrics.increment(
+                        "subscriber.message.processed",
+                        tags={"mode": self.config.mode.value}
+                    )
+
+                return result
+
+            except Exception as e:
+                if self.metrics:
+                    await self.metrics.increment(
+                        "subscriber.message.error",
+                        tags={
+                            "mode": self.config.mode.value,
+                            "error": str(e)
+                        }
+                    )
+                raise
+
+    async def ack_message(self, message_id: str):
+        """Acknowledge message processing"""
+        async with self._lock:
+            self._unacked_messages.pop(message_id, None)
             
-        # Wait for tasks to complete
-        await asyncio.gather(
-            *self._active_subscriptions.values(),
-            return_exceptions=True
-        )
+            if self.metrics:
+                await self.metrics.increment("subscriber.message.acked")
+
+    async def nack_message(
+        self,
+        message_id: str,
+        requeue: bool = True
+    ):
+        """Negative acknowledge message processing"""
+        async with self._lock:
+            self._unacked_messages.pop(message_id, None)
+            
+            if self.metrics:
+                await self.metrics.increment(
+                    "subscriber.message.nacked",
+                    tags={"requeue": str(requeue)}
+                )
+
+    async def _check_ack_timeouts(self):
+        """Check for message acknowledgement timeouts"""
+        while self._running:
+            try:
+                await asyncio.sleep(1.0)  # Check every second
+                await self._process_timeouts()
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                if self.metrics:
+                    await self.metrics.increment(
+                        "subscriber.timeout_check.error",
+                        tags={"error": str(e)}
+                    )
+
+    async def _process_timeouts(self):
+        """Process timed out messages"""
+        now = datetime.utcnow()
+        timeout_threshold = now - timedelta(seconds=self.config.ack_timeout)
         
-        self._active_subscriptions.clear()
-        self._batch_queues.clear() 
+        async with self._lock:
+            timed_out = [
+                msg_id for msg_id, timestamp in self._unacked_messages.items()
+                if timestamp <= timeout_threshold
+            ]
+            
+            for message_id in timed_out:
+                await self.nack_message(message_id)
+                
+                if self.metrics:
+                    await self.metrics.increment("subscriber.message.timeout")
+
+    async def get_stats(self) -> Dict[str, Any]:
+        """Get subscriber statistics"""
+        stats = {
+            "mode": self.config.mode.value,
+            "unacked_messages": len(self._unacked_messages),
+            "processing_tasks": len(self._processing_tasks),
+            "is_running": self._running
+        }
+        
+        if self._batch_processor:
+            stats["batch_processor"] = await self._batch_processor.get_stats()
+            
+        return stats 

@@ -7,10 +7,11 @@ services:
     volumes:
       - ./containers/lake/src:/app/src
       - ./containers/lake/tests:/app/tests
+      - ./lib/shared:/usr/lib/shared
       - lake-dev-data:/data
       - lake-dev-cache:/cache
     environment:
-      - PYTHONPATH=/app/src
+      - PYTHONPATH=/app/src:/usr/lib/shared
       - DEBUG=1
       - ENVIRONMENT=development
     ports:
@@ -25,10 +26,11 @@ services:
     volumes:
       - ./containers/stream/src:/app/src
       - ./containers/stream/tests:/app/tests
+      - ./lib/shared:/usr/lib/shared
       - stream-dev-data:/data
       - stream-dev-cache:/cache
     environment:
-      - PYTHONPATH=/app/src
+      - PYTHONPATH=/app/src:/usr/lib/shared
       - DEBUG=1
       - ENVIRONMENT=development
     ports:
@@ -43,9 +45,10 @@ services:
     volumes:
       - ./containers/nexus/src:/app/src
       - ./containers/nexus/tests:/app/tests
+      - ./lib/shared:/usr/lib/shared
       - nexus-dev-cache:/cache
     environment:
-      - PYTHONPATH=/app/src
+      - PYTHONPATH=/app/src:/usr/lib/shared
       - DEBUG=1
       - ENVIRONMENT=development
     ports:

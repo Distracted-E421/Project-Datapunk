@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any, Union
+from typing import Optional, Dict, Any, Union, AsyncIterator
 import aiohttp
 import asyncio
 from dataclasses import dataclass
@@ -205,15 +205,174 @@ class RestClient:
     async def patch(self, path: str, **kwargs) -> Dict:
         return await self.request("PATCH", path, **kwargs)
 
+    async def get(
+        self,
+        path: str,
+        params: Optional[Dict] = None,
+        headers: Optional[Dict] = None,
+        timeout: Optional[float] = None
+    ) -> Dict:
+        """Make GET request"""
+        return await self.request("GET", path, params=params, headers=headers, timeout=timeout)
+
+    async def post(
+        self,
+        path: str,
+        data: Optional[Union[Dict, str, bytes]] = None,
+        params: Optional[Dict] = None,
+        headers: Optional[Dict] = None,
+        timeout: Optional[float] = None
+    ) -> Dict:
+        """Make POST request"""
+        return await self.request("POST", path, data=data, params=params, headers=headers, timeout=timeout)
+
+    async def put(
+        self,
+        path: str,
+        data: Optional[Union[Dict, str, bytes]] = None,
+        params: Optional[Dict] = None,
+        headers: Optional[Dict] = None,
+        timeout: Optional[float] = None
+    ) -> Dict:
+        """Make PUT request"""
+        return await self.request("PUT", path, data=data, params=params, headers=headers, timeout=timeout)
+
+    async def delete(
+        self,
+        path: str,
+        params: Optional[Dict] = None,
+        headers: Optional[Dict] = None,
+        timeout: Optional[float] = None
+    ) -> Dict:
+        """Make DELETE request"""
+        return await self.request("DELETE", path, params=params, headers=headers, timeout=timeout)
+
+    async def patch(
+        self,
+        path: str,
+        data: Optional[Union[Dict, str, bytes]] = None,
+        params: Optional[Dict] = None,
+        headers: Optional[Dict] = None,
+        timeout: Optional[float] = None
+    ) -> Dict:
+        """Make PATCH request"""
+        return await self.request("PATCH", path, data=data, params=params, headers=headers, timeout=timeout)
+
+    async def head(
+        self,
+        path: str,
+        params: Optional[Dict] = None,
+        headers: Optional[Dict] = None,
+        timeout: Optional[float] = None
+    ) -> Dict:
+        """Make HEAD request"""
+        return await self.request("HEAD", path, params=params, headers=headers, timeout=timeout)
+
+    async def options(
+        self,
+        path: str,
+        params: Optional[Dict] = None,
+        headers: Optional[Dict] = None,
+        timeout: Optional[float] = None
+    ) -> Dict:
+        """Make OPTIONS request"""
+        return await self.request("OPTIONS", path, params=params, headers=headers, timeout=timeout)
+
+    async def health_check(self) -> bool:
+        """Check service health"""
+        try:
+            response = await self.get("health", timeout=5.0)
+            return response.get("status") == "healthy"
+        except Exception:
+            return False
+
     def set_security_context(self, context: SecurityContext):
-        """Set security context for subsequent requests"""
+        """Set security context for requests"""
         self._security_context = context
         if context.token:
-            self.config.default_headers = {
-                **(self.config.default_headers or {}),
-                "Authorization": f"Bearer {context.token}"
-            }
+            self.session.headers["Authorization"] = f"Bearer {context.token}"
+
+    async def stream(
+        self,
+        method: str,
+        path: str,
+        data: Optional[Union[Dict, str, bytes]] = None,
+        params: Optional[Dict] = None,
+        headers: Optional[Dict] = None,
+        chunk_size: int = 8192
+    ) -> AsyncIterator[bytes]:
+        """Stream response data"""
+        if not self.session:
+            await self.connect()
+
+        url = f"{self.config.base_url.rstrip('/')}/{path.lstrip('/')}"
+        request_headers = {**(self.config.default_headers or {}), **(headers or {})}
+
+        if isinstance(data, dict):
+            data = json.dumps(data)
+            request_headers["Content-Type"] = "application/json"
+
+        async def _execute_stream():
+            async with self.session.request(
+                method=method,
+                url=url,
+                data=data,
+                params=params,
+                headers=request_headers,
+                chunked=True
+            ) as response:
+                response.raise_for_status()
+                async for chunk in response.content.iter_chunked(chunk_size):
+                    yield chunk
+
+        # Apply circuit breaker if configured
+        if self.config.circuit_breaker:
+            _execute_stream = self.config.circuit_breaker.wrap(_execute_stream)
+
+        try:
+            async for chunk in _execute_stream():
+                yield chunk
+        except aiohttp.ClientError as e:
+            raise RestClientError(f"Stream failed: {str(e)}")
+
+    async def websocket_connect(
+        self,
+        path: str,
+        headers: Optional[Dict] = None
+    ) -> aiohttp.ClientWebSocketResponse:
+        """Establish WebSocket connection"""
+        if not self.session:
+            await self.connect()
+
+        url = f"{self.config.base_url.rstrip('/')}/{path.lstrip('/')}"
+        request_headers = {**(self.config.default_headers or {}), **(headers or {})}
+
+        try:
+            return await self.session.ws_connect(
+                url,
+                headers=request_headers,
+                heartbeat=30.0
+            )
+        except aiohttp.ClientError as e:
+            raise RestClientError(f"WebSocket connection failed: {str(e)}")
+
+    async def get_metrics(self) -> Dict[str, Any]:
+        """Get client metrics"""
+        if not self.config.metrics_collector:
+            return {}
+
+        return {
+            "total_requests": await self.config.metrics_collector.get_count(
+                "rest.client.request.count"
+            ),
+            "total_errors": await self.config.metrics_collector.get_count(
+                "rest.client.request.error"
+            ),
+            "average_duration": await self.config.metrics_collector.get_average(
+                "rest.client.request.duration"
+            )
+        }
 
 class RestClientError(Exception):
-    """Custom exception for REST client errors"""
+    """Base class for REST client errors"""
     pass 

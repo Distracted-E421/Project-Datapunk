@@ -1,168 +1,290 @@
-from typing import Optional, Dict, Any, List, Callable
-import grpc
-import asyncio
-from datetime import datetime
+from typing import Optional, Dict, Any, List, Type
 from dataclasses import dataclass
-from ...health.checks import HealthCheck, HealthStatus
-from ...security.mtls import MTLSConfig  # Will implement this next
-from concurrent.futures import ThreadPoolExecutor
+import asyncio
+import grpc
+from grpc import aio
+from ...security.validation import SecurityValidator, SecurityContext
+from ...security.mtls import MTLSConfig
+from ...health.checks import HealthCheck
+from ...monitoring import MetricsCollector
+import time
+from collections import defaultdict
 
 @dataclass
-class ServerMetrics:
-    request_count: int = 0
-    error_count: int = 0
-    active_connections: int = 0
-    last_request_time: Optional[datetime] = None
-    average_response_time: float = 0.0
-
 class GrpcServerConfig:
+    """Configuration for gRPC server"""
+    host: str = "0.0.0.0"
+    port: int = 50051
+    max_workers: int = 10
+    max_message_length: int = 4 * 1024 * 1024  # 4MB
+    mtls_config: Optional[MTLSConfig] = None
+    enable_reflection: bool = True
+    enable_health_check: bool = True
+    interceptors: List[grpc.ServerInterceptor] = None
+    compression: Optional[grpc.Compression] = None
+    rate_limit_requests: int = 1000  # requests per minute
+    rate_limit_burst: int = 100      # burst allowance
+
+class RateLimiter:
+    """Token bucket rate limiter for gRPC"""
+    def __init__(self, rate: int, burst: int):
+        self.rate = rate
+        self.burst = burst
+        self.tokens = defaultdict(lambda: burst)
+        self.last_update = defaultdict(time.time)
+
+    async def check_rate_limit(self, key: str) -> bool:
+        """Check if request should be rate limited"""
+        now = time.time()
+        time_passed = now - self.last_update[key]
+        self.last_update[key] = now
+
+        # Add tokens based on time passed
+        self.tokens[key] = min(
+            self.burst,
+            self.tokens[key] + time_passed * (self.rate / 60.0)
+        )
+
+        if self.tokens[key] >= 1:
+            self.tokens[key] -= 1
+            return True
+        return False
+
+class SecurityInterceptor(grpc.aio.ServerInterceptor):
+    """Security interceptor for gRPC server"""
     def __init__(
         self,
-        host: str = "0.0.0.0",
-        port: int = 50051,
-        max_workers: int = 10,
-        mtls_config: Optional[MTLSConfig] = None,
-        interceptors: Optional[List[grpc.ServerInterceptor]] = None,
-        health_check_interval: int = 30
+        security_validator: SecurityValidator,
+        metrics_collector: Optional[MetricsCollector] = None
     ):
-        self.host = host
-        self.port = port
-        self.max_workers = max_workers
-        self.mtls_config = mtls_config
-        self.interceptors = interceptors or []
-        self.health_check_interval = health_check_interval
-
-class GrpcServer:
-    def __init__(
-        self, 
-        config: GrpcServerConfig,
-        servicer: Any  # The actual gRPC servicer implementation
-    ):
-        self.config = config
-        self.servicer = servicer
-        self.server = None
-        self.metrics = ServerMetrics()
-        self._health_check = HealthCheck(
-            check_fn=self._check_health,
-            interval_seconds=config.health_check_interval
-        )
-        self._executor = ThreadPoolExecutor(max_workers=config.max_workers)
-        self._shutdown_event = asyncio.Event()
-
-    async def start(self):
-        """Start the gRPC server with all configured components"""
-        try:
-            # Create server with interceptors
-            self.server = grpc.aio.server(
-                interceptors=self.config.interceptors,
-                executor=self._executor
-            )
-
-            # Add the service implementation
-            service_name = self.servicer.__class__.__name__
-            add_servicer_fn = getattr(
-                self.servicer.__class__, f"add_{service_name}_to_server"
-            )
-            add_servicer_fn(self.servicer, self.server)
-
-            # Configure security if MTLS is enabled
-            if self.config.mtls_config:
-                credentials = await self._setup_mtls_credentials()
-                port = self.server.add_secure_port(
-                    f"{self.config.host}:{self.config.port}",
-                    credentials
-                )
-            else:
-                port = self.server.add_insecure_port(
-                    f"{self.config.host}:{self.config.port}"
-                )
-
-            # Start health checking
-            asyncio.create_task(self._health_check.start_monitoring())
-
-            # Start the server
-            await self.server.start()
-            
-            print(f"gRPC server started on port {port}")
-            
-            # Wait for shutdown signal
-            await self._shutdown_event.wait()
-
-        except Exception as e:
-            print(f"Failed to start gRPC server: {e}")
-            raise
-
-    async def stop(self):
-        """Gracefully shutdown the server"""
-        if self.server:
-            self._shutdown_event.set()
-            await self.server.stop(grace=5)  # 5 second grace period
-            self._executor.shutdown(wait=True)
-            print("gRPC server stopped")
-
-    def _update_metrics(self, start_time: datetime, error: bool = False):
-        """Update server metrics after each request"""
-        self.metrics.request_count += 1
-        if error:
-            self.metrics.error_count += 1
-        
-        self.metrics.last_request_time = datetime.now()
-        
-        # Update average response time
-        duration = (datetime.now() - start_time).total_seconds()
-        self.metrics.average_response_time = (
-            (self.metrics.average_response_time * (self.metrics.request_count - 1) + duration)
-            / self.metrics.request_count
-        )
-
-    async def _check_health(self) -> bool:
-        """Health check implementation"""
-        if not self.server:
-            return False
-            
-        # Basic health criteria
-        is_healthy = (
-            self.server.is_running() and
-            self.metrics.error_count / max(self.metrics.request_count, 1) < 0.5 and
-            (datetime.now() - (self.metrics.last_request_time or datetime.now())).seconds < 300
-        )
-        
-        return is_healthy
-
-    async def _setup_mtls_credentials(self) -> grpc.ServerCredentials:
-        """Set up mutual TLS credentials if configured"""
-        if not self.config.mtls_config:
-            raise ValueError("MTLS configuration is required for secure server")
-            
-        return grpc.ssl_server_credentials(
-            [(
-                self.config.mtls_config.private_key,
-                self.config.mtls_config.certificate
-            )],
-            root_certificates=self.config.mtls_config.ca_cert,
-            require_client_auth=True
-        )
-
-class MetricsInterceptor(grpc.ServerInterceptor):
-    """Interceptor for collecting metrics on each request"""
-    
-    def __init__(self, server: GrpcServer):
-        self.server = server
+        self.security_validator = security_validator
+        self.metrics = metrics_collector
 
     async def intercept_service(
         self,
-        continuation: Callable,
-        handler_call_details: grpc.HandlerCallDetails
-    ):
-        start_time = datetime.now()
-        self.server.metrics.active_connections += 1
+        continuation: grpc.HandlerCallDetails,
+        handler: grpc.RpcMethodHandler
+    ) -> grpc.RpcMethodHandler:
+        """Intercept and validate incoming requests"""
+        metadata = dict(continuation.invocation_metadata())
+        
+        context = SecurityContext(
+            token=metadata.get("authorization", "").replace("Bearer ", ""),
+            client_ip=metadata.get("x-forwarded-for", "unknown"),
+            request_metadata={
+                "method": continuation.method,
+                "metadata": metadata
+            }
+        )
+
+        if not await self.security_validator.validate_request(context):
+            if self.metrics:
+                await self.metrics.increment(
+                    "grpc.security.validation_failed",
+                    tags={"method": continuation.method}
+                )
+            raise grpc.StatusCode.UNAUTHENTICATED
+
+        return await continuation.proceed(handler)
+
+class MetricsInterceptor(grpc.aio.ServerInterceptor):
+    """Metrics interceptor for gRPC server"""
+    def __init__(self, metrics_collector: MetricsCollector):
+        self.metrics = metrics_collector
+
+    async def intercept_service(
+        self,
+        continuation: grpc.HandlerCallDetails,
+        handler: grpc.RpcMethodHandler
+    ) -> grpc.RpcMethodHandler:
+        """Collect metrics for gRPC calls"""
+        start_time = time.time()
         
         try:
-            response = await continuation(handler_call_details)
-            self.server._update_metrics(start_time)
-            return response
-        except Exception as e:
-            self.server._update_metrics(start_time, error=True)
+            result = await continuation.proceed(handler)
+            status = grpc.StatusCode.OK
+            return result
+        except grpc.RpcError as e:
+            status = e.code()
             raise
         finally:
-            self.server.metrics.active_connections -= 1 
+            duration = time.time() - start_time
+            await self.metrics.timing(
+                "grpc.request.duration",
+                duration,
+                tags={
+                    "method": continuation.method,
+                    "status": status.name
+                }
+            )
+            await self.metrics.increment(
+                "grpc.request.count",
+                tags={
+                    "method": continuation.method,
+                    "status": status.name
+                }
+            )
+
+class RateLimitInterceptor(grpc.aio.ServerInterceptor):
+    """Rate limiting interceptor for gRPC server"""
+    def __init__(
+        self,
+        rate_limiter: RateLimiter,
+        metrics_collector: Optional[MetricsCollector] = None
+    ):
+        self.rate_limiter = rate_limiter
+        self.metrics = metrics_collector
+
+    async def intercept_service(
+        self,
+        continuation: grpc.HandlerCallDetails,
+        handler: grpc.RpcMethodHandler
+    ) -> grpc.RpcMethodHandler:
+        """Apply rate limiting to requests"""
+        metadata = dict(continuation.invocation_metadata())
+        client_id = (
+            metadata.get("x-client-id") or
+            metadata.get("x-forwarded-for") or
+            "anonymous"
+        )
+
+        if not await self.rate_limiter.check_rate_limit(client_id):
+            if self.metrics:
+                await self.metrics.increment(
+                    "grpc.rate_limit.exceeded",
+                    tags={"client": client_id}
+                )
+            raise grpc.StatusCode.RESOURCE_EXHAUSTED
+
+        return await continuation.proceed(handler)
+
+class GrpcServer:
+    """Async gRPC server with security and monitoring"""
+    def __init__(
+        self,
+        config: GrpcServerConfig,
+        security_validator: Optional[SecurityValidator] = None,
+        health_check: Optional[HealthCheck] = None,
+        metrics_collector: Optional[MetricsCollector] = None
+    ):
+        self.config = config
+        self.security_validator = security_validator
+        self.health_check = health_check
+        self.metrics = metrics_collector
+        self.rate_limiter = RateLimiter(
+            config.rate_limit_requests,
+            config.rate_limit_burst
+        )
+        self.server = None
+        self._setup_server()
+
+    def _setup_server(self):
+        """Set up gRPC server with interceptors"""
+        interceptors = []
+        
+        # Add security interceptor
+        if self.security_validator:
+            interceptors.append(
+                SecurityInterceptor(
+                    self.security_validator,
+                    self.metrics
+                )
+            )
+
+        # Add rate limiting interceptor
+        interceptors.append(
+            RateLimitInterceptor(
+                self.rate_limiter,
+                self.metrics
+            )
+        )
+
+        # Add metrics interceptor
+        if self.metrics:
+            interceptors.append(MetricsInterceptor(self.metrics))
+
+        # Add custom interceptors
+        if self.config.interceptors:
+            interceptors.extend(self.config.interceptors)
+
+        # Create server
+        self.server = aio.server(
+            interceptors=interceptors,
+            options=[
+                ('grpc.max_message_length', self.config.max_message_length),
+                ('grpc.max_receive_message_length', self.config.max_message_length),
+                ('grpc.max_send_message_length', self.config.max_message_length),
+            ]
+        )
+
+        # Add health checking service
+        if self.config.enable_health_check:
+            self._setup_health_service()
+
+        # Add reflection service
+        if self.config.enable_reflection:
+            from grpc_reflection.v1alpha import reflection
+            service_names = self.server.get_service_names()
+            reflection.enable_server_reflection(service_names, self.server)
+
+    def _setup_health_service(self):
+        """Set up gRPC health checking service"""
+        from grpc_health.v1 import health, health_pb2, health_pb2_grpc
+
+        async def check(request, context):
+            if self.health_check:
+                is_healthy = await self.health_check.check_health()
+            else:
+                is_healthy = True
+
+            return health_pb2.HealthCheckResponse(
+                status=health_pb2.HealthCheckResponse.SERVING if is_healthy
+                else health_pb2.HealthCheckResponse.NOT_SERVING
+            )
+
+        health_servicer = health.aio.HealthServicer()
+        health_pb2_grpc.add_HealthServicer_to_server(health_servicer, self.server)
+
+    def add_service(self, servicer_class: Type, servicer_instance: Any):
+        """Add a gRPC service to the server"""
+        servicer_class.add_to_server(servicer_instance, self.server)
+
+    async def start(self):
+        """Start the gRPC server"""
+        # Configure TLS if enabled
+        server_credentials = None
+        if self.config.mtls_config:
+            with open(self.config.mtls_config.certificate, 'rb') as f:
+                cert_chain = f.read()
+            with open(self.config.mtls_config.private_key, 'rb') as f:
+                private_key = f.read()
+            with open(self.config.mtls_config.ca_cert, 'rb') as f:
+                root_cert = f.read()
+
+            server_credentials = grpc.ssl_server_credentials(
+                [(private_key, cert_chain)],
+                root_certificates=root_cert,
+                require_client_auth=True
+            )
+
+        # Start server
+        address = f"{self.config.host}:{self.config.port}"
+        if server_credentials:
+            self.server.add_secure_port(address, server_credentials)
+        else:
+            self.server.add_insecure_port(address)
+
+        await self.server.start()
+        
+        if self.metrics:
+            await self.metrics.increment("grpc.server.started")
+            
+        print(f"gRPC server started on {address}")
+
+    async def stop(self):
+        """Stop the gRPC server"""
+        if self.server:
+            await self.server.stop(grace=None)
+            if self.metrics:
+                await self.metrics.increment("grpc.server.stopped")
+            print("gRPC server stopped")
