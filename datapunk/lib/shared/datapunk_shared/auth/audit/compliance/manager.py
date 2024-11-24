@@ -12,12 +12,27 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 class ComplianceManager:
-    """Manages compliance checks and validation."""
+    """Manages compliance validation against security and regulatory standards.
+    
+    Provides a framework for validating data against configurable compliance rules.
+    Integrates with caching and metrics systems for performance optimization
+    and compliance monitoring.
+    
+    NOTE: This manager is designed to be extensible - new compliance rules
+    can be added by implementing corresponding validation methods and
+    registering them in ComplianceStandards.
+    """
     
     def __init__(self,
                  cache_client: 'CacheClient',
                  metrics: 'MetricsClient',
                  standards: ComplianceStandards):
+        """Initialize compliance manager with required dependencies.
+        
+        Cache client is used to store validation results for frequently
+        checked data to improve performance. Metrics client tracks
+        validation patterns and failures for compliance reporting.
+        """
         self.cache = cache_client
         self.metrics = metrics
         self.standards = standards
@@ -26,7 +41,30 @@ class ComplianceManager:
     async def validate_compliance(self,
                                 data: Dict,
                                 rules: Set[str]) -> Dict:
-        """Validate data against compliance rules."""
+        """Validate data against specified compliance rules.
+        
+        Performs parallel validation against multiple compliance rules,
+        aggregating results into a comprehensive compliance report.
+        
+        Args:
+            data: The data to validate
+            rules: Set of rule IDs to validate against
+            
+        Returns:
+            Dictionary containing validation results for each rule:
+            {
+                rule_id: {
+                    "compliant": bool,
+                    "details": Dict[str, bool]
+                }
+            }
+            
+        NOTE: Missing rules are silently skipped to allow for gradual
+        rule deployment and backwards compatibility.
+        
+        TODO: Consider adding rule dependencies to ensure related
+        rules are validated together.
+        """
         try:
             results = {}
             
@@ -51,7 +89,27 @@ class ComplianceManager:
     async def _run_validations(self,
                              data: Dict,
                              rule: ComplianceRule) -> Dict[str, bool]:
-        """Run all validations for a rule."""
+        """Run all validations defined for a specific compliance rule.
+        
+        Dynamically executes validation methods defined in the rule.
+        Each validation method must be implemented as an instance method
+        of ComplianceManager.
+        
+        Args:
+            data: The data to validate
+            rule: ComplianceRule containing validation definitions
+            
+        Returns:
+            Dictionary mapping validation names to their results
+            
+        NOTE: Failed validation method lookups result in automatic
+        validation failure rather than raising exceptions. This ensures
+        partial validation results are still available even if some
+        methods are missing.
+        
+        FIXME: Consider caching validation results for frequently
+        checked data/rule combinations to improve performance.
+        """
         results = {}
         
         for check_name, check_method in rule.validations.items():
