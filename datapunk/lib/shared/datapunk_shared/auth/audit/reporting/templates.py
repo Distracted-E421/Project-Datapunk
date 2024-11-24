@@ -1,13 +1,21 @@
 """
 Report template system for audit reports.
 
-This module provides templates for generating various types of audit reports in
-multiple formats including:
-- Compliance reports
-- Security incident reports
-- Access pattern reports
-- Policy change reports
-- Key usage reports
+This module implements a flexible template engine for generating standardized audit reports
+across different security and compliance domains. It uses a composable architecture where
+different template types can be mixed and matched based on reporting requirements.
+
+Key features:
+- Modular template system with specialized handlers for compliance, security, and metrics
+- Configurable sections and formatting options
+- Support for custom templates via Jinja2
+- Standardized metadata and timestamp handling
+- Built-in error handling and logging
+
+Implementation Notes:
+- Templates are loaded from the package's templates directory
+- All templates use Jinja2 for rendering
+- Custom templates must follow the established section structure
 """
 
 from typing import Dict, List, Optional, Any, TYPE_CHECKING
@@ -26,7 +34,12 @@ from ...core.exceptions import ReportingError
 logger = structlog.get_logger()
 
 class TemplateType(Enum):
-    """Types of report templates."""
+    """
+    Defines the available report template types.
+    
+    NOTE: When adding new template types, ensure corresponding template files
+    are added to the templates directory and update get_template() method.
+    """
     BASIC = "basic"           # Simple event listing
     DETAILED = "detailed"     # Detailed analysis
     SUMMARY = "summary"       # High-level overview
@@ -36,7 +49,13 @@ class TemplateType(Enum):
     CUSTOM = "custom"        # Custom template
 
 class ReportSection(Enum):
-    """Standard report sections."""
+    """
+    Standard report sections that can be included in templates.
+    
+    These sections are designed to align with common audit reporting requirements
+    and compliance frameworks. The order here represents the recommended
+    presentation order in reports.
+    """
     OVERVIEW = "overview"
     SUMMARY = "summary"
     DETAILS = "details"
@@ -50,7 +69,15 @@ class ReportSection(Enum):
 
 @dataclass
 class TemplateConfig:
-    """Configuration for report templates."""
+    """
+    Configuration settings for report template rendering.
+    
+    This class controls the presentation and content limits for reports.
+    Default values are set to comply with common audit report requirements.
+    
+    NOTE: graph_format and table_format should align with the output
+    system's capabilities (e.g., PDF generator, web display).
+    """
     include_sections: List[ReportSection]
     show_timestamps: bool = True
     show_metadata: bool = True
@@ -59,7 +86,17 @@ class TemplateConfig:
     table_format: str = "grid"
 
 class ReportTemplate:
-    """Base class for report templates."""
+    """
+    Base template class implementing core rendering logic.
+    
+    This class provides the foundation for all report templates with common
+    functionality for section rendering, metadata handling, and error management.
+    
+    Implementation Notes:
+    - Uses Jinja2 for template rendering
+    - Templates are loaded from package resources
+    - All derived classes should implement specialized _render_section methods
+    """
     
     def __init__(self, config: TemplateConfig):
         self.config = config
@@ -73,7 +110,17 @@ class ReportTemplate:
     def get_template(template_type: TemplateType,
                     report_type: str,
                     custom_template: Optional[str] = None) -> 'ReportTemplate':
-        """Get appropriate template for report type."""
+        """
+        Factory method for creating appropriate template instances.
+        
+        Why Factory Pattern:
+        - Encapsulates template instantiation logic
+        - Allows for runtime template type selection
+        - Maintains consistent configuration across template types
+        
+        NOTE: When adding new template types, update this method to handle
+        the new type and its specific configuration requirements.
+        """
         if template_type == TemplateType.COMPLIANCE:
             return ComplianceTemplate(TemplateConfig(
                 include_sections=[
@@ -164,7 +211,16 @@ class ReportTemplate:
         }
 
 class ComplianceTemplate(ReportTemplate):
-    """Template for compliance-focused reports."""
+    """
+    Specialized template for compliance reporting.
+    
+    Handles structured presentation of compliance requirements, violations,
+    and recommendations. Designed to align with major compliance frameworks
+    like SOC2, ISO27001, and HIPAA.
+    
+    FUTURE: Consider adding support for framework-specific formatting rules
+    and automatic mapping of controls to requirements.
+    """
     
     def _render_section(self,
                        section: ReportSection,
@@ -178,7 +234,12 @@ class ComplianceTemplate(ReportTemplate):
         return super()._render_section(section, data, config)
     
     def _render_compliance_matrix(self, data: Dict) -> str:
-        """Render compliance requirements matrix."""
+        """
+        Renders a compliance requirements traceability matrix.
+        
+        The matrix maps requirements to implementation status and evidence.
+        Assumes data contains 'requirements', 'status', and 'evidence' keys.
+        """
         template = self.jinja_env.get_template("compliance_matrix.j2")
         return template.render(data=data)
     
@@ -188,7 +249,16 @@ class ComplianceTemplate(ReportTemplate):
         return template.render(recommendations=data)
 
 class SecurityTemplate(ReportTemplate):
-    """Template for security-focused reports."""
+    """
+    Specialized template for security incident and assessment reporting.
+    
+    Focuses on presenting security events, incident analysis, and remediation
+    recommendations in a format suitable for both technical and non-technical
+    stakeholders.
+    
+    TODO: Add support for severity-based formatting and automatic incident
+    categorization based on industry standards (e.g., CVSS scores).
+    """
     
     def _render_section(self,
                        section: ReportSection,
@@ -207,7 +277,16 @@ class SecurityTemplate(ReportTemplate):
         return template.render(incidents=incidents)
 
 class MetricsTemplate(ReportTemplate):
-    """Template for metrics-focused reports."""
+    """
+    Specialized template for security and compliance metrics visualization.
+    
+    Provides formatted presentation of key security metrics, trends, and
+    performance indicators. Supports various graph formats for different
+    output requirements.
+    
+    NOTE: The graph_format setting in config must match supported formats
+    in the visualization backend (currently supports 'svg' only).
+    """
     
     def _render_section(self,
                        section: ReportSection,
@@ -231,7 +310,15 @@ class MetricsTemplate(ReportTemplate):
         )
 
 class CustomTemplate(ReportTemplate):
-    """Template for custom report formats."""
+    """
+    Allows for user-defined report templates while maintaining consistent
+    metadata handling and error management.
+    
+    SECURITY NOTE: Custom templates should be validated before use to prevent
+    template injection attacks. Consider implementing template sanitization.
+    
+    TODO: Add template validation and sanitization logic
+    """
     
     def __init__(self,
                  config: TemplateConfig,
