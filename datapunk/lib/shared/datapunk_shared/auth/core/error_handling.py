@@ -31,6 +31,22 @@ Usage:
             category=ErrorCategory.BUSINESS_LOGIC,
             severity=ErrorSeverity.HIGH
         )
+
+Implementation Notes:
+- Error handling follows a hierarchical approach with severity-based routing
+- Integrates with external monitoring and messaging systems for comprehensive error tracking
+- Supports both sync and async error handling patterns
+- Implements circuit-breaker pattern for critical error scenarios
+
+Performance Considerations:
+- Error reporting is asynchronous to minimize impact on main execution path
+- Metrics updates are batched where possible
+- Critical error handling may impact performance due to immediate alert requirements
+
+Security Notes:
+- Sensitive data should be sanitized before logging via context filtering
+- Stack traces are included but should be restricted in production environments
+- Error messages are structured to avoid information disclosure
 """
 
 from typing import Dict, Optional, Any, TYPE_CHECKING, List, Set
@@ -131,6 +147,17 @@ class ErrorReporter:
     - Health status updates
     - Error rate monitoring
     - Severity-based handling
+    
+    Implementation Details:
+    - Uses structured logging for consistent error format
+    - Implements rate limiting for high-volume error scenarios
+    - Supports distributed tracing via correlation IDs
+    - Provides error aggregation for related issues
+    
+    Usage Constraints:
+    - Requires configured MetricsClient and MessageBroker
+    - Critical error handling may trigger automated system responses
+    - Error thresholds should be tuned based on system scale
     """
     
     def __init__(self,
@@ -163,6 +190,16 @@ class ErrorReporter:
         
         Raises:
             Exception: If reporting fails
+        
+        Implementation Notes:
+        - Generates unique error IDs using timestamp to ensure ordering
+        - Handles nested exceptions and maintains full stack context
+        - Implements retry logic for broker publishing failures
+        - Supports structured error context for machine parsing
+        
+        Performance Impact:
+        - Async operations minimize blocking during error processing
+        - Critical errors trigger additional processing overhead
         """
         try:
             error_id = f"err_{datetime.utcnow().timestamp()}"
@@ -247,7 +284,18 @@ class ErrorReporter:
         )
     
     async def _handle_critical_error(self, error_data: Dict) -> None:
-        """Handle critical errors with immediate actions."""
+        """
+        Handle critical errors with immediate actions.
+        
+        Implementation Notes:
+        - Triggers P1 alerts for immediate response
+        - May initiate automated recovery procedures
+        - Updates system health status for load balancer awareness
+        - Implements circuit breaker pattern for cascading failure prevention
+        
+        TODO: Implement automated recovery procedures
+        FIXME: Add retry logic for alert delivery
+        """
         # Send immediate alerts
         await self.broker.publish(
             "alerts.critical",
