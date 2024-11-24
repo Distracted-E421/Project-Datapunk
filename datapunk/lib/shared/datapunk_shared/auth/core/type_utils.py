@@ -1,4 +1,21 @@
-"""Utilities for type validation and conversion."""
+"""
+Type validation and conversion utilities for the authentication system.
+
+This module provides comprehensive type handling capabilities including:
+- Validation of input types and formats
+- Type conversion between different representations
+- Serialization/deserialization to various formats
+- Support for complex types like UUIDs, dates, and enums
+
+The utilities here form the foundation for type safety across the auth system
+and ensure consistent data handling between different components.
+
+Key Components:
+- TypeValidationResult: Structured validation response
+- TypeValidator: Input validation and type checking
+- TypeConverter: Type conversion between different formats
+- TypeSerializer: Data serialization/deserialization
+"""
 from typing import Dict, Any, Optional, Type, TypeVar, Union, List, Set, Callable
 from datetime import datetime, timedelta, timezone
 import structlog
@@ -26,19 +43,42 @@ T = TypeVar('T')
 
 @dataclass
 class TypeValidationResult:
-    """Result of type validation."""
+    """
+    Structured result from type validation operations.
+    
+    Attributes:
+        valid: Whether validation passed without errors
+        errors: List of validation error messages
+        warnings: List of non-critical validation issues
+        converted_value: The validated and potentially converted value
+    """
     valid: bool
     errors: List[str]
     warnings: List[str]
     converted_value: Optional[Any] = None
 
 class TypeValidator:
-    """Validates and converts types."""
+    """
+    Validates input types and formats across the auth system.
+    
+    Provides validation for:
+    - Enum values with case-insensitive matching
+    - Context dictionaries with required/optional fields
+    - Metadata with type constraints
+    - UUIDs with format checking
+    - Email addresses per RFC 5321
+    - IP addresses (both IPv4 and IPv6)
+    """
     
     @staticmethod
     def validate_enum(value: Any,
                      enum_class: Type[Enum]) -> TypeValidationResult:
-        """Validate enum value."""
+        """
+        Validates and converts enum values with case-insensitive matching.
+        
+        Handles both string inputs (converted to enum) and direct enum instances.
+        Attempts uppercase lookup first, then lowercase for flexibility.
+        """
         errors = []
         warnings = []
         converted = None
@@ -106,7 +146,14 @@ class TypeValidator:
     
     @staticmethod
     def validate_metadata(metadata: Optional[Dict[str, Any]]) -> TypeValidationResult:
-        """Validate metadata dictionary."""
+        """
+        Validates metadata dictionary structure and content.
+        
+        Enforces:
+        - Dictionary type for metadata
+        - String-only keys
+        - Warns about nested dictionaries (performance impact)
+        """
         errors = []
         warnings = []
         
@@ -210,7 +257,17 @@ class TypeValidator:
         )
 
 class TypeConverter:
-    """Converts between different type representations."""
+    """
+    Handles type conversions between different representations.
+    
+    Supports conversion of:
+    - Datetime: from strings, timestamps, or datetime objects
+    - Timedelta: from strings (1d, 2h format), integers, or timedelta objects
+    - Sets: from lists, tuples, or comma-separated strings
+    - Decimals: from strings, integers, or floats
+    - Booleans: from strings ('true', 'yes', etc.), integers, or booleans
+    - Lists: from sets, tuples, or separated strings with optional type conversion
+    """
     
     @staticmethod
     def to_datetime(value: Union[str, datetime, float, int]) -> datetime:
@@ -325,7 +382,21 @@ class TypeConverter:
         return items
 
 class TypeSerializer:
-    """Serializes types to/from various formats."""
+    """
+    Handles serialization/deserialization across multiple formats.
+    
+    Supported formats:
+    - JSON (with pretty printing option)
+    - YAML (with Unicode support)
+    - MessagePack (binary format)
+    - XML (dictionary conversion)
+    - Base64 (string/bytes conversion)
+    
+    Special handling for:
+    - DateTime ISO format
+    - Enum values
+    - Context dictionaries with type preservation
+    """
     
     @staticmethod
     def serialize_datetime(dt: datetime) -> str:
@@ -352,7 +423,15 @@ class TypeSerializer:
     
     @staticmethod
     def serialize_context(context: Dict[str, Any]) -> Dict[str, Any]:
-        """Serialize context to JSON-compatible dict."""
+        """
+        Converts context dictionary to JSON-compatible format.
+        
+        Special handling for:
+        - DateTime -> ISO format string
+        - Enum -> string value
+        - Sets -> lists
+        - Preserves other primitive types
+        """
         result = {}
         for key, value in context.items():
             if isinstance(value, datetime):
@@ -369,7 +448,16 @@ class TypeSerializer:
     def deserialize_context(data: Dict[str, Any],
                           datetime_fields: Optional[Set[str]] = None,
                           enum_fields: Optional[Dict[str, Type[Enum]]] = None) -> Dict[str, Any]:
-        """Deserialize context from JSON-compatible dict."""
+        """
+        Reconstructs context dictionary from serialized format.
+        
+        Parameters:
+            datetime_fields: Set of keys containing datetime values
+            enum_fields: Mapping of keys to their enum types
+        
+        Handles type reconstruction for specified fields while
+        preserving other values as-is.
+        """
         result = {}
         for key, value in data.items():
             if datetime_fields and key in datetime_fields:
