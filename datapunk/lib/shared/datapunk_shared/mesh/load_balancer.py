@@ -1,181 +1,152 @@
-from typing import Dict, Any, List, Optional
+from typing import List, Dict, Optional, Any
+from enum import Enum
 import random
 import time
 import structlog
-from prometheus_client import Counter, Gauge, Histogram
-from ..utils.retry import RetryConfig
+from dataclasses import dataclass
+from collections import defaultdict
+from .metrics import LoadBalancerMetrics
+from ..tracing import trace_method
 
-logger = structlog.get_logger(__name__)
+logger = structlog.get_logger()
 
-class LoadBalancerMetrics:
-    """Metrics for load balancer monitoring"""
-    def __init__(self, name: str):
-        self.requests = Counter(
-            f'load_balancer_requests_total_{name}',
-            'Total number of load balanced requests',
-            ['service', 'instance']
-        )
-        self.active_instances = Gauge(
-            f'load_balancer_active_instances_{name}',
-            'Number of active instances',
-            ['service']
-        )
-        self.response_time = Histogram(
-            f'load_balancer_response_time_{name}',
-            'Response time for load balanced requests',
-            ['service', 'instance']
-        )
-        self.errors = Counter(
-            f'load_balancer_errors_total_{name}',
-            'Number of load balancer errors',
-            ['service', 'instance', 'error_type']
-        )
+class LoadBalancerStrategy(Enum):
+    ROUND_ROBIN = "round_robin"
+    LEAST_CONNECTIONS = "least_connections"
+    WEIGHTED_ROUND_ROBIN = "weighted_round_robin"
+    RANDOM = "random"
 
+@dataclass
 class ServiceInstance:
-    """Represents a service instance with health metrics"""
-    def __init__(self, id: str, host: str, port: int):
-        self.id = id
-        self.host = host
-        self.port = port
-        self.healthy = True
-        self.last_check = time.time()
-        self.error_count = 0
-        self.success_count = 0
-        self.response_times: List[float] = []
-        self.max_response_times = 100  # Keep last 100 response times
-
-    def update_health(self, healthy: bool, response_time: Optional[float] = None):
-        """Update instance health metrics"""
-        self.healthy = healthy
-        self.last_check = time.time()
-        
-        if response_time is not None:
-            self.response_times.append(response_time)
-            if len(self.response_times) > self.max_response_times:
-                self.response_times.pop(0)
-
-    def get_average_response_time(self) -> float:
-        """Get average response time"""
-        if not self.response_times:
-            return 0.0
-        return sum(self.response_times) / len(self.response_times)
+    id: str
+    address: str
+    port: int
+    weight: int = 1
+    active_connections: int = 0
+    last_used: float = 0.0
+    health_score: float = 1.0
 
 class LoadBalancer:
-    """Load balancer implementation with multiple strategies"""
-    
-    def __init__(
-        self,
-        name: str,
-        strategy: str = "round_robin",
-        health_check_interval: float = 30.0
-    ):
-        self.name = name
+    def __init__(self, strategy: LoadBalancerStrategy = LoadBalancerStrategy.ROUND_ROBIN):
         self.strategy = strategy
-        self.health_check_interval = health_check_interval
-        self.instances: Dict[str, ServiceInstance] = {}
-        self.current_index = 0
-        self.metrics = LoadBalancerMetrics(name)
-        self.retry_config = RetryConfig(
-            max_attempts=3,
-            base_delay=1.0,
-            max_delay=15.0
+        self.instances: Dict[str, List[ServiceInstance]] = defaultdict(list)
+        self.current_index: Dict[str, int] = defaultdict(int)
+        self.logger = logger.bind(component="load_balancer")
+        self.metrics = LoadBalancerMetrics()
+
+    def register_instance(self, service_name: str, instance: ServiceInstance) -> None:
+        """Register a service instance with the load balancer."""
+        self.instances[service_name].append(instance)
+        self.logger.info("instance_registered",
+                        service=service_name,
+                        instance_id=instance.id)
+
+    def deregister_instance(self, service_name: str, instance_id: str) -> None:
+        """Remove a service instance from the load balancer."""
+        self.instances[service_name] = [
+            inst for inst in self.instances[service_name]
+            if inst.id != instance_id
+        ]
+        self.logger.info("instance_deregistered",
+                        service=service_name,
+                        instance_id=instance_id)
+
+    @trace_method("get_next_instance")
+    def get_next_instance(self, service_name: str) -> Optional[ServiceInstance]:
+        """Get the next available instance based on the selected strategy."""
+        with self.tracer.start_span("check_instances") as span:
+            instances = self.instances.get(service_name, [])
+            span.set_attribute("available_instances", len(instances))
+            
+            if not instances:
+                self.metrics.record_error(service_name, "no_instances_available")
+                self.logger.warning("no_instances_available", service=service_name)
+                return None
+
+        try:
+            with self.tracer.start_span("select_instance") as span:
+                instance = None
+                span.set_attribute("strategy", self.strategy.value)
+                
+                if self.strategy == LoadBalancerStrategy.ROUND_ROBIN:
+                    instance = self._round_robin(service_name, instances)
+                elif self.strategy == LoadBalancerStrategy.LEAST_CONNECTIONS:
+                    instance = self._least_connections(instances)
+                elif self.strategy == LoadBalancerStrategy.WEIGHTED_ROUND_ROBIN:
+                    instance = self._weighted_round_robin(service_name, instances)
+                elif self.strategy == LoadBalancerStrategy.RANDOM:
+                    instance = self._random(instances)
+
+                if instance:
+                    span.set_attribute("selected_instance", instance.id)
+                    self.metrics.record_request(
+                        service_name, 
+                        instance.id, 
+                        self.strategy.value
+                    )
+                return instance
+
+        except Exception as e:
+            self.tracer.record_exception(e)
+            self.metrics.record_error(service_name, str(e))
+            self.logger.error("instance_selection_failed",
+                            service=service_name,
+                            error=str(e))
+            return None
+
+    def _round_robin(self, service_name: str, instances: List[ServiceInstance]) -> ServiceInstance:
+        """Simple round-robin selection."""
+        index = self.current_index[service_name]
+        instance = instances[index]
+        self.current_index[service_name] = (index + 1) % len(instances)
+        return instance
+
+    def _least_connections(self, instances: List[ServiceInstance]) -> ServiceInstance:
+        """Select instance with fewest active connections."""
+        return min(instances, key=lambda x: x.active_connections)
+
+    def _weighted_round_robin(self, service_name: str, instances: List[ServiceInstance]) -> ServiceInstance:
+        """Weighted round-robin selection."""
+        total_weight = sum(instance.weight for instance in instances)
+        if total_weight == 0:
+            return self._round_robin(service_name, instances)
+
+        current = self.current_index[service_name]
+        for instance in instances:
+            current -= instance.weight
+            if current < 0:
+                return instance
+        return instances[0]
+
+    def _random(self, instances: List[ServiceInstance]) -> ServiceInstance:
+        """Random instance selection."""
+        return random.choice(instances)
+
+    def record_request_start(self, instance: ServiceInstance) -> None:
+        """Record the start of a request to an instance."""
+        instance.active_connections += 1
+        instance.last_used = time.time()
+        self.metrics.update_active_connections(
+            instance.id.split('-')[0],  # service name
+            instance.id,
+            instance.active_connections
+        )
+
+    def record_request_complete(self, instance: ServiceInstance) -> None:
+        """Record the completion of a request to an instance."""
+        instance.active_connections = max(0, instance.active_connections - 1)
+        self.metrics.update_active_connections(
+            instance.id.split('-')[0],  # service name
+            instance.id,
+            instance.active_connections
+        )
+
+    def update_health_score(self, instance: ServiceInstance, score: float) -> None:
+        """Update the health score of an instance."""
+        instance.health_score = max(0.0, min(1.0, score))
+        self.metrics.update_health_score(
+            instance.id.split('-')[0],  # service name
+            instance.id,
+            instance.health_score
         )
     
-    def add_instance(self, id: str, host: str, port: int):
-        """Add service instance"""
-        self.instances[id] = ServiceInstance(id, host, port)
-        self.metrics.active_instances.labels(service=self.name).inc()
-        logger.info(f"Added instance {id} to load balancer")
-    
-    def remove_instance(self, id: str):
-        """Remove service instance"""
-        if id in self.instances:
-            del self.instances[id]
-            self.metrics.active_instances.labels(service=self.name).dec()
-            logger.info(f"Removed instance {id} from load balancer")
-    
-    def get_next_instance(self) -> Optional[ServiceInstance]:
-        """Get next instance based on selected strategy"""
-        healthy_instances = [
-            inst for inst in self.instances.values()
-            if inst.healthy
-        ]
-        
-        if not healthy_instances:
-            return None
-            
-        if self.strategy == "round_robin":
-            instance = healthy_instances[self.current_index % len(healthy_instances)]
-            self.current_index += 1
-            return instance
-            
-        elif self.strategy == "least_connections":
-            return min(
-                healthy_instances,
-                key=lambda x: x.success_count - x.error_count
-            )
-            
-        elif self.strategy == "response_time":
-            return min(
-                healthy_instances,
-                key=lambda x: x.get_average_response_time()
-            )
-            
-        else:  # random
-            return random.choice(healthy_instances)
-    
-    def record_request(
-        self,
-        instance_id: str,
-        success: bool,
-        response_time: Optional[float] = None
-    ):
-        """Record request metrics"""
-        instance = self.instances.get(instance_id)
-        if not instance:
-            return
-            
-        if success:
-            instance.success_count += 1
-            self.metrics.requests.labels(
-                service=self.name,
-                instance=instance_id
-            ).inc()
-            
-            if response_time is not None:
-                self.metrics.response_time.labels(
-                    service=self.name,
-                    instance=instance_id
-                ).observe(response_time)
-                
-        else:
-            instance.error_count += 1
-            self.metrics.errors.labels(
-                service=self.name,
-                instance=instance_id,
-                error_type="request_failed"
-            ).inc()
-    
-    def update_instance_health(
-        self,
-        instance_id: str,
-        healthy: bool,
-        response_time: Optional[float] = None
-    ):
-        """Update instance health status"""
-        instance = self.instances.get(instance_id)
-        if instance:
-            instance.update_health(healthy, response_time)
-            if not healthy:
-                self.metrics.errors.labels(
-                    service=self.name,
-                    instance=instance_id,
-                    error_type="health_check_failed"
-                ).inc()
-                
-            logger.info(
-                f"Updated instance health",
-                instance=instance_id,
-                healthy=healthy,
-                response_time=response_time
-            ) 
