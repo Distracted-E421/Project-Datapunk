@@ -1,9 +1,11 @@
 # Message Queue Standards
 
 ## Purpose
+
 Define standardized message patterns and configurations for reliable asynchronous communication between services.
 
 ## Context
+
 Message queues serve as the backbone for asynchronous operations, event-driven architectures, and service decoupling.
 
 ## Design/Details
@@ -291,4 +293,4 @@ class OverflowProtection:
             return False
             
         return True
-``` 
+```
