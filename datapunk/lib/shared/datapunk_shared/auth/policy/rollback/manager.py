@@ -15,22 +15,48 @@ logger = structlog.get_logger()
 
 @dataclass
 class RollbackPoint:
-    """Snapshot of policy state for rollback."""
+    """
+    Represents an immutable snapshot of a policy's state for potential rollback operations.
+    
+    This class captures the complete state needed to restore a policy to a previous version,
+    including metadata about the change and affected access keys for impact analysis.
+    """
     timestamp: datetime
-    policy_id: str
+    policy_id: str  # Format: {policy_type}_{unix_timestamp}
     policy_type: PolicyType
-    old_policy: Dict
-    affected_keys: List[str]
-    metadata: Optional[Dict] = None
+    old_policy: Dict  # Complete policy state before changes
+    affected_keys: List[str]  # Access keys impacted by policy changes
+    metadata: Optional[Dict] = None  # Additional context about the policy change
 
 class RollbackManager:
-    """Manages policy rollbacks and version history."""
+    """
+    Manages the versioning and restoration of security policies with safety validations.
+    
+    This manager implements a rolling history of policy changes, allowing controlled rollbacks
+    while ensuring system stability through validation checks. It uses a cache-based storage
+    system for performance and maintains a fixed-size history to prevent unbounded growth.
+    
+    Key features:
+    - Atomic rollback point creation
+    - Pre-rollback validation
+    - Automatic history cleanup
+    - Metrics tracking for operational monitoring
+    """
     
     def __init__(self,
                  cache_client: 'CacheClient',
                  metrics: 'MetricsClient',
                  validator: RollbackValidator,
                  max_history: int = 10):
+        """
+        Initialize the rollback manager with required dependencies and configuration.
+        
+        Args:
+            cache_client: Handles persistent storage of rollback points
+            metrics: Tracks operational metrics for monitoring
+            validator: Performs safety checks before rollbacks
+            max_history: Maximum number of rollback points to retain per policy type
+        """
         self.cache = cache_client
         self.metrics = metrics
         self.validator = validator
@@ -42,7 +68,18 @@ class RollbackManager:
                                   policy_type: PolicyType,
                                   affected_keys: List[str],
                                   metadata: Optional[Dict] = None) -> str:
-        """Create a rollback point before policy changes."""
+        """
+        Creates a safety snapshot before policy modifications.
+        
+        IMPORTANT: This method must be called BEFORE making any policy changes
+        to ensure accurate rollback capabilities.
+        
+        Returns:
+            str: Unique identifier for the rollback point
+            
+        Raises:
+            AuthError: If rollback point creation fails
+        """
         try:
             rollback_point = RollbackPoint(
                 timestamp=datetime.utcnow(),
@@ -73,7 +110,21 @@ class RollbackManager:
     
     async def validate_rollback(self,
                               policy_id: str) -> RollbackValidationResult:
-        """Validate a potential rollback operation."""
+        """
+        Performs safety validation before allowing a rollback operation.
+        
+        Validates that rolling back to a previous policy state won't create
+        security vulnerabilities or break existing access patterns.
+        
+        NOTE: This is a pre-check only - actual rollback must be handled separately
+        after validation passes.
+        
+        Returns:
+            RollbackValidationResult: Contains validation status and potential risks
+            
+        Raises:
+            AuthError: If rollback point doesn't exist
+        """
         try:
             rollback_point = await self._get_rollback_point(policy_id)
             if not rollback_point:
@@ -96,7 +147,15 @@ class RollbackManager:
             raise
     
     async def _store_rollback_point(self, point: RollbackPoint) -> None:
-        """Store rollback point in cache."""
+        """
+        Persists rollback point data using a two-part storage strategy:
+        1. Stores complete point data with a unique key
+        2. Maintains an ordered history list for each policy type
+        
+        Cache key structure:
+        - Point data: policy:rollback:point:{policy_id}
+        - History list: policy:rollback:history:{policy_type}
+        """
         # Store rollback point data
         point_key = f"policy:rollback:point:{point.policy_id}"
         await self.cache.set(
@@ -115,14 +174,25 @@ class RollbackManager:
         await self.cache.lpush(history_key, point.policy_id)
     
     async def _cleanup_history(self, policy_type: str) -> None:
-        """Cleanup history list to maintain the maximum history limit."""
+        """
+        Enforces history size limits to prevent unbounded cache growth.
+        
+        IMPORTANT: This operation modifies the history list but does not remove
+        the actual rollback point data. This is intentional to allow reference
+        to historical points even after they're removed from the active history.
+        """
         history_key = f"policy:rollback:history:{policy_type}"
         history_list = await self.cache.lrange(history_key, 0, self.max_history - 1)
         if len(history_list) > self.max_history:
             await self.cache.ltrim(history_key, self.max_history, -1)
     
     async def _get_rollback_point(self, policy_id: str) -> Optional[RollbackPoint]:
-        """Retrieve a rollback point from cache."""
+        """
+        Retrieves and reconstructs a RollbackPoint from cached data.
+        
+        NOTE: Returns None if point doesn't exist rather than raising an exception
+        to allow for existence checking.
+        """
         point_key = f"policy:rollback:point:{policy_id}"
         point_data = await self.cache.get(point_key)
         if point_data:
@@ -137,7 +207,14 @@ class RollbackManager:
         return None
     
     async def _get_current_policy(self, policy_type: PolicyType) -> Dict:
-        """Retrieve the current policy from cache."""
+        """
+        Fetches the active policy configuration for comparison during validation.
+        
+        Cache key format: policy:current:{policy_type}
+        
+        Raises:
+            AuthError: If no active policy exists for the given type
+        """
         current_policy_key = f"policy:current:{policy_type.value}"
         current_policy = await self.cache.get(current_policy_key)
         if current_policy:
