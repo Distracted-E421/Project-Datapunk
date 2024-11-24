@@ -1,12 +1,42 @@
 """
 Service mesh integration for cross-service authentication.
 
-This module provides:
-- Service-to-service authentication
-- Distributed session management
-- Cross-service token validation
-- mTLS certificate management
-- Auth state synchronization
+Purpose:
+    Provides secure service-to-service authentication and session management within a distributed system.
+
+Context:
+    Core component of the authentication infrastructure, enabling secure communication between microservices
+    while maintaining user session consistency across service boundaries.
+
+Design/Details:
+    - Implements JWT-based service authentication with mTLS support
+    - Manages distributed session state using cache and message broker
+    - Provides session propagation for seamless user experience across services
+    - Uses RS256 for token signing to ensure security at scale
+
+Prerequisites:
+    - Private/public key pair for JWT signing
+    - Running cache service (Redis recommended)
+    - Message broker (RabbitMQ/Kafka)
+    - Service mesh infrastructure
+
+Security Considerations:
+    - Implements mTLS for service-to-service communication
+    - Uses asymmetric encryption for token signing
+    - Includes token revocation capabilities
+    - Implements clock skew tolerance
+    - Validates service identity before session propagation
+
+Error Handling:
+    - Comprehensive error handling for token validation
+    - Graceful handling of network failures
+    - Retry mechanism for critical operations
+    - Structured logging for debugging
+
+Known Issues:
+    - Clock synchronization between services is critical
+    - Session propagation has a 5-minute timeout window
+    - Cache failures can impact service authentication state
 """
 
 from typing import Dict, Optional, Any, TYPE_CHECKING, List, Set
@@ -31,16 +61,23 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 class ServiceAuthStatus(Enum):
-    """Service authentication status."""
-    AUTHENTICATED = "authenticated"
-    UNAUTHORIZED = "unauthorized"
-    EXPIRED = "expired"
-    REVOKED = "revoked"
-    INVALID = "invalid"
+    """
+    Represents the possible authentication states of a service.
+    AUTHENTICATED: Service has valid credentials and is active
+    UNAUTHORIZED: Service lacks proper credentials
+    EXPIRED: Valid credentials that have timed out
+    REVOKED: Explicitly revoked credentials
+    INVALID: Malformed or corrupt credentials
+    """
 
 @dataclass
 class ServiceAuthConfig:
-    """Configuration for service authentication."""
+    """
+    Configuration parameters for service authentication behavior.
+    
+    NOTE: token_ttl should be balanced between security (shorter) and performance (longer)
+    TODO: Consider making retry parameters configurable per-service
+    """
     token_ttl: timedelta = timedelta(hours=1)
     require_mtls: bool = True
     sync_interval: int = 30  # seconds
@@ -57,7 +94,14 @@ class ServiceAuthContext:
     metadata: Optional[Dict[str, Any]] = None
 
 class AuthMesh:
-    """Service mesh integration for authentication."""
+    """
+    Manages service-to-service authentication and session propagation.
+    
+    Design Notes:
+    - Uses distributed cache for auth state to support horizontal scaling
+    - Implements event-driven architecture for auth state changes
+    - Supports graceful degradation if dependent services are unavailable
+    """
     
     def __init__(self,
                  service_mesh: 'ServiceMesh',
@@ -78,7 +122,12 @@ class AuthMesh:
     
     async def authenticate_service(self,
                                  context: ServiceAuthContext) -> Dict[str, Any]:
-        """Authenticate a service."""
+        """
+        Authenticates a service and issues a service token.
+        
+        SECURITY: Validates mTLS certificates before issuing tokens
+        NOTE: Failures are logged and metrics updated for monitoring
+        """
         try:
             # Validate mTLS if required
             if self.config.require_mtls:
@@ -114,7 +163,12 @@ class AuthMesh:
     async def validate_service_token(self,
                                    token: str,
                                    required_service: Optional[ServiceID] = None) -> Dict[str, Any]:
-        """Validate a service authentication token."""
+        """
+        Validates a service token and checks its current status.
+        
+        IMPORTANT: Implements clock skew tolerance for distributed systems
+        NOTE: Token validation includes both cryptographic checks and status verification
+        """
         try:
             # Decode token
             try:
@@ -160,7 +214,14 @@ class AuthMesh:
     async def propagate_session(self,
                               session_token: SessionToken,
                               target_service: ServiceID) -> Dict[str, Any]:
-        """Propagate user session to another service."""
+        """
+        Propagates user session to another service securely.
+        
+        Design Notes:
+        - Uses short-lived propagation tokens (5 min) to minimize security risks
+        - Implements event notification for session state consistency
+        - Target service must validate propagation token independently
+        """
         try:
             # Validate session
             if not await self.sessions.validate_session(session_token):
@@ -191,7 +252,12 @@ class AuthMesh:
             raise AuthError(f"Session propagation failed: {str(e)}")
     
     async def _validate_mtls(self, context: ServiceAuthContext) -> None:
-        """Validate mTLS certificates."""
+        """
+        Validates mTLS certificates for service authentication.
+        
+        SECURITY: Critical security check for service identity verification
+        TODO: Add certificate rotation support
+        """
         if not context.client_cert or not context.client_key:
             raise AuthError("mTLS certificates required")
             
@@ -203,7 +269,12 @@ class AuthMesh:
     
     async def _generate_service_token(self,
                                     context: ServiceAuthContext) -> str:
-        """Generate JWT token for service."""
+        """
+        Generates JWT token for service authentication.
+        
+        IMPORTANT: Uses asymmetric encryption (RS256) for better security at scale
+        NOTE: Includes unique JTI for token revocation support
+        """
         now = datetime.utcnow()
         payload = {
             "iss": "auth_mesh",
@@ -226,7 +297,13 @@ class AuthMesh:
     async def _store_auth_state(self,
                                context: ServiceAuthContext,
                                token: str) -> None:
-        """Store service authentication state."""
+        """
+        Maintains service authentication state in distributed cache.
+        
+        Design Notes:
+        - TTL matches token lifetime for automatic cleanup
+        - Includes metadata for audit and debugging purposes
+        """
         state = {
             "service_id": context.service_id,
             "status": ServiceAuthStatus.AUTHENTICATED.value,
