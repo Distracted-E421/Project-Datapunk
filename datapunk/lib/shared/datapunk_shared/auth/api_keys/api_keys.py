@@ -11,14 +11,34 @@ logger = structlog.get_logger()
 
 @dataclass
 class APIKeyConfig:
-    """Configuration for API key management."""
+    """Configuration for API key management.
+    
+    Defines the core parameters for API key behavior including:
+    - TTL: Default expiration time for keys
+    - Key limits: Maximum keys allowed per service to prevent abuse
+    - Prefixes: Standardized prefixes for keys and cache entries to ensure consistent naming
+    """
     ttl: int = 86400 * 30  # 30 days
-    max_keys_per_service: int = 5
-    key_prefix: str = "pk_"
-    cache_prefix: str = "apikey:"
+    max_keys_per_service: int = 5  # Prevents service quota abuse
+    key_prefix: str = "pk_"  # Public key prefix, following industry standards
+    cache_prefix: str = "apikey:"  # Cache namespace for key storage
 
 class APIKeyManager:
-    """Manages API key lifecycle and validation."""
+    """Manages API key lifecycle and validation.
+    
+    Provides a complete API key management system with:
+    - Key creation with scope-based access control
+    - Key validation and automatic usage tracking
+    - Key revocation and listing capabilities
+    
+    The implementation uses a cache-based storage system for fast lookups
+    and automatic key expiration. All operations are monitored and logged
+    for security audit purposes.
+    
+    NOTE: This implementation assumes the cache backend is reliable and
+    available. In production, consider implementing fallback mechanisms
+    or persistent storage backup.
+    """
     
     def __init__(self, 
                  cache_client: CacheClient,
@@ -33,7 +53,18 @@ class APIKeyManager:
                         service_name: str,
                         scopes: List[str],
                         metadata: Dict = None) -> Dict:
-        """Create new API key."""
+        """Create new API key with specified access scopes.
+        
+        Uses UUID4 for key generation to ensure uniqueness and
+        unpredictability. Keys are stored with metadata and usage
+        tracking information.
+        
+        SECURITY: Keys are never logged in full, only their IDs
+        are recorded for audit purposes.
+        
+        TODO: Consider implementing key rotation mechanisms for 
+        enhanced security.
+        """
         try:
             # Check key limit
             existing_keys = await self.list_keys(service_name)
@@ -73,7 +104,19 @@ class APIKeyManager:
     async def validate_key(self,
                           key: str,
                           required_scopes: List[str] = None) -> Optional[Dict]:
-        """Validate API key and check scopes."""
+        """Validate API key and verify access scopes.
+        
+        Performs three-step validation:
+        1. Prefix check for basic format validation
+        2. Existence check in cache
+        3. Scope verification if required
+        
+        Side effect: Updates last_used timestamp for valid keys
+        to facilitate usage tracking and auditing.
+        
+        FIXME: Consider implementing rate limiting at this layer
+        to prevent abuse.
+        """
         try:
             if not key.startswith(self.config.key_prefix):
                 return None
@@ -105,7 +148,16 @@ class APIKeyManager:
             return None
     
     async def revoke_key(self, key_id: str) -> bool:
-        """Revoke API key."""
+        """Revoke API key immediately.
+        
+        Performs a hard deletion from cache, making the key
+        invalid for all future requests. This operation is
+        non-reversible.
+        
+        NOTE: Due to cache-based implementation, revocation
+        is eventually consistent. There might be a brief window
+        where recently revoked keys remain valid.
+        """
         try:
             cache_key = f"{self.config.cache_prefix}{key_id}"
             key_data = await self.cache.get(cache_key)
@@ -130,7 +182,15 @@ class APIKeyManager:
             return False
     
     async def list_keys(self, service_name: str) -> List[Dict]:
-        """List all keys for a service."""
+        """List all active keys for a service.
+        
+        Uses cache scanning to find all keys, which may impact
+        performance for services with many keys.
+        
+        WARNING: This operation's complexity scales with the total
+        number of keys in the system, not just the service's keys.
+        Consider implementing pagination for large deployments.
+        """
         try:
             pattern = f"{self.config.cache_prefix}*"
             all_keys = await self.cache.scan(pattern)
