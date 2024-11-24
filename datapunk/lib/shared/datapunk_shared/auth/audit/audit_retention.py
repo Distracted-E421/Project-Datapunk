@@ -9,19 +9,33 @@ logger = structlog.get_logger()
 
 @dataclass
 class RetentionPolicy:
-    """Audit data retention policy."""
-    event_type: str
-    retention_days: int
-    archive_enabled: bool = False
-    archive_storage: Optional[str] = None
-    compression_enabled: bool = True
-    compliance_required: bool = False
+    """Audit data retention policy.
+    
+    Defines how long audit events should be kept and how they should be handled
+    when expired. Supports archiving and compression options for compliance
+    and storage optimization.
+    
+    NOTE: When archive_enabled is True, archive_storage must be specified
+    """
+    event_type: str  # Unique identifier for the type of audit event
+    retention_days: int  # Number of days to retain the audit data
+    archive_enabled: bool = False  # Whether to archive events before deletion
+    archive_storage: Optional[str] = None  # Storage location for archived events
+    compression_enabled: bool = True  # Whether to compress archived data
+    compliance_required: bool = False  # Indicates if event requires compliance tracking
 
 class AuditRetentionManager:
-    """Manages audit data retention policies."""
+    """Manages audit data retention policies and enforcement.
+    
+    Handles the lifecycle of audit events based on configured retention policies.
+    Supports automatic cleanup, archiving, and compliance tracking of audit data.
+    
+    NOTE: Requires a cache client that supports scan_iter for efficient key iteration
+    TODO: Implement actual archive storage integration
+    """
     
     def __init__(self,
-                 cache_client,
+                 cache_client,  # Must support get, delete, and scan_iter operations
                  metrics: MetricsClient):
         self.cache = cache_client
         self.metrics = metrics
@@ -36,7 +50,14 @@ class AuditRetentionManager:
                         days=policy.retention_days)
     
     async def enforce_retention(self) -> None:
-        """Enforce retention policies on audit data."""
+        """Enforce retention policies on audit data.
+        
+        Processes all configured retention policies, deleting or archiving
+        expired events as needed. Tracks metrics for monitoring and debugging.
+        
+        FIXME: Consider implementing batch processing for better performance
+        with large datasets
+        """
         try:
             self.metrics.increment("retention_enforcement_started")
             start_time = datetime.utcnow()
@@ -57,7 +78,14 @@ class AuditRetentionManager:
     async def _enforce_policy(self,
                             event_type: str,
                             policy: RetentionPolicy) -> None:
-        """Enforce single retention policy."""
+        """Enforce single retention policy.
+        
+        Scans cache for expired events of a specific type and processes them
+        according to the policy settings.
+        
+        NOTE: Uses ISO format timestamps for consistent datetime handling
+        WARNING: Large event volumes may impact performance due to sequential processing
+        """
         try:
             pattern = f"audit:event:{event_type}:*"
             cutoff_date = datetime.utcnow() - timedelta(days=policy.retention_days)
@@ -91,7 +119,14 @@ class AuditRetentionManager:
                            key: str,
                            event_data: str,
                            policy: RetentionPolicy) -> None:
-        """Archive event before deletion."""
+        """Archive event before deletion.
+        
+        Prepares and stores event data in long-term storage before removal from cache.
+        Handles compression if enabled in the policy.
+        
+        TODO: Implement actual archive storage integration with configurable backends
+        NOTE: Currently logs archive operations but doesn't actually store data
+        """
         if not policy.archive_storage:
             return
             
@@ -112,6 +147,12 @@ class AuditRetentionManager:
             raise
     
     def _compress_data(self, data: str) -> bytes:
-        """Compress event data."""
+        """Compress event data using gzip.
+        
+        Converts string data to bytes and applies gzip compression for
+        efficient storage in archive system.
+        
+        NOTE: Uses UTF-8 encoding for consistent string handling
+        """
         import gzip
         return gzip.compress(data.encode('utf-8')) 
