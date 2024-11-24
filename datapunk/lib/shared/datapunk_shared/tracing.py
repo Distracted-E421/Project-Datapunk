@@ -1,17 +1,72 @@
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import structlog
-from opentelemetry import trace
-from opentelemetry.trace import Status, StatusCode
+from opentelemetry import trace, context
+from opentelemetry.trace import Status, StatusCode, SpanKind
 from opentelemetry.trace.span import Span
 from opentelemetry.exporter.jaeger.thrift import JaegerExporter
-from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace import TracerProvider, sampling
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.resources import Resource
+from opentelemetry.baggage import set_baggage, get_baggage
 from functools import wraps
 import contextvars
+import random
+import time
 
 logger = structlog.get_logger()
 current_span = contextvars.ContextVar("current_span", default=None)
+
+class SamplingConfig:
+    """Configuration for trace sampling."""
+    def __init__(self,
+                 base_rate: float = 1.0,
+                 error_rate: float = 1.0,
+                 high_value_rate: float = 1.0,
+                 debug_rate: float = 1.0):
+        self.base_rate = base_rate
+        self.error_rate = error_rate
+        self.high_value_rate = high_value_rate
+        self.debug_rate = debug_rate
+
+class CustomSampler(sampling.Sampler):
+    """Custom sampling strategy."""
+    
+    def __init__(self, config: SamplingConfig):
+        self.config = config
+        
+    def should_sample(self, 
+                     parent_context: Optional[context.Context],
+                     trace_id: int,
+                     name: str,
+                     kind: SpanKind = None,
+                     attributes: Dict = None,
+                     links: List = None,
+                     trace_state: Optional[Dict] = None) -> sampling.Decision:
+        """Determine if span should be sampled."""
+        # Always sample if parent is sampled
+        if parent_context and parent_context.trace_flags.sampled:
+            return sampling.Decision.RECORD_AND_SAMPLE
+            
+        # Always sample errors
+        if attributes and attributes.get("error", False):
+            if random.random() < self.config.error_rate:
+                return sampling.Decision.RECORD_AND_SAMPLE
+                
+        # Sample high-value operations
+        if attributes and attributes.get("high_value", False):
+            if random.random() < self.config.high_value_rate:
+                return sampling.Decision.RECORD_AND_SAMPLE
+                
+        # Sample debug mode
+        if attributes and attributes.get("debug", False):
+            if random.random() < self.config.debug_rate:
+                return sampling.Decision.RECORD_AND_SAMPLE
+                
+        # Base sampling rate
+        if random.random() < self.config.base_rate:
+            return sampling.Decision.RECORD_AND_SAMPLE
+            
+        return sampling.Decision.DROP
 
 class TracingConfig:
     """Configuration for tracing."""
@@ -19,11 +74,11 @@ class TracingConfig:
                  service_name: str,
                  jaeger_host: str = "jaeger",
                  jaeger_port: int = 6831,
-                 sample_rate: float = 1.0):
+                 sampling_config: Optional[SamplingConfig] = None):
         self.service_name = service_name
         self.jaeger_host = jaeger_host
         self.jaeger_port = jaeger_port
-        self.sample_rate = sample_rate
+        self.sampling_config = sampling_config or SamplingConfig()
 
 class TracingManager:
     """Manages distributed tracing."""
@@ -32,9 +87,18 @@ class TracingManager:
         self.config = config
         self.logger = logger.bind(component="tracing")
         
-        # Initialize tracer
-        resource = Resource.create({"service.name": config.service_name})
-        trace.set_tracer_provider(TracerProvider(resource=resource))
+        # Initialize tracer with custom sampler
+        resource = Resource.create({
+            "service.name": config.service_name,
+            "service.version": "1.0.0",  # TODO: Get from config
+            "deployment.environment": "production"  # TODO: Get from config
+        })
+        
+        provider = TracerProvider(
+            resource=resource,
+            sampler=CustomSampler(config.sampling_config)
+        )
+        trace.set_tracer_provider(provider)
         
         # Configure Jaeger exporter
         jaeger_exporter = JaegerExporter(
@@ -42,57 +106,52 @@ class TracingManager:
             agent_port=config.jaeger_port,
         )
         
-        trace.get_tracer_provider().add_span_processor(
-            BatchSpanProcessor(jaeger_exporter)
-        )
-        
+        provider.add_span_processor(BatchSpanProcessor(jaeger_exporter))
         self.tracer = trace.get_tracer(__name__)
-    
+        
     def start_span(self,
                   name: str,
                   context: Optional[Dict] = None,
-                  kind: Optional[str] = None) -> Span:
-        """Start a new span."""
+                  kind: Optional[str] = None,
+                  attributes: Optional[Dict] = None) -> Span:
+        """Start a new span with correlation context."""
         parent = current_span.get()
         
+        # Create span
         span = self.tracer.start_span(
             name=name,
             context=context,
             kind=kind,
-            parent=parent
+            attributes=attributes or {}
         )
+        
+        # Add correlation ID to baggage
+        correlation_id = attributes.get("correlation_id") if attributes else None
+        if correlation_id:
+            set_baggage("correlation_id", correlation_id)
         
         current_span.set(span)
         return span
     
-    def end_span(self, span: Span, status: Optional[Status] = None):
-        """End a span with optional status."""
-        if status:
-            span.set_status(status)
-        span.end()
-        current_span.set(None)
-    
-    def add_event(self, name: str, attributes: Optional[Dict] = None):
-        """Add event to current span."""
+    def inject_context_to_log(self, log_event: Dict) -> Dict:
+        """Inject tracing context into log event."""
         span = current_span.get()
         if span:
-            span.add_event(name, attributes=attributes)
+            log_event.update({
+                "trace_id": format(span.get_span_context().trace_id, "032x"),
+                "span_id": format(span.get_span_context().span_id, "016x"),
+                "correlation_id": get_baggage("correlation_id")
+            })
+        return log_event
     
-    def set_attribute(self, key: str, value: Any):
-        """Set attribute on current span."""
-        span = current_span.get()
-        if span:
-            span.set_attribute(key, value)
-    
-    def record_exception(self, exception: Exception):
-        """Record exception in current span."""
-        span = current_span.get()
-        if span:
-            span.record_exception(exception)
-            span.set_status(Status(StatusCode.ERROR))
+    def get_correlation_id(self) -> Optional[str]:
+        """Get current correlation ID."""
+        return get_baggage("correlation_id")
 
-def trace_method(name: Optional[str] = None):
-    """Decorator for tracing methods."""
+def with_trace(name: Optional[str] = None,
+               attributes: Optional[Dict] = None,
+               high_value: bool = False):
+    """Enhanced decorator for tracing methods."""
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -102,7 +161,14 @@ def trace_method(name: Optional[str] = None):
                 return await func(*args, **kwargs)
             
             span_name = name or func.__name__
-            with tracer.start_span(span_name) as span:
+            span_attributes = {
+                **(attributes or {}),
+                "high_value": high_value,
+                "function": func.__name__,
+                "module": func.__module__
+            }
+            
+            with tracer.start_span(span_name, attributes=span_attributes) as span:
                 try:
                     # Add function parameters as span attributes
                     span.set_attribute("args", str(args[1:]))  # Skip self
@@ -117,6 +183,8 @@ def trace_method(name: Optional[str] = None):
                 except Exception as e:
                     span.record_exception(e)
                     span.set_status(Status(StatusCode.ERROR))
+                    # Add error flag for sampling
+                    span.set_attribute("error", True)
                     raise
                     
         return wrapper
