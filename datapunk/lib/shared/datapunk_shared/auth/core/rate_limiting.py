@@ -1,12 +1,30 @@
 """
 Rate limiting system with multiple strategies.
 
-This module provides:
-- Token bucket rate limiting
-- Sliding window rate limiting
-- Leaky bucket rate limiting
-- Distributed rate limiting
-- Custom rate limiting strategies
+Purpose:
+    Provides a flexible rate limiting system for API request throttling with multiple
+    implementation strategies to suit different use cases.
+
+Context:
+    Part of the authentication/authorization system, protecting APIs from abuse
+    while ensuring fair resource allocation.
+
+Design:
+    - Implements three rate limiting algorithms: Token Bucket, Sliding Window, and Leaky Bucket
+    - Uses distributed caching for scalability across multiple instances
+    - Provides configurable parameters for fine-tuning rate limit behavior
+    - Includes metrics collection for monitoring and alerting
+    - Fails open to prevent system lockout during errors
+
+Error Handling:
+    - All limiters fail open (allow requests) when errors occur
+    - Errors are logged with structlog for debugging
+    - Metrics are collected for both successful and failed rate limit checks
+
+Performance Considerations:
+    - Uses atomic cache operations where possible to prevent race conditions
+    - Minimizes cache operations per request
+    - Implements efficient cleanup of expired records
 """
 
 from typing import Dict, Optional, Any, TYPE_CHECKING, List
@@ -25,16 +43,24 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 class RateLimitStrategy(Enum):
-    """Available rate limiting strategies."""
-    TOKEN_BUCKET = "token_bucket"
-    SLIDING_WINDOW = "sliding_window"
-    LEAKY_BUCKET = "leaky_bucket"
-    FIXED_WINDOW = "fixed_window"
-    ADAPTIVE = "adaptive"
+    """
+    Available rate limiting strategies.
+    
+    TOKEN_BUCKET: Best for API rate limiting with burst handling
+    SLIDING_WINDOW: Provides smooth rate limiting with precise time windows
+    LEAKY_BUCKET: Ideal for traffic shaping and constant outflow
+    FIXED_WINDOW: Simple counting within fixed time periods
+    ADAPTIVE: Dynamic limits based on system load (not implemented)
+    """
 
 @dataclass
 class RateLimitConfig:
-    """Configuration for rate limiting."""
+    """
+    Configuration for rate limiting.
+    
+    Note: window_size and sync_interval are in seconds
+    Warning: Setting distributed=True requires a distributed cache implementation
+    """
     requests_per_second: int
     burst_size: int
     window_size: int = 60  # seconds
@@ -52,7 +78,21 @@ class RateLimitResult:
     burst_remaining: Optional[int] = None
 
 class TokenBucketLimiter:
-    """Token bucket rate limiting implementation."""
+    """
+    Token bucket rate limiting implementation.
+    
+    Design:
+        - Tokens replenish at a constant rate up to burst_size
+        - Each request consumes one token
+        - Allows temporary bursts of traffic while maintaining long-term rate
+    
+    Cache Structure:
+        Key: "ratelimit:token:{key}"
+        Value: {
+            "tokens": float,  # Current token count
+            "last_update": float  # Timestamp of last update
+        }
+    """
     
     def __init__(self,
                  cache: 'CacheClient',
@@ -64,7 +104,16 @@ class TokenBucketLimiter:
         self.logger = logger.bind(strategy="token_bucket")
     
     async def check_limit(self, key: str) -> RateLimitResult:
-        """Check if request is allowed."""
+        """
+        Check if request is allowed under token bucket algorithm.
+        
+        Implementation:
+            1. Calculate tokens replenished since last update
+            2. If tokens available, consume one and allow request
+            3. If no tokens, calculate wait time for next token
+        
+        Note: Uses atomic cache operations to prevent race conditions
+        """
         try:
             bucket_key = f"ratelimit:token:{key}"
             now = time.time()
@@ -128,7 +177,18 @@ class TokenBucketLimiter:
             )
 
 class SlidingWindowLimiter:
-    """Sliding window rate limiting implementation."""
+    """
+    Sliding window rate limiting implementation.
+    
+    Design:
+        - Maintains sorted set of request timestamps
+        - Provides smooth rate limiting without sharp edges
+        - More precise than fixed windows but higher storage overhead
+    
+    Cache Structure:
+        Key: "ratelimit:window:{key}"
+        Value: Sorted set of request timestamps
+    """
     
     def __init__(self,
                  cache: 'CacheClient',
@@ -198,7 +258,21 @@ class SlidingWindowLimiter:
             )
 
 class LeakyBucketLimiter:
-    """Leaky bucket rate limiting implementation."""
+    """
+    Leaky bucket rate limiting implementation.
+    
+    Design:
+        - Models a bucket with constant outflow rate
+        - Good for traffic shaping and queue management
+        - Smooths out traffic spikes
+    
+    Cache Structure:
+        Key: "ratelimit:leaky:{key}"
+        Value: {
+            "water_level": float,  # Current queue size
+            "last_update": float  # Timestamp of last update
+        }
+    """
     
     def __init__(self,
                  cache: 'CacheClient',
@@ -271,7 +345,17 @@ class LeakyBucketLimiter:
             )
 
 class RateLimiter:
-    """Central rate limiting manager."""
+    """
+    Central rate limiting manager.
+    
+    Design:
+        - Factory pattern for creating specific limiter implementations
+        - Handles strategy selection and initialization
+        - Centralizes metrics collection and error handling
+    
+    Note: New rate limiting strategies should be added to self.limiters
+    TODO: Implement adaptive rate limiting based on system metrics
+    """
     
     def __init__(self,
                  cache: 'CacheClient',
