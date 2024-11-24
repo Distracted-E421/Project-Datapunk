@@ -1,10 +1,13 @@
 # Monitoring Dashboard Standards
 
 ## Purpose
+
 Define standardized Grafana dashboards and alert correlation patterns for comprehensive system monitoring and troubleshooting.
 
 ## Context
+
 Dashboards are organized by:
+
 1. Service-level metrics
 2. Infrastructure metrics
 3. Business metrics
@@ -309,4 +312,4 @@ loki_config:
       url: "http://loki:3100"
       jsonData:
         maxLines: 1000
-``` 
+```
