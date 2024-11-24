@@ -1,10 +1,13 @@
 # Security Standards
 
 ## Purpose
+
 Define comprehensive security standards for authentication, authorization, and data protection across the Datapunk platform.
 
 ## Context
+
 Security is implemented at multiple layers:
+
 1. Service-to-service communication (mTLS)
 2. External API access (OAuth2, JWT)
 3. Data protection (encryption, access control)
@@ -382,4 +385,4 @@ security_testing:
     - data_encryption
     - key_rotation
     - secure_communication
-``` 
+```
