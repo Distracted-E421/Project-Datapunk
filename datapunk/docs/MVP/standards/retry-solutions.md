@@ -3,9 +3,11 @@
 ## 1. Race Conditions in Distributed Retries
 
 ### Problem
+
 Multiple services retrying simultaneously can cause thundering herd problems and resource contention.
 
 ### Solution Implementation
+
 ```python
 from dataclasses import dataclass
 import time
@@ -43,10 +45,12 @@ class DistributedRetryCoordinator:
 
 ## 2. Duplicate Operations
 
-### Problem
+### Problem for Python
+
 Retries can cause operations to be executed multiple times, leading to data inconsistency.
 
-### Solution Implementation
+### Solution Implementation for Python
+
 ```python
 from typing import Optional
 import hashlib
@@ -89,10 +93,12 @@ class IdempotencyManager:
 
 ## 3. Clock Skew Impact
 
-### Problem
+### Problem for Python 2
+
 Different service instances may have slightly different system times, affecting retry timing.
 
-### Solution Implementation
+### Solution Implementation for Python 2
+
 ```python
 from datetime import datetime
 import ntplib
@@ -227,4 +233,4 @@ class RetryMetricsEnhanced(RetryMetrics):
             'Detected clock skew from NTP',
             ['service']
         )
-``` 
+```
