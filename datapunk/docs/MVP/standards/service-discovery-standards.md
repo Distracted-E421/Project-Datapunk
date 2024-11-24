@@ -1,9 +1,11 @@
 # Service Discovery Standards
 
 ## Purpose
+
 Define standardized patterns for service registration, discovery, and health monitoring across the Datapunk platform.
 
 ## Context
+
 Service discovery is critical for dynamic service-to-service communication, load balancing, and system resilience.
 
 ## Design/Details
@@ -84,7 +86,7 @@ mesh_integration:
 
 ## Implementation Patterns
 
-### 1. Service Registration
+### 1. Service Registration for Python
 
 ```python
 from dataclasses import dataclass
@@ -368,4 +370,4 @@ testing:
     - discovery_latency
     - cache_effectiveness
     - scaling_limits
-``` 
+```
