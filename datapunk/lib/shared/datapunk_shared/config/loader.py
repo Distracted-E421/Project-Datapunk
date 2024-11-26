@@ -12,7 +12,30 @@ from .hot_reload import ConfigHotReloader
 logger = structlog.get_logger(__name__)
 
 class ConfigLoader:
-    """Configuration loader with environment variable support"""
+    """
+    A configuration system that puts you in control
+    
+    Look, configuration doesn't need to be complicated. Load your configs, 
+    override what you need, and get back to building something awesome. 
+    This loader handles the heavy lifting while keeping things transparent 
+    and maintainable.
+    
+    Features:
+    - Environment-specific configs that just work
+    - Hot reload when you need it
+    - Version tracking that doesn't get in your way
+    - Validation that catches problems early
+    - Environment variables that override everything else
+    
+    Technical Notes:
+    - YAML-based for readability
+    - Nested config support
+    - Smart type conversion
+    - Pydantic model validation
+    
+    TODO: Add proper encryption for sensitive data
+    FIXME: Improve validation error messages
+    """
     
     def __init__(
         self,
@@ -22,6 +45,24 @@ class ConfigLoader:
         enable_hot_reload: bool = False,
         enable_versioning: bool = False
     ):
+        """
+        Set up your config loader exactly how you want it
+        
+        Args:
+            config_dir: Root directory for your config files
+            env_prefix: Prefix for env vars (defaults to DATAPUNK_)
+            default_env: Fallback environment name
+            enable_hot_reload: Watch for config changes in real-time
+            enable_versioning: Keep track of config history
+        
+        The loader prioritizes like this:
+        1. Environment variables (they win, always)
+        2. Environment-specific config
+        3. Base config
+        
+        Example:
+            loader = ConfigLoader("./config", enable_hot_reload=True)
+        """
         self.config_dir = Path(config_dir)
         self.env_prefix = env_prefix
         self.environment = os.getenv(f"{env_prefix}ENV", default_env)
