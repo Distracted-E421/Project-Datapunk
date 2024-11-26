@@ -9,8 +9,32 @@ from pathlib import Path
 from enum import Enum
 from ..monitoring import MetricsCollector
 
+"""
+Database migrations that won't make you lose your shit
+
+Because database changes shouldn't be a game of Russian roulette. This module 
+handles schema updates with version tracking, rollbacks, and proper checksums 
+to make sure nothing gets fucked up along the way.
+
+Key Features:
+- Transactional migrations (all or nothing)
+- Automatic rollbacks when things go south
+- Version tracking that actually makes sense
+- Parallel execution for the impatient
+- Checksums to catch tampering
+
+NOTE: All migrations are tracked in a dedicated table for accountability
+TODO: Add dry-run capability for testing migrations
+FIXME: Improve error messages when migrations conflict
+"""
+
 class MigrationState(Enum):
-    """Migration states"""
+    """
+    Track where each migration stands
+    
+    States flow: PENDING -> IN_PROGRESS -> COMPLETED
+                                      -> FAILED -> ROLLED_BACK
+    """
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -19,25 +43,42 @@ class MigrationState(Enum):
 
 @dataclass
 class MigrationConfig:
-    """Configuration for database migrations"""
+    """
+    Control how migrations behave
+    
+    Customize everything from batch sizes to timeouts. Sensible defaults
+    included, but you can tune them if you know what you're doing.
+    
+    NOTE: parallel_migrations can speed things up but watch for deadlocks
+    """
     migrations_path: str
     migrations_table: str = "schema_migrations"
-    enable_rollback: bool = True
-    batch_size: int = 10
-    lock_timeout: int = 30  # seconds
-    enable_checksums: bool = True
-    enable_transactions: bool = True
-    enable_logging: bool = True
-    parallel_migrations: bool = False
-    max_retries: int = 3
-    retry_delay: float = 1.0  # seconds
+    enable_rollback: bool = True  # Because shit happens
+    batch_size: int = 10  # How many to run at once
+    lock_timeout: int = 30  # Don't hang forever
+    enable_checksums: bool = True  # Catch tampering
+    enable_transactions: bool = True  # All or nothing
+    enable_logging: bool = True  # Debug is your friend
+    parallel_migrations: bool = False  # Use with caution
+    max_retries: int = 3  # Try again before giving up
+    retry_delay: float = 1.0  # Breathe between retries
 
 class MigrationError(Exception):
     """Base class for migration errors"""
     pass
 
 class Migration:
-    """Represents a database migration"""
+    """
+    Single database migration with tracking
+    
+    Each migration is versioned, described, and checksummed. Up and down
+    SQL ensures you can roll back when needed (and you will need it).
+    
+    Implementation Notes:
+    - Checksums include everything to catch sneaky changes
+    - State tracking prevents double-runs
+    - Timestamps tell you who to blame
+    """
     def __init__(
         self,
         version: str,
@@ -56,14 +97,28 @@ class Migration:
         self.error: Optional[str] = None
 
     def _calculate_checksum(self) -> str:
-        """Calculate migration checksum"""
+        """
+        Generate tamper-proof checksum
+        
+        Includes version, description, and SQL to catch any changes.
+        SHA256 because we're not barbarians.
+        """
         content = f"{self.version}:{self.description}:{self.up_sql}"
         if self.down_sql:
             content += f":{self.down_sql}"
         return hashlib.sha256(content.encode()).hexdigest()
 
 class MigrationManager:
-    """Manages database migrations"""
+    """
+    Keep your database changes under control
+    
+    Handles the entire migration lifecycle from loading to execution.
+    Includes parallel support for when you need speed, and rollbacks
+    for when you need mercy.
+    
+    FIXME: Add better conflict detection for parallel migrations
+    TODO: Add migration dependency tracking
+    """
     def __init__(
         self,
         config: MigrationConfig,
