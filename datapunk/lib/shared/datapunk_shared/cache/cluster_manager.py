@@ -1,3 +1,12 @@
+"""
+Distributed cache cluster manager implementing consistent hashing for data distribution
+and master-slave replication for high availability.
+
+The cluster uses a pub/sub mechanism for synchronization and maintains node health
+through periodic heartbeats. Node failures trigger automatic master re-election
+and redistribution of the hash ring.
+"""
+
 from typing import List, Dict, Any, Optional, Set
 import asyncio
 import json
@@ -9,6 +18,13 @@ from .cache_types import CacheConfig, CacheEntry
 from ..monitoring.metrics import MetricsClient
 
 class ClusterNode:
+    """
+    Represents a single node in the cache cluster with connection management
+    and health monitoring capabilities.
+    
+    NOTE: Weight parameter affects the node's share of keys in consistent hashing.
+    Higher weights are useful for nodes with more capacity.
+    """
     def __init__(
         self,
         node_id: str,
@@ -23,10 +39,19 @@ class ClusterNode:
         self.is_master = is_master
         self.weight = weight
         self.last_heartbeat: Optional[float] = None
-        self.status: str = "connecting"
+        self.status: str = "connecting"  # States: connecting, connected, error
         self.connection: Optional[aioredis.Redis] = None
 
 class ClusterManager:
+    """
+    Manages a distributed cache cluster with consistent hashing and automatic failover.
+    
+    The consistent hashing ring uses virtual nodes (default: 160 per physical node)
+    to ensure even distribution even with heterogeneous node capacities.
+    
+    NOTE: The cluster requires at least one node to be available for master election.
+    Consider deploying an odd number of nodes to avoid split-brain scenarios.
+    """
     def __init__(
         self,
         config: CacheConfig,
@@ -43,9 +68,9 @@ class ClusterManager:
         self._heartbeat_task: Optional[asyncio.Task] = None
         self._running = False
         
-        # Consistent hashing ring
+        # Virtual nodes improve distribution uniformity and handle node weight scaling
         self._hash_ring: List[tuple] = []  # (hash_value, node_id)
-        self._virtual_nodes = 160  # Number of virtual nodes per physical node
+        self._virtual_nodes = 160  # Higher values = better distribution but more memory
 
     async def start(self) -> None:
         """Start cluster management"""
@@ -70,7 +95,12 @@ class ClusterManager:
                 await node.connection.close()
 
     async def get_node_for_key(self, key: str) -> Optional[ClusterNode]:
-        """Get responsible node for a key using consistent hashing"""
+        """
+        Maps a key to its responsible node using consistent hashing.
+        Falls back to master node if hash ring is empty.
+        
+        NOTE: Hash ring lookups are O(log n) due to binary search in sorted ring.
+        """
         if not self._hash_ring:
             return self._master_node
         
@@ -79,15 +109,20 @@ class ClusterManager:
             if key_hash <= hash_value:
                 return self.nodes[node_id]
         
-        return self.nodes[self._hash_ring[0][1]]  # Wrap around
+        # Wrap around to first node if key hash is larger than all ring values
+        return self.nodes[self._hash_ring[0][1]]
 
     async def sync_key(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
-        """Synchronize a key across the cluster"""
+        """
+        Propagates key updates to all cluster nodes through pub/sub.
+        
+        NOTE: Synchronization is eventually consistent. There may be a brief window
+        where nodes have different values during the sync process.
+        """
         if not self._master_node:
             return
 
         try:
-            # Create sync entry
             sync_entry = {
                 'key': key,
                 'value': value,
@@ -96,7 +131,7 @@ class ClusterManager:
                 'ttl': ttl
             }
 
-            # Publish sync message
+            # Publish via master to ensure ordering of updates
             await self._master_node.connection.publish(
                 f"{self.config.namespace}:sync",
                 json.dumps(sync_entry)
@@ -125,7 +160,12 @@ class ClusterManager:
                 node.status = "error"
 
     async def _elect_master(self) -> None:
-        """Elect a master node"""
+        """
+        Simple master election using lowest node_id as tiebreaker.
+        
+        TODO: Implement more sophisticated election algorithm (e.g., Raft)
+        for better partition tolerance.
+        """
         connected_nodes = [
             node for node in self.nodes.values()
             if node.status == "connected" and node.connection
@@ -134,14 +174,19 @@ class ClusterManager:
         if not connected_nodes:
             raise Exception("No available nodes for master election")
 
-        # Simple election: choose node with lowest node_id
         self._master_node = min(connected_nodes, key=lambda n: n.node_id)
         self._master_node.is_master = True
         
         self.logger.info(f"Elected master node: {self._master_node.node_id}")
 
     def _build_hash_ring(self) -> None:
-        """Build consistent hashing ring"""
+        """
+        Builds consistent hash ring with virtual nodes for better distribution.
+        Only includes healthy nodes in the ring.
+        
+        NOTE: Ring is rebuilt on node status changes, which can cause
+        temporary redistribution of keys.
+        """
         self._hash_ring = []
         
         for node in self.nodes.values():
@@ -161,7 +206,13 @@ class ClusterManager:
         return int(hashlib.md5(key.encode()).hexdigest(), 16)
 
     async def _run_heartbeat(self) -> None:
-        """Run heartbeat checks"""
+        """
+        Monitors node health through Redis PING commands.
+        Failed master nodes trigger immediate re-election.
+        
+        NOTE: 5-second heartbeat interval is a trade-off between
+        responsiveness and network overhead.
+        """
         while self._running:
             try:
                 for node in self.nodes.values():
@@ -189,10 +240,15 @@ class ClusterManager:
             except Exception as e:
                 self.logger.error(f"Heartbeat error: {str(e)}")
 
-            await asyncio.sleep(5)  # Configurable interval
+            await asyncio.sleep(5)
 
     async def _run_sync(self) -> None:
-        """Run cluster synchronization"""
+        """
+        Handles cluster-wide key synchronization through Redis pub/sub.
+        
+        FIXME: Consider implementing batch synchronization for better performance
+        when many keys change simultaneously.
+        """
         if not self._master_node or not self._master_node.connection:
             return
 
@@ -210,7 +266,7 @@ class ClusterManager:
                     sync_entry = json.loads(message['data'])
                     source_node = sync_entry['source_node']
 
-                    # Apply sync to all nodes except source
+                    # Propagate updates to all nodes except the source
                     for node in self.nodes.values():
                         if (
                             node.node_id != source_node and
