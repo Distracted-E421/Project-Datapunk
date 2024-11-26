@@ -180,3 +180,4 @@ mongod.lock
 # Datapunk 
 venv/   
 class/
+DatapunkManifesto.txt
