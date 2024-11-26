@@ -6,28 +6,43 @@ from datetime import datetime
 from .cluster_manager import ClusterNode, ClusterManager
 
 class RebalanceStrategy(Enum):
-    GRADUAL = "gradual"  # Move keys gradually to minimize impact
-    IMMEDIATE = "immediate"  # Move all keys at once
-    OFF_PEAK = "off_peak"  # Move keys during off-peak hours
+    """
+    Defines different strategies for redistributing keys across cluster nodes.
+    
+    The choice of strategy impacts system performance and availability during rebalancing:
+    - GRADUAL: Minimizes performance impact but takes longer
+    - IMMEDIATE: Fastest but may impact system performance
+    - OFF_PEAK: Balances performance impact by operating during low-traffic hours
+    """
+    GRADUAL = "gradual"
+    IMMEDIATE = "immediate"
+    OFF_PEAK = "off_peak"
 
 class ClusterRebalancer:
-    def __init__(
-        self,
-        cluster_manager: ClusterManager,
-        strategy: RebalanceStrategy = RebalanceStrategy.GRADUAL,
-        batch_size: int = 100,
-        sleep_between_batches: float = 0.1
-    ):
-        self.cluster = cluster_manager
-        self.strategy = strategy
-        self.batch_size = batch_size
-        self.sleep_between_batches = sleep_between_batches
-        self.logger = logging.getLogger(__name__)
-        self._rebalancing = False
-        self._cancel_rebalancing = False
+    """
+    Manages the redistribution of keys across cluster nodes to maintain balanced data distribution.
+    
+    This class handles the complex task of moving keys between nodes while:
+    - Preserving data consistency
+    - Maintaining TTL values
+    - Allowing for interruption of the rebalancing process
+    - Supporting different rebalancing strategies based on operational needs
+    
+    NOTE: The rebalancer assumes the master node has a complete view of all keys
+    TODO: Consider adding support for partial rebalancing of specific key ranges
+    """
 
     async def start_rebalance(self) -> None:
-        """Start cluster rebalancing"""
+        """
+        Initiates the cluster rebalancing process.
+        
+        The process follows these steps:
+        1. Rebuilds the hash ring to reflect current cluster topology
+        2. Identifies keys that need to be moved based on the new ring
+        3. Executes the chosen rebalancing strategy
+        
+        IMPORTANT: This operation can be resource-intensive depending on the chosen strategy
+        """
         if self._rebalancing:
             self.logger.warning("Rebalancing already in progress")
             return
@@ -68,7 +83,16 @@ class ClusterRebalancer:
             await asyncio.sleep(0.1)
 
     async def _identify_keys_to_move(self) -> Dict[str, str]:
-        """Identify keys that need to be moved"""
+        """
+        Scans all nodes to identify keys that need redistribution.
+        
+        Uses Redis SCAN for memory-efficient key iteration. Only includes keys that:
+        - Belong to this cluster's namespace
+        - Need to move to a different node based on the current hash ring
+        
+        NOTE: The scan operation may return duplicate keys if the keyspace changes during scanning
+        TODO: Consider implementing a mechanism to handle key duplicates
+        """
         keys_to_move = {}
         
         for node in self.cluster.nodes.values():
@@ -94,7 +118,14 @@ class ClusterRebalancer:
         return keys_to_move
 
     async def _rebalance_immediate(self, keys_to_move: Dict[str, str]) -> None:
-        """Move all keys immediately"""
+        """
+        Performs immediate bulk transfer of all keys that need to be moved.
+        
+        Uses pipelining to reduce the number of network round-trips when deleting keys.
+        
+        WARNING: This method can cause significant load on both source and target nodes
+        FIXME: Consider implementing retry logic for failed transfers
+        """
         pipe = self.cluster._master_node.connection.pipeline()
         
         for key, target_node_id in keys_to_move.items():
@@ -118,7 +149,17 @@ class ClusterRebalancer:
         await pipe.execute()
 
     async def _rebalance_gradual(self, keys_to_move: Dict[str, str]) -> None:
-        """Move keys gradually in batches"""
+        """
+        Gradually transfers keys in controlled batches to minimize system impact.
+        
+        Features:
+        - Respects batch size and sleep interval configuration
+        - Handles individual key transfer failures without stopping the process
+        - Can be interrupted via cancel flag
+        
+        NOTE: Keys might be temporarily duplicated during the transfer window
+        TODO: Add metrics collection for monitoring transfer progress
+        """
         moved_count = 0
         
         for key, target_node_id in keys_to_move.items():
@@ -148,7 +189,15 @@ class ClusterRebalancer:
                 self.logger.error(f"Failed to move key {key}: {str(e)}")
 
     async def _rebalance_off_peak(self, keys_to_move: Dict[str, str]) -> None:
-        """Move keys during off-peak hours"""
+        """
+        Executes rebalancing during defined off-peak hours (2 AM - 5 AM).
+        
+        Uses the gradual rebalancing approach during the allowed window.
+        Sleeps during peak hours to avoid system impact.
+        
+        NOTE: The off-peak window is currently hardcoded
+        TODO: Make the off-peak window configurable
+        """
         while keys_to_move and not self._cancel_rebalancing:
             # Check if current time is off-peak (e.g., between 2 AM and 5 AM)
             current_hour = datetime.now().hour
