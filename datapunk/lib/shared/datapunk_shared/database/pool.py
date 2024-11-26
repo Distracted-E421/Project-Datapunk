@@ -6,9 +6,45 @@ from datetime import datetime, timedelta
 from enum import Enum
 from ..monitoring import MetricsCollector
 
+"""
+PostgreSQL Connection Pool Manager for Datapunk
+
+This module implements a robust connection pool for PostgreSQL database access,
+designed to support Datapunk's high-throughput data processing requirements.
+It provides connection lifecycle management, health monitoring, and metrics
+collection for observability.
+
+Key Features:
+- Configurable pool size and connection parameters
+- Connection health validation
+- Prepared statement caching
+- Metrics collection for monitoring
+- Automatic connection recovery
+- Resource usage tracking
+
+Integration Points:
+- Metrics collection via MetricsCollector
+- Service mesh health reporting
+- Circuit breaker pattern support
+- Resource monitoring
+
+TODO: Implement progressive backoff for failed validations
+TODO: Add configurable validation queries
+TODO: Add circuit breaker pattern for connection failures
+"""
+
 @dataclass
 class PoolConfig:
-    """Configuration for database connection pool"""
+    """
+    Configuration for database connection pool with production-ready defaults.
+    
+    These values are optimized for Datapunk's typical workload patterns:
+    - High read/write concurrency
+    - Long-running analytical queries
+    - Periodic bulk operations
+    
+    NOTE: Adjust max_size based on available system resources and expected load
+    """
     min_size: int = 10
     max_size: int = 100
     max_queries: int = 50000
@@ -24,18 +60,37 @@ class PoolConfig:
     validation_interval: float = 30.0  # seconds
 
 class ConnectionState(Enum):
-    """Connection states"""
+    """
+    Connection states for pool management and monitoring.
+    Used by health checks and metrics collection to track connection lifecycle.
+    """
     IDLE = "idle"
     BUSY = "busy"
     CLOSED = "closed"
     FAILED = "failed"
 
 class DatabaseError(Exception):
-    """Base class for database errors"""
+    """
+    Base exception class for database operations.
+    Provides consistent error handling across the application.
+    """
     pass
 
 class ConnectionPool:
-    """Manages database connection pooling"""
+    """
+    Manages PostgreSQL connection pooling with health monitoring and metrics.
+    
+    This implementation follows Datapunk's reliability requirements:
+    - Connection validation
+    - Automatic recovery
+    - Resource monitoring
+    - Performance metrics
+    
+    Integration Points:
+    - MetricsCollector for operational monitoring
+    - Health checks for service mesh integration
+    - Resource usage tracking for capacity planning
+    """
     def __init__(
         self,
         dsn: str,
@@ -56,7 +111,15 @@ class ConnectionPool:
         }
 
     async def initialize(self):
-        """Initialize connection pool"""
+        """
+        Initialize connection pool with configured settings and start health monitoring.
+        
+        NOTE: This method must be called before any database operations can be performed.
+        Ensures all connections are properly configured with required codecs and settings.
+        
+        Raises:
+            DatabaseError: If pool initialization fails or configuration is invalid
+        """
         try:
             self._pool = await asyncpg.create_pool(
                 dsn=self.dsn,
@@ -102,7 +165,17 @@ class ConnectionPool:
                 await self.metrics.increment("database.pool.closed")
 
     async def _setup_connection(self, connection: asyncpg.Connection):
-        """Set up new database connection"""
+        """
+        Configures new database connections with required codecs and settings.
+        
+        IMPORTANT: Changes here affect all new connections in the pool.
+        Ensure compatibility with existing queries before modification.
+        
+        Current Configuration:
+        - JSON encoding/decoding with string representation
+        - HStore support for complex data types
+        - Prepared statement caching for performance
+        """
         # Set session parameters
         await connection.set_type_codec(
             'json',
@@ -185,7 +258,15 @@ class ConnectionPool:
         *args,
         timeout: Optional[float] = None
     ) -> str:
-        """Execute database query"""
+        """
+        Executes database query with automatic connection management.
+        
+        NOTE: Uses connection pooling to optimize resource usage.
+        Implements retry logic and metrics collection for monitoring.
+        
+        IMPORTANT: Set appropriate timeout values for long-running queries
+        to prevent resource exhaustion.
+        """
         async with self.acquire() as connection:
             try:
                 result = await connection.execute(
@@ -279,7 +360,18 @@ class ConnectionPool:
                 raise DatabaseError(f"Query fetchrow failed: {str(e)}")
 
     async def _validation_loop(self):
-        """Periodic connection validation"""
+        """
+        Periodic health check for all connections in the pool.
+        
+        Implements Datapunk's connection health monitoring requirements:
+        - Regular validation of all connections
+        - Metric collection for monitoring
+        - Automatic recovery of failed connections
+        
+        TODO: Add configurable validation queries
+        TODO: Implement progressive backoff for failed validations
+        FIXME: Add circuit breaker pattern for repeated failures
+        """
         while True:
             try:
                 await asyncio.sleep(self.config.validation_interval)
