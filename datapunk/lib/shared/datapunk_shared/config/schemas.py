@@ -3,7 +3,29 @@ from pydantic import BaseModel, Field, validator
 from enum import Enum
 import re
 
+"""
+Configuration schemas that actually make sense
+
+This module defines the structure for all configuration in Datapunk. Each schema
+is designed to be clear, validated, and actually useful. No more guessing what 
+values are allowed or dealing with cryptic validation errors.
+
+Key Design Decisions:
+- Everything is validated through Pydantic (because runtime surprises suck)
+- Sensible defaults where possible (but required where it matters)
+- Clear type hints (because Python can be a sneaky bastard)
+- Nested configs for logical grouping
+
+NOTE: When adding new configs, follow these patterns:
+1. Group related settings into their own models
+2. Use type hints for everything
+3. Add clear field descriptions
+4. Set reasonable defaults
+5. Include validation where needed
+"""
+
 class LogLevel(str, Enum):
+    """Log levels that match standard Python logging"""
     DEBUG = "debug"
     INFO = "info"
     WARNING = "warning"
@@ -11,19 +33,31 @@ class LogLevel(str, Enum):
     CRITICAL = "critical"
 
 class LoggingConfig(BaseModel):
-    """Logging configuration"""
+    """
+    Logging setup that won't leave you in the dark
+    
+    Handles both file and stdout logging with rotation and retention policies.
+    Default format is JSON because parsing text logs is a pain in the ass.
+    """
     level: LogLevel = Field(default=LogLevel.INFO)
     format: str = Field(default="json")
     output: str = Field(default="stdout")
     file_path: Optional[str] = None
-    rotation: Optional[str] = "1 day"
-    retention: Optional[str] = "30 days"
+    rotation: Optional[str] = "1 day"  # Standard rotation interval
+    retention: Optional[str] = "30 days"  # Keep logs for a month by default
 
 class SecurityConfig(BaseModel):
-    """Security configuration"""
-    encryption_key: str = Field(..., min_length=32)
-    jwt_secret: str = Field(..., min_length=32)
-    token_expiry: int = Field(default=3600)  # seconds
+    """
+    Security settings that don't mess around
+    
+    Handles encryption, JWT config, and CORS. No security through obscurity here -
+    everything is explicit and validated.
+    
+    NOTE: SSL settings are optional but highly recommended for production
+    """
+    encryption_key: str = Field(..., min_length=32)  # No weak keys allowed
+    jwt_secret: str = Field(..., min_length=32)  # Same for JWT
+    token_expiry: int = Field(default=3600)  # 1 hour default
     allowed_origins: List[str] = Field(default=["*"])
     ssl_enabled: bool = Field(default=True)
     ssl_cert: Optional[str] = None
@@ -60,7 +94,21 @@ class ResourceLimits(BaseModel):
     max_file_descriptors: int = Field(default=65535)
 
 class ServiceConfig(BaseModel):
-    """Extended service configuration"""
+    """
+    Complete service configuration that ties everything together
+    
+    This is the main config that services use. It includes everything from
+    basic service info to detailed subsystem configs.
+    
+    Implementation Notes:
+    - Name validation ensures K8s compatibility
+    - Version follows semantic versioning
+    - All subsystems have reasonable defaults
+    - Security config is required (no shortcuts here)
+    
+    TODO: Add support for custom plugin configs
+    FIXME: Make environment validation more flexible
+    """
     name: str
     version: str = Field(default="0.1.0")
     host: str
