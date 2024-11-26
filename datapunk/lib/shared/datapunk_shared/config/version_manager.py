@@ -7,8 +7,32 @@ from pydantic import BaseModel
 
 logger = structlog.get_logger(__name__)
 
+"""
+Version control for your configs that doesn't suck
+
+Because tracking changes shouldn't require a PhD in Git. This module handles
+version control for configuration files with checksums, timestamps, and actual
+human-readable descriptions of what changed.
+
+Features:
+- Automatic checksum generation (no more "did this actually change?")
+- Version history that makes sense
+- Diff comparisons that don't make your eyes bleed
+- Metadata tracking that's actually useful
+
+NOTE: All versions are stored as JSON for easy reading and modification
+TODO: Add rollback functionality for when shit hits the fan
+"""
+
 class ConfigVersion(BaseModel):
-    """Configuration version metadata"""
+    """
+    Track what changed and why it matters
+    
+    Stores metadata about each config version including who changed it,
+    what they changed, and most importantly, why they changed it.
+    
+    The checksum ensures nothing got fucked up between saves.
+    """
     version: str
     timestamp: datetime
     description: str
@@ -22,9 +46,28 @@ class ConfigVersion(BaseModel):
         }
 
 class ConfigVersionManager:
-    """Manages configuration versioning and history"""
+    """
+    Keep your configs under control
+    
+    Handles saving, loading, and comparing config versions. Each version
+    is stored as a separate file with its own checksum and metadata.
+    
+    Implementation Notes:
+    - Versions are stored in JSON format for easy inspection
+    - Checksums use SHA256 (because we're not animals)
+    - Version files are named v{version}.json
+    - Comparisons ignore order differences (because who cares?)
+    
+    FIXME: Add better error handling for corrupted version files
+    """
     
     def __init__(self, version_dir: str = "config_versions"):
+        """
+        Set up version tracking in the specified directory
+        
+        Args:
+            version_dir: Where to store version files (creates if missing)
+        """
         self.version_dir = Path(version_dir)
         self.version_dir.mkdir(exist_ok=True)
         self.current_version: Optional[ConfigVersion] = None
@@ -36,7 +79,19 @@ class ConfigVersionManager:
         description: str,
         author: Optional[str] = None
     ) -> ConfigVersion:
-        """Save new configuration version"""
+        """
+        Save a new config version with all its metadata
+        
+        Creates a checksum of the config to ensure integrity and stores
+        everything in a version file. The description better be meaningful
+        or future you is gonna be pissed.
+        
+        Args:
+            config: The configuration to save
+            version: Version identifier (e.g., "1.0.0")
+            description: Why this change was made
+            author: Who to blame when things break
+        """
         import hashlib
         
         # Calculate checksum
