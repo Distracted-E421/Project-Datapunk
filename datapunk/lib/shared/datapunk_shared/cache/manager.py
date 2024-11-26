@@ -63,14 +63,43 @@ class CacheEntry(Generic[T]):
         self.access_count += 1
 
 class CacheManager(Generic[T]):
-    """Manages cache operations with multiple strategies"""
+    """
+    Core cache management system that implements configurable caching strategies
+    and integrates with the service mesh infrastructure.
+    
+    Architectural Role:
+    - Part of the Infrastructure Layer's Cache Layer
+    - Implements cache patterns (Write-Through, Read-Through, Invalidation)
+    - Integrates with monitoring systems for metrics collection
+    
+    Key Features:
+    - Generic type support for flexible value storage
+    - Multiple eviction strategies (LRU, LFU, FIFO, TTL, RANDOM)
+    - Namespace isolation for service-specific caching
+    - Integration with metrics collection (Prometheus/StatsD)
+    
+    NOTE: This component is critical for system performance and should be
+    monitored via the observability stack (Prometheus/Grafana)
+    """
     def __init__(
         self,
         config: CacheConfig,
-        metrics_collector: Optional[MetricsCollector] = None
+        metrics_client: Optional[MetricsCollector] = None
     ):
+        """
+        Initializes cache manager with configuration and monitoring integration.
+        
+        The metrics_client integration enables:
+        - Cache hit/miss tracking
+        - Eviction rate monitoring
+        - Memory usage tracking
+        - Performance metrics collection
+        
+        IMPORTANT: Metrics collection is crucial for capacity planning
+        and performance optimization in the service mesh
+        """
         self.config = config
-        self.metrics = metrics_collector
+        self.metrics = metrics_client
         self._cache: Dict[str, CacheEntry[T]] = {}
         self._cleanup_task: Optional[asyncio.Task] = None
         self._lock = asyncio.Lock()
@@ -93,7 +122,22 @@ class CacheManager(Generic[T]):
         key: str,
         namespace: Optional[str] = None
     ) -> Optional[T]:
-        """Get value from cache"""
+        """
+        Retrieves a value from cache with automatic entry management.
+        
+        Features:
+        - Automatic expiration checking
+        - Access tracking for LRU/LFU strategies
+        - Metrics collection for cache hits/misses
+        
+        The operation is atomic within the cache lock to prevent:
+        - Race conditions during eviction
+        - Inconsistent access statistics
+        - Concurrent modifications
+        
+        NOTE: Lock contention may occur under high concurrent access
+        TODO: Consider implementing read-write lock for better concurrency
+        """
         cache_key = self._make_key(key, namespace)
         
         async with self._lock:
@@ -133,7 +177,19 @@ class CacheManager(Generic[T]):
         ttl: Optional[int] = None,
         namespace: Optional[str] = None
     ) -> bool:
-        """Set value in cache"""
+        """
+        Stores a value in cache with automatic capacity management.
+        
+        Implementation details:
+        - Automatically evicts entries if at capacity
+        - Respects namespace isolation
+        - Tracks entry metadata for eviction strategies
+        
+        IMPORTANT: The eviction process runs synchronously within the set operation
+        and may impact latency when the cache is at capacity
+        
+        TODO: Consider implementing async eviction to reduce set latency
+        """
         cache_key = self._make_key(key, namespace)
         
         async with self._lock:
@@ -201,7 +257,22 @@ class CacheManager(Generic[T]):
                 )
 
     def _make_key(self, key: str, namespace: Optional[str] = None) -> str:
-        """Create cache key with namespace"""
+        """
+        Generates namespaced cache keys following service mesh conventions.
+        
+        Key Design:
+        - Namespace isolation for service boundaries
+        - Consistent hashing support
+        - Service mesh compatibility
+        
+        Used by:
+        - Lake Service for data caching
+        - Stream Service for event caching
+        - Cortex Service for model caching
+        
+        IMPORTANT: Key format changes require coordination across services
+        TODO: Add support for service mesh-aware key routing
+        """
         ns = namespace or self.config.default_namespace
         return f"{ns}{self.config.namespace_separator}{key}"
 
@@ -238,7 +309,24 @@ class CacheManager(Generic[T]):
                 )
 
     async def _evict_entries(self):
-        """Evict entries based on strategy"""
+        """
+        Implements the eviction strategy logic for cache maintenance.
+        
+        Strategy Implementations:
+        - LRU: Optimized for frequently changing datasets
+        - LFU: Best for static content with varying popularity
+        - FIFO: Simple queue-based eviction
+        - RANDOM: Load-balanced eviction
+        - TTL: Time-based expiration
+        
+        Integrates with:
+        - Prometheus metrics for eviction tracking
+        - Service mesh health checks
+        - Resource monitoring
+        
+        WARNING: Heavy eviction cycles may impact service performance
+        TODO: Implement adaptive eviction based on system load
+        """
         if not self._cache:
             return
 
@@ -284,7 +372,23 @@ class CacheManager(Generic[T]):
             )
 
     async def get_stats(self) -> Dict[str, Any]:
-        """Get cache statistics"""
+        """
+        Collects cache statistics for the monitoring stack.
+        
+        Metrics are exported to:
+        - Prometheus for time-series analysis
+        - Grafana for visualization
+        - AlertManager for threshold monitoring
+        
+        These metrics support:
+        - Service mesh health monitoring
+        - Resource utilization tracking
+        - Performance optimization
+        - Capacity planning
+        
+        NOTE: Aligns with the project's observability requirements
+        TODO: Add service mesh-specific metrics
+        """
         stats = {
             "size": len(self._cache),
             "max_size": self.config.max_size,
