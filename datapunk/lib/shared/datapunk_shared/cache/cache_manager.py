@@ -14,6 +14,20 @@ from ..monitoring.metrics import MetricsClient
 from .cluster_manager import ClusterManager, ClusterNode
 
 class CacheManager:
+    """
+    Distributed caching system with support for multiple strategies and cluster operations.
+    
+    Key features:
+    - Cluster-aware caching with automatic node selection
+    - Write-behind caching for performance optimization
+    - Automatic cache invalidation and TTL management
+    - Metrics collection for monitoring and optimization
+    - Error handling with detailed context for debugging
+    
+    NOTE: This implementation assumes eventual consistency when operating in cluster mode.
+    The trade-off between consistency and performance favors performance.
+    """
+
     def __init__(
         self,
         config: CacheConfig,
@@ -21,6 +35,16 @@ class CacheManager:
         metrics_client: Optional[MetricsClient] = None,
         cluster_nodes: Optional[List[ClusterNode]] = None
     ):
+        """
+        Initialize cache manager in either standalone or cluster mode.
+        
+        The system automatically switches between modes based on cluster_nodes:
+        - If cluster_nodes is provided: Operates in distributed mode with node selection
+        - If cluster_nodes is None: Operates in standalone mode with single Redis instance
+        
+        IMPORTANT: In cluster mode, Redis connections are created per-operation
+        to ensure proper node selection based on key distribution.
+        """
         self.config = config
         self.metrics = metrics_client
         self.logger = logging.getLogger(__name__)
@@ -56,7 +80,18 @@ class CacheManager:
         key: str,
         fetch_func: Optional[callable] = None
     ) -> Optional[Any]:
-        """Get value from cache with cluster support"""
+        """
+        Retrieve value from cache with automatic source fetching on miss.
+        
+        Implementation details:
+        - Uses namespace prefixing for isolation
+        - Supports automatic data refresh via fetch_func
+        - Updates access statistics for cache optimization
+        - Handles cluster node selection when in cluster mode
+        
+        NOTE: fetch_func should be idempotent as it may be called multiple times
+        in case of race conditions or cluster transitions.
+        """
         try:
             start_time = time.time()
             namespace_key = f"{self.config.namespace}:{key}"
@@ -144,7 +179,17 @@ class CacheManager:
         value: Any,
         ttl: Optional[int] = None
     ) -> bool:
-        """Set value in cache with cluster support"""
+        """
+        Store value in cache with optional TTL override.
+        
+        Implementation details:
+        - Handles write-behind buffering if configured
+        - Manages cluster synchronization in distributed mode
+        - Creates CacheEntry with metadata for tracking
+        
+        IMPORTANT: In write-behind mode, writes are not immediately visible
+        and may be lost on system failure before batch processing.
+        """
         try:
             start_time = time.time()
             namespace_key = f"{self.config.namespace}:{key}"
@@ -214,8 +259,16 @@ class CacheManager:
                     {'operation': 'set', 'namespace': self.config.namespace}
                 )
 
-    async def invalidate(self, key: str) -> bool:
-        """Invalidate a cache entry"""
+    async def invalidate(
+        self,
+        key: str
+    ) -> bool:
+        """
+        Remove specific entry from cache.
+        
+        NOTE: In cluster mode, this operation is eventually consistent.
+        Other nodes may still serve stale data until their TTL expires.
+        """
         try:
             namespace_key = f"{self.config.namespace}:{key}"
             await self.redis.delete(namespace_key)
@@ -233,7 +286,12 @@ class CacheManager:
             return False
 
     async def clear_namespace(self) -> bool:
-        """Clear all entries in the current namespace"""
+        """
+        Remove all entries in current namespace using cursor-based scanning.
+        
+        IMPORTANT: This operation can be resource-intensive on large datasets.
+        Consider rate limiting or performing during off-peak hours.
+        """
         try:
             pattern = f"{self.config.namespace}:*"
             cursor = 0
@@ -254,7 +312,17 @@ class CacheManager:
             return False
 
     def _start_write_behind_task(self) -> None:
-        """Start the write-behind task for batched writes"""
+        """
+        Initialize background task for batch processing of cached writes.
+        
+        Implementation details:
+        - Uses a buffer to collect writes
+        - Processes writes in batches for efficiency
+        - Handles failures gracefully to prevent task termination
+        
+        TODO: Consider adding retry logic for failed batch writes
+        TODO: Add configurable batch size limits
+        """
         async def write_behind_worker():
             while True:
                 try:
@@ -295,7 +363,14 @@ class CacheManager:
         self._write_task = asyncio.create_task(write_behind_worker())
 
     async def close(self) -> None:
-        """Clean up resources"""
+        """
+        Clean up resources and ensure proper shutdown.
+        
+        Handles:
+        - Cancellation of write-behind task
+        - Proper closure of Redis connections
+        - Cleanup of any pending operations
+        """
         if self._write_task:
             self._write_task.cancel()
             try:

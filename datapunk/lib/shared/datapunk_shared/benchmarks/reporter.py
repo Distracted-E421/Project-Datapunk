@@ -8,17 +8,39 @@ from plotly.subplots import make_subplots
 from jinja2 import Environment, PackageLoader
 
 class BenchmarkReporter:
-    """Generate reports from benchmark results"""
+    """A comprehensive benchmark reporting system that generates both HTML and console-based 
+    performance reports with visualizations.
+    
+    This class handles the collection, analysis, and visualization of benchmark results,
+    supporting both timing metrics and resource utilization data. It uses Plotly for
+    interactive visualizations and Jinja2 for HTML report templating.
+    
+    Note: Requires a 'templates' directory with appropriate Jinja2 templates.
+    """
     
     def __init__(self, results_dir: str = "benchmark_results"):
+        """
+        Args:
+            results_dir: Directory path for storing benchmark results and reports.
+                        Created if it doesn't exist.
+        """
         self.results_dir = Path(results_dir)
         self.results_dir.mkdir(exist_ok=True)
+        # Initialize Jinja2 environment for HTML templating
+        # NOTE: Assumes templates are packaged with datapunk_shared
         self.env = Environment(
             loader=PackageLoader('datapunk_shared', 'templates')
         )
     
     def save_results(self, results: List[Dict[str, Any]]):
-        """Save raw benchmark results"""
+        """Persists raw benchmark results as JSON for future analysis or comparison.
+        
+        The results are stored with a UTC timestamp to ensure unique filenames and 
+        enable chronological tracking of performance changes.
+        
+        Args:
+            results: List of benchmark result dictionaries containing timing and resource metrics
+        """
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
         results_file = self.results_dir / f"benchmark_{timestamp}.json"
         
@@ -35,7 +57,23 @@ class BenchmarkReporter:
             return self._generate_console_report(results)
     
     def _generate_html_report(self, results: List[Dict[str, Any]], timestamp: str):
-        """Generate HTML report with visualizations"""
+        """Generates an interactive HTML report with visualizations and detailed metrics.
+        
+        The report includes:
+        - Interactive Plotly visualizations for timing and resource metrics
+        - Detailed benchmark results in a structured format
+        - Timestamp for tracking when the benchmarks were run
+        
+        TODO: Add export functionality for different visualization formats (PNG, SVG)
+        TODO: Add comparison with historical benchmark results
+        
+        Args:
+            results: List of benchmark results to include in the report
+            timestamp: UTC timestamp string for the report
+            
+        Returns:
+            Path to the generated HTML report file
+        """
         # Create figures
         timing_fig = self._create_timing_plot(results)
         resource_fig = self._create_resource_plot(results)
@@ -55,7 +93,20 @@ class BenchmarkReporter:
         return str(report_file)
     
     def _generate_console_report(self, results: List[Dict[str, Any]]) -> str:
-        """Generate console-friendly report"""
+        """Generates a text-based report suitable for terminal output.
+        
+        Includes key statistics for each benchmark:
+        - Timing metrics (mean, median, P95, P99)
+        - Resource utilization (memory, CPU)
+        
+        This format is particularly useful for CI/CD pipelines or quick analysis.
+        
+        Args:
+            results: List of benchmark results to report
+            
+        Returns:
+            Formatted string containing the benchmark report
+        """
         report_lines = ["Benchmark Results", "================="]
         
         for result in results:
@@ -76,7 +127,17 @@ class BenchmarkReporter:
         return "\n".join(report_lines)
     
     def _create_timing_plot(self, results: List[Dict[str, Any]]) -> go.Figure:
-        """Create timing visualization"""
+        """Creates a two-panel visualization of timing metrics using Plotly.
+        
+        Top panel: Bar chart comparing mean and P95 timings across operations
+        Bottom panel: Box plots showing timing distributions (min, median, max)
+        
+        Args:
+            results: List of benchmark results to visualize
+            
+        Returns:
+            Plotly Figure object containing the timing visualizations
+        """
         fig = make_subplots(
             rows=2, cols=1,
             subplot_titles=("Operation Timings", "Timing Distribution")
@@ -112,7 +173,20 @@ class BenchmarkReporter:
         return fig
     
     def _create_resource_plot(self, results: List[Dict[str, Any]]) -> go.Figure:
-        """Create resource usage visualization"""
+        """Creates a side-by-side visualization of memory and CPU usage metrics.
+        
+        Left panel: Memory usage in MB
+        Right panel: CPU utilization percentage
+        
+        This visualization helps identify resource-intensive operations and potential
+        optimization targets.
+        
+        Args:
+            results: List of benchmark results to visualize
+            
+        Returns:
+            Plotly Figure object containing the resource usage visualizations
+        """
         fig = make_subplots(
             rows=1, cols=2,
             subplot_titles=("Memory Usage (MB)", "CPU Usage (%)")
