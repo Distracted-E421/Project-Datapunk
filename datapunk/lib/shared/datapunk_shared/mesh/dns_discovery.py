@@ -10,9 +10,33 @@ from ..exceptions import ServiceDiscoveryError
 
 logger = structlog.get_logger()
 
+"""
+DNS-based service discovery with SRV record support.
+
+Provides service discovery through DNS:
+- SRV record resolution
+- Dual-stack IPv4/IPv6 support
+- Automatic health monitoring
+- Service change detection
+- Configurable caching
+
+NOTE: Requires DNS server with SRV record support
+"""
+
 @dataclass
 class DNSConfig:
-    """Configuration for DNS-based service discovery."""
+    """
+    DNS discovery configuration with performance tuning.
+    
+    Key parameters:
+    - domain_suffix: Service naming convention
+    - dns_port: Non-standard port for internal DNS
+    - cache_ttl: Balance between freshness and load
+    - timeout: Prevent discovery delays
+    
+    NOTE: Default port 8600 optimized for Consul DNS
+    TODO: Add support for custom record types
+    """
     domain_suffix: str = "service.consul"
     dns_port: int = 8600
     dns_servers: List[str] = None
@@ -21,7 +45,18 @@ class DNSConfig:
     max_retries: int = 3
 
 class DNSServiceDiscovery:
-    """DNS-based service discovery implementation."""
+    """
+    DNS-based service discovery implementation.
+    
+    Features:
+    - Automatic failover
+    - Health status tracking
+    - Change detection
+    - Metric collection
+    
+    WARNING: DNS caching may affect update speed
+    TODO: Add DNS-SD service type support
+    """
     
     def __init__(self, config: DNSConfig):
         self.config = config
@@ -36,7 +71,17 @@ class DNSServiceDiscovery:
         self.resolver.lifetime = config.timeout * config.max_retries
     
     async def discover_service(self, service_name: str) -> List[ServiceEndpoint]:
-        """Discover service instances using DNS SRV records."""
+        """
+        Discover service instances using DNS SRV records.
+        
+        Process:
+        1. Query SRV records for service
+        2. Resolve A/AAAA records
+        3. Build endpoint list
+        4. Track health status
+        
+        NOTE: Returns empty list if service not found
+        """
         try:
             # Query SRV records
             fqdn = f"{service_name}.{self.config.domain_suffix}"
@@ -71,7 +116,17 @@ class DNSServiceDiscovery:
             raise ServiceDiscoveryError(f"DNS discovery failed: {str(e)}")
     
     async def _query_srv_records(self, fqdn: str) -> List[Any]:
-        """Query SRV records for service."""
+        """
+        Query SRV records with error handling.
+        
+        Features:
+        - Automatic retries
+        - Timeout handling
+        - Error logging
+        - Empty result handling
+        
+        WARNING: May return empty list on DNS failures
+        """
         try:
             return await self.resolver.resolve(fqdn, "SRV")
         except dns.resolver.NXDOMAIN:
@@ -83,7 +138,17 @@ class DNSServiceDiscovery:
             raise
     
     async def _resolve_addresses(self, hostname: str) -> List[str]:
-        """Resolve A/AAAA records for hostname."""
+        """
+        Resolve both IPv4 and IPv6 addresses.
+        
+        Strategy:
+        - Try IPv4 first for compatibility
+        - Fall back to IPv6 if available
+        - Handle partial failures
+        - Log resolution issues
+        
+        NOTE: Returns all valid addresses found
+        """
         addresses = []
         
         # Try IPv4
@@ -110,7 +175,18 @@ class DNSServiceDiscovery:
                           service_name: str,
                           callback: callable,
                           interval: float = 30.0) -> None:
-        """Watch for service changes using DNS polling."""
+        """
+        Watch for service changes using DNS polling.
+        
+        Features:
+        - Periodic DNS queries
+        - Change detection
+        - Error recovery
+        - Callback notifications
+        
+        WARNING: May miss rapid changes between polls
+        TODO: Add DNS NOTIFY support for faster updates
+        """
         previous_endpoints = set()
         
         while True:
