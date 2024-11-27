@@ -12,23 +12,60 @@ from ...monitoring import MetricsCollector
 import time
 import uuid
 
+"""
+REST Client Implementation for Datapunk Service Mesh
+
+This module provides a robust REST client with built-in support for:
+- Service mesh integration (discovery, health checks, circuit breaking)
+- Security (MTLS, token management)
+- Monitoring (metrics, tracing)
+- Resilience (retry policies, connection pooling)
+
+The client is designed to be used within the Datapunk ecosystem for secure
+and reliable service-to-service communication, particularly between core
+services like Lake, Stream, and Nexus Gateway.
+
+TODO: Implement adaptive rate limiting based on service health metrics
+TODO: Add support for custom serialization formats beyond JSON
+FIXME: Improve error handling for partial responses in streaming mode
+"""
+
 @dataclass
 class RestClientConfig:
-    """Configuration for REST client"""
+    """
+    Configuration for REST client with mesh integration support.
+    
+    NOTE: When using MTLS, ensure certificates are properly rotated and validated
+    against the service mesh CA. See security/mtls.py for implementation details.
+    """
     base_url: str
-    timeout: float = 30.0
-    max_connections: int = 100
-    mtls_config: Optional[MTLSConfig] = None
-    security_policy: Optional[SecurityPolicy] = None
-    retry_policy: Optional[RetryPolicy] = None
-    circuit_breaker: Optional[CircuitBreaker] = None
-    default_headers: Optional[Dict[str, str]] = None
-    metrics_collector: Optional[MetricsCollector] = None
-    trace_requests: bool = True
-    request_logging: bool = True
+    timeout: float = 30.0  # Default timeout aligned with mesh requirements
+    max_connections: int = 100  # Sized for typical service-to-service communication
+    mtls_config: Optional[MTLSConfig] = None  # Required for mesh authentication
+    security_policy: Optional[SecurityPolicy] = None  # Service-level access control
+    retry_policy: Optional[RetryPolicy] = None  # Mesh-aware retry handling
+    circuit_breaker: Optional[CircuitBreaker] = None  # Service protection
+    default_headers: Optional[Dict[str, str]] = None  # Common request headers
+    metrics_collector: Optional[MetricsCollector] = None  # For Prometheus integration
+    trace_requests: bool = True  # OpenTelemetry tracing support
+    request_logging: bool = True  # Detailed request logging for troubleshooting
 
 class RestClient:
-    """Async REST client with security, retry, and circuit breaking"""
+    """
+    Async REST client with full service mesh integration.
+    
+    This client implements the Datapunk mesh communication patterns:
+    - Secure by default with MTLS support
+    - Circuit breaking for service protection
+    - Retry policies for transient failures
+    - Metrics collection for monitoring
+    - Request tracing for debugging
+    
+    Example:
+        async with RestClient(config) as client:
+            response = await client.get("health")
+            is_healthy = response.get("status") == "healthy"
+    """
     def __init__(self, config: RestClientConfig):
         self.config = config
         self.session = None
@@ -86,7 +123,14 @@ class RestClient:
         status: int,
         error: Optional[str] = None
     ):
-        """Record request metrics and tracing information"""
+        """
+        Record request metrics and tracing information for monitoring.
+        
+        Integrates with Prometheus for metrics collection and Jaeger for
+        distributed tracing. See sys-arch.mmd for observability stack details.
+        
+        NOTE: High cardinality tags should be avoided to prevent metric explosion
+        """
         if not self.config.metrics_collector:
             return
 
@@ -136,7 +180,18 @@ class RestClient:
         headers: Optional[Dict] = None,
         timeout: Optional[float] = None
     ) -> Dict:
-        """Make HTTP request with retry and circuit breaking"""
+        """
+        Make HTTP request with full mesh integration support.
+        
+        Implements the core request flow with:
+        1. Circuit breaker protection
+        2. Retry policy application
+        3. Metrics collection
+        4. Error handling
+        
+        FIXME: Add support for request context propagation
+        TODO: Implement request prioritization
+        """
         if not self.session:
             await self.connect()
 
@@ -301,7 +356,15 @@ class RestClient:
         headers: Optional[Dict] = None,
         chunk_size: int = 8192
     ) -> AsyncIterator[bytes]:
-        """Stream response data"""
+        """
+        Stream response data with backpressure support.
+        
+        Designed for large data transfers between services, particularly
+        for Lake Service data ingestion and Stream Service real-time feeds.
+        
+        NOTE: chunk_size should be tuned based on network conditions and
+        memory constraints. Default aligned with typical network buffer sizes.
+        """
         if not self.session:
             await self.connect()
 
