@@ -8,38 +8,83 @@ import aiohttp
 from ..health.checks import HealthCheck
 from ...monitoring import MetricsCollector
 
+"""
+Service Registry Implementation for Datapunk Service Mesh
+
+This module provides a distributed service registry that enables:
+- Dynamic service discovery and registration
+- Health monitoring and status tracking
+- Event-driven service updates
+- State persistence and recovery
+
+The registry is a critical component of the mesh architecture,
+maintaining the service topology and enabling reliable communication
+between components like Lake, Stream, and Cortex services.
+
+TODO: Implement cluster synchronization for multi-node deployments
+TODO: Add support for service versioning and gradual rollout
+FIXME: Improve cleanup performance for large service counts
+"""
+
 class ServiceStatus(Enum):
-    """Service instance status"""
-    STARTING = "starting"
-    RUNNING = "running"
-    STOPPING = "stopping"
-    STOPPED = "stopped"
-    UNHEALTHY = "unhealthy"
-    UNKNOWN = "unknown"
+    """
+    Service lifecycle states within the mesh.
+    
+    The status progression typically follows:
+    STARTING -> RUNNING -> STOPPING -> STOPPED
+    
+    UNHEALTHY and UNKNOWN are special states for error handling.
+    """
+    STARTING = "starting"    # Initial registration, not ready for traffic
+    RUNNING = "running"      # Healthy and accepting requests
+    STOPPING = "stopping"    # Graceful shutdown in progress
+    STOPPED = "stopped"      # No longer accepting requests
+    UNHEALTHY = "unhealthy" # Failed health checks
+    UNKNOWN = "unknown"     # State cannot be determined
 
 @dataclass
 class ServiceMetadata:
-    """Service instance metadata"""
-    version: str
-    environment: str
-    region: str
-    tags: Dict[str, str] = field(default_factory=dict)
-    capabilities: Set[str] = field(default_factory=set)
-    dependencies: List[str] = field(default_factory=list)
-    endpoints: Dict[str, str] = field(default_factory=dict)
+    """
+    Extended service information for mesh routing and management.
+    
+    Used to:
+    - Enable capability-based routing
+    - Track service dependencies
+    - Manage service endpoints
+    - Support blue/green deployments
+    
+    NOTE: Tags should follow mesh-wide naming conventions
+    """
+    version: str  # Semantic version for compatibility checking
+    environment: str  # e.g., prod, staging, dev
+    region: str  # Geographic location for locality routing
+    tags: Dict[str, str] = field(default_factory=dict)  # Custom metadata
+    capabilities: Set[str] = field(default_factory=set)  # Supported features
+    dependencies: List[str] = field(default_factory=list)  # Required services
+    endpoints: Dict[str, str] = field(default_factory=dict)  # Service URLs
 
 @dataclass
 class ServiceRegistration:
-    """Service registration information"""
-    id: str
-    service_name: str
-    host: str
-    port: int
+    """
+    Service instance registration record.
+    
+    Combines identity, status, and routing information needed for:
+    - Service discovery
+    - Load balancing
+    - Health monitoring
+    - Traffic management
+    
+    NOTE: weight affects load balancing decisions
+    """
+    id: str  # Unique instance identifier
+    service_name: str  # Logical service name
+    host: str  # Network address
+    port: int  # Service port
     status: ServiceStatus = ServiceStatus.STARTING
     metadata: ServiceMetadata = field(default_factory=ServiceMetadata)
     last_heartbeat: Optional[datetime] = None
     health_check_url: Optional[str] = None
-    weight: int = 100
+    weight: int = 100  # Load balancing weight
     registered_at: datetime = field(default_factory=datetime.utcnow)
 
 class RegistryError(Exception):
@@ -48,19 +93,45 @@ class RegistryError(Exception):
 
 @dataclass
 class RegistryConfig:
-    """Configuration for service registry"""
-    ttl: int = 30  # seconds
-    cleanup_interval: int = 60  # seconds
-    heartbeat_interval: int = 10  # seconds
-    health_check_interval: int = 15  # seconds
-    sync_interval: int = 30  # seconds
-    storage_path: Optional[str] = None
-    enable_persistence: bool = True
-    enable_health_checks: bool = True
-    enable_sync: bool = True
+    """
+    Configuration for service registry behavior.
+    
+    Timeouts and intervals are tuned for typical mesh deployments:
+    - TTL covers temporary network issues
+    - Cleanup prevents resource leaks
+    - Health checks balance accuracy and overhead
+    
+    TODO: Add support for dynamic interval adjustment
+    """
+    ttl: int = 30  # Service expiration time
+    cleanup_interval: int = 60  # Expired service removal frequency
+    heartbeat_interval: int = 10  # Service liveness check interval
+    health_check_interval: int = 15  # Service health check frequency
+    sync_interval: int = 30  # Multi-node sync interval
+    storage_path: Optional[str] = None  # State persistence location
+    enable_persistence: bool = True  # Enable state recovery
+    enable_health_checks: bool = True  # Enable active health monitoring
+    enable_sync: bool = True  # Enable multi-node synchronization
 
 class ServiceRegistry:
-    """Service registry for service mesh"""
+    """
+    Service registry for mesh service discovery and health tracking.
+    
+    Core responsibilities:
+    - Maintain service inventory
+    - Monitor service health
+    - Notify subscribers of changes
+    - Persist registry state
+    - Synchronize across nodes
+    
+    The registry uses multiple background tasks:
+    - Cleanup: Remove expired services
+    - Health Check: Monitor service health
+    - Sync: Maintain registry consistency
+    
+    NOTE: All public methods are thread-safe through async locking
+    FIXME: Improve subscription notification performance
+    """
     def __init__(
         self,
         config: RegistryConfig,
@@ -260,7 +331,16 @@ class ServiceRegistry:
         service_name: str,
         service: ServiceRegistration
     ):
-        """Notify subscribers of service events"""
+        """
+        Notify subscribers of service events.
+        
+        Events are delivered asynchronously to prevent:
+        - Blocking registry operations
+        - Cascading failures
+        - Slow subscriber impact
+        
+        FIXME: Add event batching for high-frequency updates
+        """
         key = f"{event_type}:{service_name}"
         if key in self._subscribers:
             for callback in self._subscribers[key]:
@@ -274,7 +354,16 @@ class ServiceRegistry:
                         )
 
     async def _cleanup_loop(self):
-        """Periodic cleanup of expired services"""
+        """
+        Periodic cleanup of expired services.
+        
+        Services are expired when:
+        - TTL has elapsed since last heartbeat
+        - Health checks consistently fail
+        - Explicit deregistration
+        
+        NOTE: Cleanup runs even if persistence is disabled
+        """
         while True:
             try:
                 await asyncio.sleep(self.config.cleanup_interval)
@@ -289,7 +378,16 @@ class ServiceRegistry:
                     )
 
     async def _cleanup_expired_services(self):
-        """Remove expired service registrations"""
+        """
+        Remove expired service registrations.
+        
+        Uses TTL-based expiration to handle:
+        - Crashed services
+        - Network partitions
+        - Unclean shutdowns
+        
+        TODO: Add grace period for temporary failures
+        """
         now = datetime.utcnow()
         expired_ids = []
         
