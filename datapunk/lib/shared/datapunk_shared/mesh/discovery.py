@@ -12,9 +12,31 @@ from ..exceptions import ServiceDiscoveryError
 
 logger = structlog.get_logger()
 
+"""
+Service discovery implementation with caching and health monitoring.
+
+Provides:
+- Service registration and deregistration
+- Health check integration
+- Cached service discovery
+- Real-time service watching
+- Performance metrics collection
+
+NOTE: Requires running Consul instance for service discovery
+"""
+
 @dataclass
 class ServiceEndpoint:
-    """Service endpoint details."""
+    """
+    Service endpoint representation with health status.
+    
+    Tracks:
+    - Instance identity and location
+    - Health status and history
+    - Custom metadata
+    
+    NOTE: metadata used for routing decisions
+    """
     id: str
     address: str
     port: int
@@ -24,7 +46,16 @@ class ServiceEndpoint:
 
 @dataclass
 class ServiceDiscoveryConfig:
-    """Configuration for service discovery."""
+    """
+    Discovery configuration with performance tuning.
+    
+    Key settings:
+    - Cache TTL balances freshness vs performance
+    - Health check interval affects detection speed
+    - Deregister timeout handles ungraceful shutdowns
+    
+    TODO: Add support for custom health check endpoints
+    """
     consul_host: str = "consul"
     consul_port: int = 8500
     cache_ttl: int = 30  # seconds
@@ -33,7 +64,18 @@ class ServiceDiscoveryConfig:
     enable_caching: bool = True
 
 class ServiceDiscoveryManager:
-    """Manages service discovery and health monitoring."""
+    """
+    Manages service discovery and health monitoring.
+    
+    Features:
+    - Automatic service registration
+    - Cached service lookups
+    - Health status tracking
+    - Real-time updates
+    
+    WARNING: Cache may briefly serve stale data
+    TODO: Add circuit breaker for Consul failures
+    """
     
     def __init__(self,
                  config: ServiceDiscoveryConfig,
@@ -59,7 +101,17 @@ class ServiceDiscoveryManager:
                              port: int,
                              tags: List[str] = None,
                              metadata: Dict[str, str] = None) -> str:
-        """Register service with Consul."""
+        """
+        Register service with health check configuration.
+        
+        Process:
+        1. Create unique service ID
+        2. Configure health check
+        3. Register with Consul
+        4. Start monitoring
+        
+        NOTE: Health check uses HTTP endpoint by default
+        """
         try:
             service_id = f"{service_name}-{host}-{port}"
             
@@ -102,7 +154,17 @@ class ServiceDiscoveryManager:
     async def discover_service(self,
                              service_name: str,
                              use_cache: bool = True) -> List[ServiceEndpoint]:
-        """Discover healthy service instances."""
+        """
+        Discover healthy service instances with caching.
+        
+        Features:
+        - Cache-first lookups for performance
+        - Automatic cache updates
+        - Health status filtering
+        - Metric collection
+        
+        NOTE: Only returns healthy instances
+        """
         try:
             # Check cache first if enabled
             if use_cache and self.config.enable_caching:
@@ -151,7 +213,17 @@ class ServiceDiscoveryManager:
     async def watch_service(self,
                           service_name: str,
                           callback: callable) -> None:
-        """Watch for service changes."""
+        """
+        Watch for service changes in real-time.
+        
+        Uses:
+        - Long polling for efficiency
+        - Automatic reconnection
+        - Error backoff
+        - Cache updates
+        
+        WARNING: May miss updates during reconnection
+        """
         index = None
         while True:
             try:
@@ -190,7 +262,16 @@ class ServiceDiscoveryManager:
     
     async def _get_cached_service(self,
                                 service_name: str) -> Optional[List[ServiceEndpoint]]:
-        """Get service endpoints from cache."""
+        """
+        Retrieve service endpoints from cache.
+        
+        Features:
+        - Fast lookup path
+        - Metric tracking
+        - Error handling
+        
+        NOTE: Returns None on cache miss or error
+        """
         if not self.cache:
             return None
             
@@ -216,7 +297,16 @@ class ServiceDiscoveryManager:
     async def _cache_service_endpoints(self,
                                      service_name: str,
                                      endpoints: List[ServiceEndpoint]) -> None:
-        """Cache service endpoints."""
+        """
+        Cache service endpoints for future lookups.
+        
+        Process:
+        - Serialize endpoints
+        - Set cache TTL
+        - Update metrics
+        
+        NOTE: Failures logged but not propagated
+        """
         if not self.cache:
             return
             
