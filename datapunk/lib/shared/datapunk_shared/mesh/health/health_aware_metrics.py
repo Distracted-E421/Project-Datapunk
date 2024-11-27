@@ -5,11 +5,54 @@ from datetime import datetime
 
 logger = structlog.get_logger()
 
+"""
+Health-Aware Load Balancer Metrics for Datapunk Service Mesh
+
+This module provides comprehensive metrics collection for:
+- Instance and service health tracking
+- Load balancing decisions
+- Circuit breaker states
+- Recovery monitoring
+- Performance impact
+
+These metrics enable:
+- Service health visualization
+- Routing behavior analysis
+- Performance optimization
+- Capacity planning
+
+TODO: Add metric aggregation by region
+TODO: Implement metric retention policies
+FIXME: Optimize label cardinality for high instance counts
+"""
+
 class HealthAwareMetrics:
-    """Metrics for health-aware load balancing."""
+    """
+    Prometheus metrics collector for health-aware load balancing.
+    
+    Metric categories:
+    - Health Scores: Current health state
+    - Selection: Routing decisions
+    - Recovery: Instance restoration
+    - Circuit Breaking: Fault isolation
+    - Performance: System impact
+    
+    NOTE: Label combinations affect storage requirements
+    FIXME: Add metric cleanup for removed instances
+    """
     
     def __init__(self):
-        # Health Scores
+        """
+        Initialize metric collectors with appropriate types:
+        
+        Gauges: Current values (health scores, states)
+        Counters: Cumulative events (selections, rejections)
+        Histograms: Distributions (latencies, durations)
+        
+        NOTE: Bucket sizes tuned for typical mesh operations
+        TODO: Add configurable bucket ranges
+        """
+        # Health score tracking
         self.instance_health = Gauge(
             'load_balancer_instance_health_score',
             'Current health score of service instance',
@@ -78,7 +121,16 @@ class HealthAwareMetrics:
                           service: str,
                           instance: str,
                           score: float):
-        """Record instance health score."""
+        """
+        Record instance health for routing decisions.
+        
+        Used to track:
+        - Instance health trends
+        - Service stability
+        - Recovery patterns
+        
+        NOTE: High update frequency impacts storage
+        """
         self.instance_health.labels(
             service=service,
             instance=instance
@@ -96,7 +148,17 @@ class HealthAwareMetrics:
                         service: str,
                         strategy: str,
                         health_score: float):
-        """Record health-based selection."""
+        """
+        Track instance selection patterns.
+        
+        Health ranges:
+        high: > 0.8 - Fully healthy
+        medium: 0.5-0.8 - Degraded
+        low: < 0.5 - Problematic
+        
+        NOTE: Ranges affect routing distribution
+        TODO: Add adaptive range boundaries
+        """
         health_range = "high" if health_score > 0.8 else \
                       "medium" if health_score > 0.5 else "low"
         
@@ -135,7 +197,17 @@ class HealthAwareMetrics:
                            service: str,
                            instance: str,
                            state: str):
-        """Record circuit breaker state change."""
+        """
+        Track circuit breaker state transitions.
+        
+        States:
+        open (0): No traffic
+        half-open (1): Testing recovery
+        closed (2): Normal operation
+        
+        NOTE: State transitions indicate service health
+        TODO: Add transition timing metrics
+        """
         state_value = {
             "open": 0,
             "half-open": 1,
@@ -156,7 +228,17 @@ class HealthAwareMetrics:
                            service: str,
                            check_type: str,
                            duration: float):
-        """Record health check duration."""
+        """
+        Monitor health check performance impact.
+        
+        Tracks:
+        - Check execution time
+        - Resource usage patterns
+        - System overhead
+        
+        NOTE: High latency may indicate system issues
+        FIXME: Add timeout detection
+        """
         self.health_check_duration.labels(
             service=service,
             check_type=check_type
@@ -166,7 +248,17 @@ class HealthAwareMetrics:
                                 service: str,
                                 strategy: str,
                                 duration: float):
-        """Record instance selection latency."""
+        """
+        Track instance selection performance.
+        
+        Critical for:
+        - Request latency analysis
+        - Strategy optimization
+        - Resource planning
+        
+        NOTE: Affects overall request latency
+        TODO: Add latency breakdown by phase
+        """
         self.balancing_latency.labels(
             service=service,
             strategy=strategy
