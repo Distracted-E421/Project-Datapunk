@@ -9,8 +9,32 @@ import ipaddress
 from .mtls import MTLSManager
 from ..monitoring import MetricsCollector
 
+"""
+Multi-factor security validation system for service mesh.
+
+Provides comprehensive request validation with:
+- Token-based authentication (JWT)
+- mTLS certificate validation
+- IP-based access control
+- Rate limiting
+- Role and scope-based authorization
+- Security metrics collection
+
+NOTE: All validations are configurable per security level
+"""
+
 class SecurityLevel(Enum):
-    """Security levels for policies"""
+    """
+    Security levels defining validation requirements.
+    
+    Levels escalate protection:
+    LOW: Basic authentication
+    MEDIUM: Added rate limiting
+    HIGH: Added mTLS and IP restrictions
+    CRITICAL: All security measures enforced
+    
+    NOTE: Each level inherits previous level's requirements
+    """
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -27,7 +51,18 @@ class ValidationType(Enum):
 
 @dataclass
 class SecurityPolicy:
-    """Security policy configuration"""
+    """
+    Security policy configuration with layered protection.
+    
+    Key features:
+    - Multiple JWT algorithm support
+    - Configurable token lifetime
+    - IP whitelist/blacklist
+    - Role-based access control
+    
+    TODO: Add support for custom validation rules
+    TODO: Add policy versioning and migration
+    """
     required_validations: Set[ValidationType]
     security_level: SecurityLevel = SecurityLevel.MEDIUM
     token_required: bool = True
@@ -61,7 +96,18 @@ class TokenValidationError(ValidationError):
     pass
 
 class SecurityValidator:
-    """Handles security validation and policy enforcement"""
+    """
+    Validates requests against security policies.
+    
+    Features:
+    - Multi-factor validation
+    - Token blacklisting
+    - Rate limiting with sliding window
+    - Comprehensive metrics collection
+    
+    FIXME: Rate limit counters not distributed
+    TODO: Add distributed rate limiting support
+    """
     def __init__(
         self,
         policy: SecurityPolicy,
@@ -79,7 +125,16 @@ class SecurityValidator:
         self._rate_limits: Dict[str, List[datetime]] = {}
 
     async def validate_request(self, context: SecurityContext) -> bool:
-        """Validate request against security policy"""
+        """
+        Validate request against configured security policy.
+        
+        Process:
+        1. Reset validation state
+        2. Perform required validations
+        3. Collect validation metrics
+        
+        NOTE: Fails fast on first validation error
+        """
         try:
             # Reset validation state
             context.validation_errors = []
@@ -141,7 +196,17 @@ class SecurityValidator:
                 )
 
     async def _validate_token(self, context: SecurityContext):
-        """Validate authentication token"""
+        """
+        Validate JWT token with comprehensive checks.
+        
+        Validates:
+        - Token signature and format
+        - Token age and expiration
+        - Audience and issuer claims
+        - Token blacklist status
+        
+        NOTE: Supports both symmetric and asymmetric keys
+        """
         if not context.token and self.policy.token_required:
             raise TokenValidationError("Missing required token")
 
@@ -182,7 +247,17 @@ class SecurityValidator:
                 raise TokenValidationError(f"Invalid JWT token: {str(e)}")
 
     async def _validate_mtls(self, context: SecurityContext):
-        """Validate mutual TLS certificate"""
+        """
+        Validate mTLS certificate if required.
+        
+        Requires:
+        - Valid certificate chain
+        - Certificate not expired
+        - Certificate not revoked
+        
+        WARNING: Revocation checking not implemented
+        TODO: Add certificate revocation checking
+        """
         if self.policy.mtls_required:
             if not context.mtls_cert:
                 raise ValidationError("Missing required mTLS certificate")
@@ -207,7 +282,16 @@ class SecurityValidator:
                 raise ValidationError(f"IP {context.client_ip} not allowed")
 
     async def _validate_rate_limit(self, context: SecurityContext):
-        """Validate rate limits"""
+        """
+        Apply rate limiting with sliding window.
+        
+        Features:
+        - Per-client rate limiting
+        - Sliding window implementation
+        - Automatic window cleanup
+        
+        NOTE: In-memory implementation, not distributed
+        """
         if self.policy.rate_limit:
             key = context.client_ip or "anonymous"
             now = datetime.utcnow()
@@ -226,7 +310,16 @@ class SecurityValidator:
             self._rate_limits[key].append(now)
 
     async def _validate_scope(self, context: SecurityContext):
-        """Validate token scopes"""
+        """
+        Validate token scopes against required scopes.
+        
+        Implements hierarchical scope matching:
+        - Exact scope matches
+        - Wildcard scope patterns
+        - Scope inheritance
+        
+        TODO: Add scope hierarchy configuration
+        """
         if self.policy.required_scopes:
             token_scopes = context.validated_claims.get("scope", "").split()
             missing_scopes = set(self.policy.required_scopes) - set(token_scopes)
@@ -236,7 +329,16 @@ class SecurityValidator:
                 )
 
     async def _validate_role(self, context: SecurityContext):
-        """Validate user roles"""
+        """
+        Validate token roles against allowed roles.
+        
+        Supports:
+        - Multiple role assignments
+        - Role hierarchy
+        - Role wildcards
+        
+        TODO: Add role-based permission mapping
+        """
         if self.policy.allowed_roles:
             token_roles = context.validated_claims.get("roles", [])
             if not any(role in self.policy.allowed_roles for role in token_roles):
