@@ -11,23 +11,63 @@ from ..tracing import trace_method
 logger = structlog.get_logger()
 T = TypeVar('T')
 
+"""
+Resilient retry mechanism for Datapunk's service mesh layer.
+
+This module implements an advanced retry policy system that supports:
+- Exponential backoff with configurable jitter
+- Detailed metrics collection
+- Distributed tracing integration
+- Service-specific retry configurations
+- Enhanced error handling and recovery
+
+Part of the service mesh reliability layer, working alongside the health check
+and circuit breaker components to ensure robust service communication.
+"""
+
 @dataclass
 class RetryConfig:
-    max_attempts: int = 3
-    initial_delay: float = 0.1  # seconds
-    max_delay: float = 10.0     # seconds
-    exponential_base: float = 2
-    jitter: bool = True
-    jitter_factor: float = 0.1
+    """
+    Configuration parameters for retry behavior.
+    
+    Designed to be customizable per service while maintaining reasonable defaults
+    that prevent overwhelming downstream services during recovery.
+    
+    NOTE: max_delay should be set considering service SLAs and timeout configurations
+    """
+    max_attempts: int = 3  # Maximum number of retry attempts before giving up
+    initial_delay: float = 0.1  # Base delay for first retry (seconds)
+    max_delay: float = 10.0  # Maximum delay cap to prevent excessive waiting
+    exponential_base: float = 2  # Growth rate for exponential backoff
+    jitter: bool = True  # Enable random jitter to prevent thundering herd
+    jitter_factor: float = 0.1  # Maximum jitter as percentage of delay
 
 class RetryPolicy:
+    """
+    Implements retry logic with exponential backoff, metrics, and tracing.
+    
+    Integrated with the service mesh for distributed system reliability:
+    - Tracks retry attempts and success rates per service
+    - Provides detailed telemetry for monitoring and debugging
+    - Supports circuit breaker integration through metrics
+    
+    TODO: Add circuit breaker integration
+    FIXME: Consider adding retry budget implementation
+    """
+    
     def __init__(self, config: RetryConfig = RetryConfig()):
         self.config = config
         self.metrics = RetryMetrics()
         self.logger = logger.bind(component="retry_policy")
 
     def calculate_delay(self, attempt: int) -> float:
-        """Calculate delay with exponential backoff and optional jitter."""
+        """
+        Calculate next retry delay using exponential backoff and optional jitter.
+        
+        The delay increases exponentially but is capped at max_delay to prevent
+        excessive waiting. Jitter helps prevent thundering herd problem in
+        distributed systems by randomizing retry timing.
+        """
         delay = min(
             self.config.initial_delay * (self.config.exponential_base ** attempt),
             self.config.max_delay
@@ -49,7 +89,17 @@ class RetryPolicy:
         operation_name: str = "unknown",
         **kwargs
     ) -> T:
-        """Execute operation with retry logic."""
+        """
+        Execute operation with configurable retry logic and telemetry.
+        
+        Implements the core retry mechanism with:
+        - Progressive backoff between attempts
+        - Detailed metric collection per service/operation
+        - Distributed tracing integration
+        - Comprehensive error logging
+        
+        NOTE: Consider service dependencies when configuring retry_on exceptions
+        """
         last_exception = None
         
         for attempt in range(self.config.max_attempts):
@@ -135,6 +185,16 @@ def with_retry(
     return decorator 
 
 class EnhancedRetryPolicy(RetryPolicy):
+    """
+    Extended retry policy with Redis-backed resilience features.
+    
+    Adds distributed state management and coordination:
+    - Shared retry state across service instances
+    - Cluster-wide retry budget management
+    - Enhanced failure detection and recovery
+    
+    TODO: Implement retry budget sharing across instances
+    """
     def __init__(self,
                  config: RetryConfig,
                  redis_client,
