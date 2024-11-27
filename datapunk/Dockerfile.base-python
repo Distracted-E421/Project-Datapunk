@@ -1,6 +1,7 @@
 FROM python:3.11-slim as python-base
 
-# Set environment variables
+# Configure Python environment
+# NOTE: These settings optimize Python for container environments
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=off \
@@ -13,9 +14,12 @@ ENV PYTHONUNBUFFERED=1 \
     PYSETUP_PATH="/opt/pysetup" \
     VENV_PATH="/opt/pysetup/.venv"
 
+# Add Poetry and venv to PATH
 ENV PATH="$POETRY_HOME/bin:$VENV_PATH/bin:$PATH"
 
 # Install system dependencies
+# NOTE: build-essential and libpq-dev are required for some Python packages
+# TODO: Consider adding additional security hardening
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         curl \
@@ -23,37 +27,44 @@ RUN apt-get update \
         libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Create app user
+# Create non-root user for security
+# NOTE: Running as non-root is a security best practice
 RUN groupadd -r datapunk && \
     useradd -r -g datapunk app && \
     mkdir -p /app && \
     chown -R app:datapunk /app
 
-# Install Poetry
+# Install Poetry for dependency management
+# FIXME: Add checksum verification for Poetry installer
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
-# Create working directory
+# Set up working directory for dependency installation
 WORKDIR $PYSETUP_PATH
 
-# Copy shared library
+# Copy shared library files
+# NOTE: Only copying dependency files first for better layer caching
 COPY --chown=app:datapunk lib/shared/pyproject.toml lib/shared/poetry.lock ./
 
-# Install dependencies
+# Install production dependencies
+# NOTE: --no-root flag prevents installing the project itself
 RUN poetry install --no-root --no-dev
 
-# Development stage
+# Development stage with additional tools
 FROM python-base as development
 ENV FASTAPI_ENV=development
 
 # Install development dependencies
+# NOTE: Includes testing and debugging tools
 RUN poetry install
 
-# Production stage
+# Production stage with minimal footprint
 FROM python-base as production
 ENV FASTAPI_ENV=production
 
-# Copy only necessary files
+# Copy only the shared library code
+# NOTE: Minimizing image size by excluding dev files
 COPY --chown=app:datapunk lib/shared/datapunk_shared ./datapunk_shared
 RUN poetry install --no-dev
 
+# Set application directory
 WORKDIR /app
