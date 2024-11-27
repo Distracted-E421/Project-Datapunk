@@ -11,22 +11,54 @@ from aiohttp_cors import setup as cors_setup, ResourceOptions
 import time
 from collections import defaultdict
 
+"""
+REST Server Implementation for Datapunk Service Mesh
+
+This module provides a secure and monitored REST server with:
+- Service mesh integration (health checks, metrics)
+- Multi-layer security (MTLS, token validation)
+- Rate limiting and CORS support
+- Request monitoring and metrics collection
+
+The server is designed to expose service endpoints within the Datapunk
+ecosystem while ensuring security, reliability, and observability.
+
+TODO: Add support for graceful shutdown with connection draining
+TODO: Implement request prioritization for critical endpoints
+FIXME: Improve rate limiter memory usage for high-traffic scenarios
+"""
+
 @dataclass
 class RestServerConfig:
-    """Configuration for REST server"""
-    host: str = "0.0.0.0"
-    port: int = 8080
-    mtls_config: Optional[MTLSConfig] = None
-    security_policy: Optional[SecurityPolicy] = None
-    cors_origins: Optional[list[str]] = None
-    max_request_size: int = 1024 * 1024  # 1MB
-    request_timeout: float = 30.0
-    rate_limit_requests: int = 100  # requests per minute
-    rate_limit_burst: int = 20      # burst allowance
+    """
+    Configuration for REST server with security and monitoring support.
+    
+    NOTE: CORS origins should be strictly limited in production environments.
+    Default values are tuned for typical service mesh deployment scenarios.
+    """
+    host: str = "0.0.0.0"  # Listen on all interfaces for container deployment
+    port: int = 8080  # Default port for service mesh routing
+    mtls_config: Optional[MTLSConfig] = None  # Required for mesh authentication
+    security_policy: Optional[SecurityPolicy] = None  # Request validation rules
+    cors_origins: Optional[list[str]] = None  # Allowed CORS origins
+    max_request_size: int = 1024 * 1024  # 1MB limit to prevent memory exhaustion
+    request_timeout: float = 30.0  # Aligned with client default timeout
+    rate_limit_requests: int = 100  # Requests per minute per client
+    rate_limit_burst: int = 20  # Short-term burst allowance
     cors_settings: Dict[str, ResourceOptions] = field(default_factory=dict)
 
 class RateLimiter:
-    """Simple token bucket rate limiter"""
+    """
+    Token bucket rate limiter for request throttling.
+    
+    Implements a distributed rate limiting strategy that:
+    - Provides fair resource allocation across clients
+    - Allows short-term burst handling
+    - Prevents DoS attacks through traffic throttling
+    
+    NOTE: For high-traffic services, consider using Redis-based rate limiting
+    TODO: Add support for dynamic rate adjustment based on server load
+    """
     def __init__(self, rate: int, burst: int):
         self.rate = rate
         self.burst = burst
@@ -51,7 +83,21 @@ class RateLimiter:
         return False
 
 class RestServer:
-    """Async REST server with security and health checks"""
+    """
+    Async REST server with comprehensive service mesh integration.
+    
+    Implements the core server patterns required by the Datapunk mesh:
+    - Security-first design with MTLS and token validation
+    - Health checking for service discovery
+    - Metrics collection for monitoring
+    - Rate limiting for service protection
+    
+    The middleware stack processes requests in the following order:
+    1. Security first to reject unauthorized requests early
+    2. Error handling to ensure consistent response format
+    3. Rate limiting to protect server resources
+    4. Metrics last to capture accurate request statistics
+    """
     def __init__(
         self,
         config: RestServerConfig,
@@ -76,7 +122,12 @@ class RestServer:
         self._setup_cors()
 
     def _setup_cors(self):
-        """Set up CORS support"""
+        """
+        Configure CORS support for cross-origin requests.
+        
+        NOTE: In production, cors_origins should be explicitly set to prevent
+        security vulnerabilities. Default permissive settings are for development only.
+        """
         if self.config.cors_origins:
             cors = cors_setup(self.app, defaults={
                 "*": ResourceOptions(
@@ -91,7 +142,18 @@ class RestServer:
                 cors.add(route)
 
     def _setup_middleware(self):
-        """Set up middleware stack"""
+        """
+        Configure the middleware processing pipeline.
+        
+        The order of middleware is critical:
+        1. Security first to reject unauthorized requests early
+        2. Error handling to ensure consistent response format
+        3. Rate limiting to protect server resources
+        4. Metrics last to capture accurate request statistics
+        
+        FIXME: Add request context propagation for distributed tracing
+        TODO: Consider adding request validation middleware
+        """
         @web.middleware
         async def security_middleware(request: web.Request, handler: Callable):
             # Skip security for health check endpoint
@@ -186,7 +248,14 @@ class RestServer:
         self.app.router.add_get("/health", self._health_check_handler)
 
     async def _health_check_handler(self, request: web.Request) -> web.Response:
-        """Handle health check requests"""
+        """
+        Handle health check requests from service mesh.
+        
+        Health checks are exempt from security middleware to prevent
+        circular dependencies in the service mesh authentication.
+        
+        Returns 503 if health check fails to trigger service mesh failover.
+        """
         if self.health_check:
             is_healthy = await self.health_check.check_health()
             status = 200 if is_healthy else 503
@@ -209,7 +278,16 @@ class RestServer:
         self.app.router.add_route(method, path, handler)
 
     async def start(self):
-        """Start the server"""
+        """
+        Start the server with MTLS support if configured.
+        
+        SSL context is configured for mutual TLS when mtls_config is provided:
+        - Requires client certificates
+        - Validates against mesh CA
+        - Uses server certificate for identification
+        
+        NOTE: Ensure certificates are properly rotated in production
+        """
         # Configure SSL if MTLS is enabled
         ssl_context = None
         if self.config.mtls_config:
@@ -242,7 +320,15 @@ class RestServer:
         print(f"REST server started on {self.config.host}:{self.config.port}")
 
     async def stop(self):
-        """Stop the server"""
+        """
+        Stop the server and cleanup resources.
+        
+        TODO: Implement graceful shutdown:
+        - Stop accepting new connections
+        - Wait for existing requests to complete
+        - Close idle connections
+        - Cleanup resources
+        """
         if self.runner:
             await self.runner.cleanup()
             if self.metrics:
