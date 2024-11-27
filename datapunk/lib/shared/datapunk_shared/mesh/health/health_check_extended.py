@@ -13,8 +13,36 @@ from .health_check_types import BaseHealthCheck, HealthCheckResult, HealthStatus
 
 logger = structlog.get_logger()
 
+"""
+Extended Health Checks for Datapunk Service Mesh
+
+This module provides specialized health checks for:
+- Kafka cluster and consumer health
+- Elasticsearch cluster status
+- Redis cluster operations
+- Network connectivity and latency
+
+These checks enable deep health monitoring of critical
+infrastructure components beyond basic connectivity.
+
+TODO: Add MongoDB cluster health check
+TODO: Implement custom check aggregation
+FIXME: Improve timeout handling for slow responses
+"""
+
 class KafkaHealthCheck(BaseHealthCheck):
-    """Kafka connectivity and consumer lag health check."""
+    """
+    Kafka connectivity and consumer lag monitoring.
+    
+    Checks:
+    - Topic existence
+    - Consumer group status
+    - Partition lag
+    - Connection health
+    
+    NOTE: High lag may indicate processing issues
+    TODO: Add producer health metrics
+    """
     
     def __init__(self,
                  bootstrap_servers: str,
@@ -27,7 +55,18 @@ class KafkaHealthCheck(BaseHealthCheck):
         self.timeout = timeout
     
     async def check(self) -> HealthCheckResult:
-        """Check Kafka health and consumer lag."""
+        """
+        Check Kafka health and consumer lag.
+        
+        Health determination:
+        1. Verify topic exists
+        2. Check partition assignment
+        3. Calculate consumer lag
+        4. Evaluate overall health
+        
+        NOTE: Returns DEGRADED if lag exceeds 1000
+        FIXME: Add configurable lag thresholds
+        """
         try:
             consumer = aiokafka.AIOKafkaConsumer(
                 self.topic,
@@ -77,14 +116,35 @@ class KafkaHealthCheck(BaseHealthCheck):
             )
 
 class ElasticsearchHealthCheck(BaseHealthCheck):
-    """Elasticsearch cluster health check."""
+    """
+    Elasticsearch cluster health monitoring.
+    
+    Evaluates:
+    - Cluster state (green/yellow/red)
+    - Node availability
+    - Shard distribution
+    - Cluster operations
+    
+    NOTE: Yellow status common in single-node setups
+    TODO: Add index-level health checks
+    """
     
     def __init__(self, url: str, timeout: float = 5.0):
         self.url = url
         self.timeout = timeout
     
     async def check(self) -> HealthCheckResult:
-        """Check Elasticsearch cluster health."""
+        """
+        Check Elasticsearch cluster health.
+        
+        Status mapping:
+        green -> HEALTHY: Fully operational
+        yellow -> DEGRADED: Reduced redundancy
+        red -> UNHEALTHY: Data unavailability
+        
+        NOTE: Includes shard allocation details
+        FIXME: Add timeout for cluster state calls
+        """
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
@@ -122,14 +182,36 @@ class ElasticsearchHealthCheck(BaseHealthCheck):
             )
 
 class RedisClusterHealthCheck(BaseHealthCheck):
-    """Redis cluster health check."""
+    """
+    Redis cluster health monitoring.
+    
+    Monitors:
+    - Cluster state
+    - Node availability
+    - Slot distribution
+    - Memory usage
+    
+    NOTE: Requires cluster mode configuration
+    TODO: Add keyspace monitoring
+    """
     
     def __init__(self, nodes: List[Dict[str, Any]], timeout: float = 5.0):
         self.nodes = nodes
         self.timeout = timeout
     
     async def check(self) -> HealthCheckResult:
-        """Check Redis cluster health."""
+        """
+        Check Redis cluster health.
+        
+        Health criteria:
+        1. Cluster state verification
+        2. Node failure detection
+        3. Slot assignment check
+        4. Resource utilization
+        
+        NOTE: DEGRADED on partial node failures
+        FIXME: Improve memory usage calculation
+        """
         try:
             client = redis.RedisCluster(
                 startup_nodes=self.nodes,
@@ -177,7 +259,23 @@ class RedisClusterHealthCheck(BaseHealthCheck):
             )
 
 class NetworkHealthCheck(BaseHealthCheck):
-    """Network connectivity and latency health check."""
+    """
+    Network connectivity and latency monitoring.
+    
+    Measures:
+    - Connection success
+    - Round-trip time
+    - Error patterns
+    - Latency distribution
+    
+    Best for:
+    - Cross-region services
+    - Critical dependencies
+    - Performance monitoring
+    
+    NOTE: Consider network conditions in results
+    TODO: Add path MTU discovery
+    """
     
     def __init__(self,
                  targets: List[Dict[str, str]],
@@ -188,7 +286,23 @@ class NetworkHealthCheck(BaseHealthCheck):
         self.latency_threshold = latency_threshold
     
     async def check(self) -> HealthCheckResult:
-        """Check network connectivity and latency."""
+        """
+        Check network connectivity and latency.
+        
+        Health determination:
+        1. Test all targets
+        2. Measure latencies
+        3. Detect failures
+        4. Calculate averages
+        
+        Status rules:
+        - HEALTHY: All targets reachable, low latency
+        - DEGRADED: Some failures or high latency
+        - UNHEALTHY: Critical target failures
+        
+        NOTE: Latency threshold affects status
+        FIXME: Add connection pooling
+        """
         results = {}
         total_latency = 0
         failed = 0
