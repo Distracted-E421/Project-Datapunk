@@ -14,13 +14,34 @@ if TYPE_CHECKING:
 logger = structlog.get_logger()
 
 class ServiceMesh:
-    """Core service mesh implementation."""
+    """
+    Core service mesh implementation with component coordination.
+    
+    Features:
+    - Component lifecycle management
+    - Service communication patterns
+    - Health status aggregation
+    - Metric collection
+    
+    WARNING: Components must be initialized in correct order
+    TODO: Add support for custom component injection
+    """
     
     def __init__(self,
                  service_name: str,
                  metrics: 'MetricsClient',
                  cache: 'CacheClient',
                  message_broker: 'MessageBroker'):
+        """
+        Initialize mesh with required components.
+        
+        Dependencies:
+        - Metrics for performance monitoring
+        - Cache for response optimization
+        - Message broker for async communication
+        
+        NOTE: All components required for full functionality
+        """
         self.service_name = service_name
         self.metrics = metrics
         self.cache = cache
