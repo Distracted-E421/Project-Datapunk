@@ -9,9 +9,44 @@ from ..tracing import TracingManager, trace_method
 logger = structlog.get_logger()
 T = TypeVar('T')
 
+"""
+Message Queue Implementation with Monitoring and Tracing
+
+A robust message queue implementation that prioritizes reliability and observability.
+Designed to handle message processing with configurable retry policies, dead letter
+queues, and comprehensive monitoring.
+
+Key Features:
+- Priority-based message handling
+- Dead letter queue support
+- Message TTL management
+- Integrated monitoring and tracing
+- Configurable retry policies
+
+Design Philosophy:
+- Reliability over raw performance
+- Comprehensive error handling
+- Full observability through metrics and tracing
+- Graceful degradation under load
+
+NOTE: Requires properly configured tracing and metrics clients
+TODO: Add support for queue partitioning
+"""
+
 @dataclass
 class QueueConfig:
-    """Configuration for message queues."""
+    """
+    Queue configuration with reliability and monitoring settings.
+    
+    Design Considerations:
+    - durable ensures message persistence across restarts
+    - max_priority enables urgent message handling
+    - dead_letter_exchange handles unprocessable messages
+    - message_ttl prevents queue bloat
+    
+    WARNING: Setting max_length too low may cause message loss
+    TODO: Add validation for TTL and retry relationship
+    """
     name: str
     durable: bool = True
     auto_delete: bool = False
@@ -22,7 +57,18 @@ class QueueConfig:
     max_retries: int = 3
 
 class MessageQueue:
-    """Implements message queue patterns with monitoring and tracing."""
+    """
+    Message queue implementation with monitoring and tracing integration.
+    
+    Key Capabilities:
+    - Priority message handling
+    - Message persistence
+    - Dead letter routing
+    - Retry management
+    - Performance monitoring
+    
+    FIXME: Consider adding circuit breaker for downstream protection
+    """
     
     def __init__(self,
                  connection: aio_pika.Connection,
@@ -38,7 +84,16 @@ class MessageQueue:
         self.queue = None
         
     async def initialize(self):
-        """Initialize queue and channel."""
+        """
+        Sets up queue infrastructure and monitoring.
+        
+        Implementation Notes:
+        - Configures channel QoS for load management
+        - Sets up dead letter exchange if configured
+        - Declares queue with all necessary arguments
+        
+        WARNING: Must be called before any queue operations
+        """
         self.channel = await self.connection.channel()
         await self.channel.set_qos(prefetch_count=1)
         
@@ -68,7 +123,16 @@ class MessageQueue:
                      message: Dict,
                      priority: int = 0,
                      correlation_id: Optional[str] = None) -> bool:
-        """Publish message to queue."""
+        """
+        Publishes message with tracing and monitoring.
+        
+        Design Decisions:
+        - Adds retry count to headers for tracking
+        - Includes correlation ID for request tracing
+        - Records publish metrics for monitoring
+        
+        NOTE: Priority is capped at configured maximum
+        """
         try:
             # Create message with headers
             message_body = aio_pika.Message(
@@ -101,7 +165,17 @@ class MessageQueue:
     async def consume(self,
                      callback: Callable[[Dict], Awaitable[None]],
                      error_callback: Optional[Callable[[Exception], Awaitable[None]]] = None):
-        """Consume messages from queue."""
+        """
+        Consumes messages with error handling and monitoring.
+        
+        Error Handling Strategy:
+        - Tracks retry attempts in message headers
+        - Implements exponential backoff for retries
+        - Routes to DLQ after max retries
+        - Records processing metrics
+        
+        TODO: Add support for batch consumption
+        """
         async def _handle_message(message: aio_pika.IncomingMessage):
             async with message.process():
                 try:
@@ -146,7 +220,17 @@ class MessageQueue:
     async def _retry_message(self,
                            message: aio_pika.IncomingMessage,
                            retry_count: int):
-        """Retry failed message processing."""
+        """
+        Implements retry logic with exponential backoff.
+        
+        Retry Strategy:
+        - Increases delay exponentially with each attempt
+        - Caps maximum delay at 5 minutes
+        - Preserves original message attributes
+        - Updates retry count in headers
+        
+        NOTE: Consider tuning delay parameters based on message type
+        """
         # Update headers for retry
         headers = message.headers or {}
         headers['retry_count'] = retry_count
@@ -173,7 +257,17 @@ class MessageQueue:
                              {'queue': self.config.name})
     
     async def _move_to_dlq(self, message: aio_pika.IncomingMessage):
-        """Move failed message to dead letter queue."""
+        """
+        Moves failed messages to dead letter queue.
+        
+        DLQ Handling:
+        - Preserves original message content
+        - Adds failure context to headers
+        - Maintains message priority
+        - Records DLQ metrics
+        
+        WARNING: Requires configured dead_letter_exchange
+        """
         if self.config.dead_letter_exchange:
             # Add failure context to headers
             headers = message.headers or {}
