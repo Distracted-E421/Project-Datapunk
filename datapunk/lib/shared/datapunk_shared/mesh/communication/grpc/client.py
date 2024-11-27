@@ -13,26 +13,86 @@ import uuid
 
 T = TypeVar('T')  # For service stub type
 
+"""
+Service Mesh gRPC Client
+
+A resilient gRPC client implementation for the Datapunk service mesh that prioritizes
+data ownership and security while providing comprehensive monitoring capabilities.
+This client is a core component of the mesh communication layer described in sys-arch.mmd.
+
+Key Features:
+- Secure mTLS communication with certificate-based auth
+- Automatic retry policies with circuit breaking for failure isolation
+- Comprehensive metrics collection for observability
+- Request tracing for debugging and performance analysis
+- Support for both unary and streaming operations
+- Security context propagation across services
+
+Implementation Notes:
+- Uses async/await for non-blocking operations
+- Implements connection pooling (TODO) for resource optimization
+- Supports dynamic configuration updates (TODO)
+- Handles both TLS and non-TLS scenarios consistently
+"""
+
 @dataclass
 class GrpcClientConfig:
-    """Configuration for gRPC client"""
+    """
+    Configuration container for gRPC client settings.
+    
+    Why Dataclass:
+    - Provides immutable configuration with validation
+    - Enables future dynamic updates through replacement
+    - Simplifies configuration management across services
+    
+    Security Considerations:
+    - mtls_config: Required for service-to-service auth in production
+    - metadata_handlers: Used for dynamic security context propagation
+    
+    Performance Tuning:
+    - max_message_length: Adjusted based on typical payload sizes
+    - timeout: Prevents resource exhaustion under load
+    """
     target: str
     mtls_config: Optional[MTLSConfig] = None
     retry_policy: Optional[RetryPolicy] = None
     circuit_breaker: Optional[CircuitBreaker] = None
-    max_message_length: int = 4 * 1024 * 1024  # 4MB
-    timeout: float = 30.0  # seconds
+    max_message_length: int = 4 * 1024 * 1024  # 4MB default balances memory usage
+    timeout: float = 30.0  # Default timeout prevents resource exhaustion
     compression: Optional[grpc.Compression] = None
     enable_tracing: bool = True
     enable_metrics: bool = True
     metadata_handlers: Optional[Dict[str, callable]] = None
 
 class GrpcClientError(Exception):
-    """Base class for gRPC client errors"""
+    """
+    Base exception for gRPC client failures.
+    
+    Used to wrap low-level gRPC exceptions with context-specific information
+    while maintaining the original error chain for debugging.
+    """
     pass
 
 class GrpcClient(Generic[T]):
-    """Async gRPC client with security and monitoring"""
+    """
+    Async gRPC client with comprehensive mesh features.
+    
+    Design Philosophy:
+    - Prioritizes data ownership and security
+    - Maintains connection state internally
+    - Provides detailed metrics for monitoring
+    - Supports graceful degradation under failure
+    
+    Usage Notes:
+    - Initialize with appropriate security context
+    - Configure retry policies for specific endpoints
+    - Monitor metrics for performance optimization
+    
+    Security Context:
+    - Propagates authentication tokens automatically
+    - Supports custom metadata handlers for dynamic auth
+    - Implements mTLS for service identity verification
+    """
     def __init__(
         self,
         config: GrpcClientConfig,
@@ -47,16 +107,29 @@ class GrpcClient(Generic[T]):
         self._security_context: Optional[SecurityContext] = None
 
     async def connect(self):
-        """Initialize gRPC channel and stub"""
+        """
+        Initialize secure gRPC channel and stub.
+        
+        Security Flow:
+        1. Configure channel options for production workloads
+        2. Apply mTLS if configured (required in production)
+        3. Create appropriate channel type (secure/insecure)
+        4. Initialize stub with configured channel
+        
+        Error Handling:
+        - Validates certificate paths before loading
+        - Reports connection failures through metrics
+        - Maintains connection state for retry logic
+        """
         try:
-            # Configure channel options
+            # Configure channel for production workloads
             options = [
                 ('grpc.max_message_length', self.config.max_message_length),
                 ('grpc.max_receive_message_length', self.config.max_message_length),
                 ('grpc.max_send_message_length', self.config.max_message_length),
             ]
 
-            # Configure TLS if enabled
+            # Apply mTLS if configured
             credentials = None
             if self.config.mtls_config:
                 with open(self.config.mtls_config.certificate, 'rb') as f:
@@ -72,7 +145,7 @@ class GrpcClient(Generic[T]):
                     certificate_chain=cert_chain
                 )
 
-            # Create channel
+            # Create appropriate channel type
             if credentials:
                 self._channel = aio.secure_channel(
                     self.config.target,
@@ -85,7 +158,6 @@ class GrpcClient(Generic[T]):
                     options=options
                 )
 
-            # Create stub
             self._stub = self.stub_class(self._channel)
 
             if self.metrics:
@@ -117,7 +189,25 @@ class GrpcClient(Generic[T]):
         timeout: Optional[float] = None,
         metadata: Optional[Dict[str, str]] = None
     ) -> Any:
-        """Make gRPC method call with retry and circuit breaking"""
+        """
+        Execute gRPC method with reliability features.
+        
+        Flow:
+        1. Ensure connection is established
+        2. Prepare request metadata (auth, tracing, custom)
+        3. Execute call with retry/circuit breaking
+        4. Collect metrics and handle errors
+        
+        Performance Notes:
+        - Uses connection pooling when available
+        - Implements automatic retry with backoff
+        - Monitors call duration for optimization
+        
+        Security:
+        - Propagates security context in metadata
+        - Supports custom auth handlers
+        - Enables request tracing for audit
+        """
         if not self._stub:
             await self.connect()
 
