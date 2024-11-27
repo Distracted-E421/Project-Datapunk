@@ -7,29 +7,83 @@ from .registry import ServiceRegistry, ServiceRegistration, ServiceStatus
 from ..routing.balancer import LoadBalancer, BalancingStrategy
 from ...monitoring import MetricsCollector
 
+"""
+Service Resolution Implementation for Datapunk Service Mesh
+
+This module provides intelligent service instance selection with:
+- Multiple resolution strategies (direct, load balanced, nearest, etc.)
+- Instance caching for performance
+- Health-aware selection
+- Region-aware routing
+- Automatic failover
+
+The resolver works with the service registry to implement higher-level
+routing policies that support reliable service communication.
+
+TODO: Add support for capability-based routing
+TODO: Implement adaptive cache TTLs based on service stability
+FIXME: Improve weighted distribution for large instance counts
+"""
+
 class ResolutionStrategy(Enum):
-    """Service resolution strategies"""
-    DIRECT = "direct"          # Direct connection to service
-    LOAD_BALANCED = "load_balanced"  # Load balanced connection
-    NEAREST = "nearest"        # Nearest instance by region/zone
-    FAILOVER = "failover"      # Primary with failover
-    WEIGHTED = "weighted"      # Weighted distribution
+    """
+    Service resolution strategies for different routing needs.
+    
+    Each strategy optimizes for different requirements:
+    DIRECT: Lowest latency, no guarantees
+    LOAD_BALANCED: Even distribution
+    NEAREST: Network locality
+    FAILOVER: High availability
+    WEIGHTED: Traffic shaping
+    """
+    DIRECT = "direct"          # Fast path for simple cases
+    LOAD_BALANCED = "load_balanced"  # Even traffic distribution
+    NEAREST = "nearest"        # Network locality optimization
+    FAILOVER = "failover"      # High availability with backup
+    WEIGHTED = "weighted"      # Controlled traffic distribution
 
 @dataclass
 class ResolutionConfig:
-    """Configuration for service resolution"""
+    """
+    Configuration for service resolution behavior.
+    
+    Timeouts and thresholds are tuned for:
+    - Typical network latencies
+    - Cache coherency requirements
+    - Failover responsiveness
+    
+    NOTE: refresh_interval should be shorter than cache_ttl
+    TODO: Add support for strategy-specific configurations
+    """
     strategy: ResolutionStrategy = ResolutionStrategy.LOAD_BALANCED
-    refresh_interval: float = 30.0  # seconds
-    cache_ttl: int = 300  # seconds
-    enable_health_filtering: bool = True
-    enable_caching: bool = True
-    failover_threshold: int = 3
-    weighted_distribution: Optional[Dict[str, int]] = None
-    preferred_regions: Optional[List[str]] = None
-    local_region: Optional[str] = None
+    refresh_interval: float = 30.0  # Background refresh rate
+    cache_ttl: int = 300  # Cache entry lifetime
+    enable_health_filtering: bool = True  # Filter unhealthy instances
+    enable_caching: bool = True  # Cache resolution results
+    failover_threshold: int = 3  # Failed attempts before failover
+    weighted_distribution: Optional[Dict[str, int]] = None  # Region weights
+    preferred_regions: Optional[List[str]] = None  # Region preference order
+    local_region: Optional[str] = None  # Current deployment region
 
 class ServiceResolver:
-    """Resolves service instances based on configured strategy"""
+    """
+    Service instance resolver with multiple selection strategies.
+    
+    Core responsibilities:
+    - Select appropriate instances based on strategy
+    - Maintain resolution cache
+    - Handle instance health
+    - Manage load balancers
+    - Track resolution metrics
+    
+    The resolver uses background refresh to:
+    - Keep cache fresh
+    - Update load balancer state
+    - Maintain accurate health status
+    
+    NOTE: All public methods are thread-safe through async locking
+    FIXME: Improve cache memory usage for many services
+    """
     def __init__(
         self,
         config: ResolutionConfig,
@@ -62,7 +116,18 @@ class ServiceResolver:
         service_name: str,
         metadata_filter: Optional[Dict[str, str]] = None
     ) -> Optional[ServiceRegistration]:
-        """Resolve service instance based on strategy"""
+        """
+        Resolve service instance using configured strategy.
+        
+        Resolution process:
+        1. Check cache if enabled
+        2. Get healthy instances
+        3. Apply resolution strategy
+        4. Update cache
+        5. Record metrics
+        
+        NOTE: Returns None if no suitable instances found
+        """
         try:
             if self.config.enable_caching:
                 cached = self._get_from_cache(service_name)
@@ -189,7 +254,18 @@ class ServiceResolver:
         service_name: str,
         instances: List[ServiceRegistration]
     ) -> Optional[ServiceRegistration]:
-        """Get instance with failover support"""
+        """
+        Select instance with automatic failover support.
+        
+        Implements a simple failover strategy:
+        1. Try primary instance first
+        2. Track failed attempts
+        3. Switch to backup after threshold
+        4. Reset counter periodically
+        
+        NOTE: Requires at least two instances for full failover
+        TODO: Add support for multiple backup instances
+        """
         cache_key = f"failover_{service_name}"
         failover_count = self._cache.get(cache_key, {}).get("count", 0)
 
@@ -211,7 +287,17 @@ class ServiceResolver:
         self,
         instances: List[ServiceRegistration]
     ) -> Optional[ServiceRegistration]:
-        """Get instance based on weighted distribution"""
+        """
+        Select instance based on weighted distribution.
+        
+        Uses weighted random selection to:
+        - Control traffic distribution
+        - Support gradual rollout
+        - Enable A/B testing
+        
+        FIXME: Current implementation may be biased for small weights
+        TODO: Add support for dynamic weight adjustment
+        """
         if not self.config.weighted_distribution:
             return instances[0]
 
@@ -289,7 +375,17 @@ class ServiceResolver:
                     )
 
     async def _refresh_instances(self):
-        """Refresh service instances"""
+        """
+        Refresh cached instance data and load balancer state.
+        
+        Critical for maintaining:
+        - Cache freshness
+        - Load balancer accuracy
+        - Health status
+        
+        NOTE: Holds lock during refresh to prevent inconsistency
+        TODO: Consider incremental updates for large services
+        """
         async with self._lock:
             # Clear cache
             self._cache.clear()
