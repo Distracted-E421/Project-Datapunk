@@ -7,15 +7,47 @@ from ..monitoring import MetricsCollector
 
 T = TypeVar('T')
 
+"""
+Circuit breaker implementation with adaptive timeout and health monitoring.
+
+Implements the circuit breaker pattern to prevent cascading failures by:
+- Monitoring operation success/failure rates
+- Adaptively adjusting retry timeouts
+- Providing graceful service degradation
+- Collecting performance metrics
+
+Design based on Martin Fowler's Circuit Breaker pattern with enhancements
+for async operations and adaptive behavior.
+"""
+
 class CircuitState(Enum):
-    """Circuit breaker states"""
+    """
+    Circuit breaker states following finite state machine pattern:
+    
+    CLOSED -> Normal operation, monitoring for failures
+    OPEN -> Failing fast, preventing further load
+    HALF_OPEN -> Testing recovery with limited traffic
+    
+    NOTE: State transitions are thread-safe via async locks
+    """
     CLOSED = "closed"      # Normal operation
     OPEN = "open"         # Failing, reject requests
     HALF_OPEN = "half_open"  # Testing recovery
 
 @dataclass
 class CircuitConfig:
-    """Configuration for circuit breaker"""
+    """
+    Circuit breaker configuration with adaptive behavior controls.
+    
+    Key parameters:
+    - failure_threshold: Failures before opening circuit
+    - success_threshold: Successes needed to close circuit
+    - error_rate_threshold: Error rate trigger (0.0-1.0)
+    - cooldown_factor: Exponential backoff multiplier
+    
+    NOTE: Default values tuned for microservice environments
+    TODO: Add per-service configuration support
+    """
     failure_threshold: int = 5  # Number of failures before opening
     success_threshold: int = 2  # Number of successes before closing
     timeout: float = 60.0  # Seconds to wait before half-open
@@ -25,7 +57,18 @@ class CircuitConfig:
     cooldown_factor: float = 2.0  # Multiply timeout by this on consecutive failures
 
 class CircuitBreaker(Generic[T]):
-    """Circuit breaker pattern implementation"""
+    """
+    Async circuit breaker with adaptive timeout and metrics collection.
+    
+    Features:
+    - Rolling window error rate monitoring
+    - Exponential backoff for repeated failures
+    - Metric collection for monitoring
+    - Thread-safe state transitions
+    
+    FIXME: Potential race condition in window updates
+    TODO: Add circuit state persistence
+    """
     def __init__(
         self,
         config: CircuitConfig,
@@ -47,7 +90,17 @@ class CircuitBreaker(Generic[T]):
         *args,
         **kwargs
     ) -> T:
-        """Execute operation with circuit breaker pattern"""
+        """
+        Execute operation with circuit breaker protection.
+        
+        Handles:
+        - State-based execution control
+        - Success/failure tracking
+        - Metric collection
+        - Timeout management
+        
+        Raises CircuitOpenError if circuit is OPEN
+        """
         async with self._lock:
             await self._check_state_transition()
             
@@ -66,7 +119,17 @@ class CircuitBreaker(Generic[T]):
             raise
 
     async def _check_state_transition(self):
-        """Check and update circuit state"""
+        """
+        Check and update circuit state based on current conditions.
+        
+        State transition logic:
+        OPEN -> HALF_OPEN: After timeout period
+        HALF_OPEN -> CLOSED: After success threshold met
+        HALF_OPEN -> OPEN: On any failure
+        CLOSED -> OPEN: On error threshold exceeded
+        
+        NOTE: All transitions are logged in metrics if enabled
+        """
         now = datetime.utcnow()
 
         if self._state == CircuitState.OPEN:
@@ -84,7 +147,14 @@ class CircuitBreaker(Generic[T]):
                 await self._transition_to_open()
 
     def _should_transition_to_half_open(self, now: datetime) -> bool:
-        """Check if circuit should transition to half-open"""
+        """
+        Determine if circuit should attempt recovery.
+        
+        Uses exponential backoff to prevent rapid oscillation:
+        timeout * (cooldown_factor ^ consecutive_timeouts)
+        
+        NOTE: Backoff capped by float precision limits
+        """
         if not self._last_failure_time:
             return False
 
@@ -94,7 +164,15 @@ class CircuitBreaker(Generic[T]):
         return (now - self._last_failure_time) >= timedelta(seconds=timeout)
 
     def _should_transition_to_open(self) -> bool:
-        """Check if circuit should transition to open"""
+        """
+        Check if circuit should open based on error conditions.
+        
+        Triggers on either:
+        - Absolute failure count threshold
+        - Error rate threshold over minimum throughput
+        
+        NOTE: Requires minimum throughput to prevent premature triggers
+        """
         if len(self._request_window) < self.config.min_throughput:
             return False
 
@@ -105,7 +183,14 @@ class CircuitBreaker(Generic[T]):
         return error_rate >= self.config.error_rate_threshold
 
     def _calculate_error_rate(self) -> float:
-        """Calculate current error rate"""
+        """
+        Calculate current error rate from rolling window.
+        
+        Uses fixed-size window to limit memory usage while
+        providing meaningful error rate calculation.
+        
+        NOTE: Returns 0.0 for empty window
+        """
         if not self._request_window:
             return 0.0
         return 1 - (sum(self._request_window) / len(self._request_window))
@@ -199,7 +284,16 @@ class CircuitBreaker(Generic[T]):
         return max(0.0, timeout - elapsed)
 
     async def get_state(self) -> Dict[str, Any]:
-        """Get current circuit breaker state"""
+        """
+        Get current circuit breaker state and metrics.
+        
+        Provides insights into:
+        - Current state and transition timing
+        - Error rates and thresholds
+        - Window statistics
+        
+        Used for monitoring and debugging circuit behavior.
+        """
         async with self._lock:
             return {
                 "state": self._state.value,
