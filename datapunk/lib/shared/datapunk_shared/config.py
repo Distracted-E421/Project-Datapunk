@@ -6,7 +6,11 @@ from .exceptions import ConfigError, MissingConfigError, InvalidConfigError
 
 @dataclass
 class ServiceConfig:
-    """Base service configuration."""
+    """Base service configuration for Datapunk microservices.
+    
+    Defines core service parameters required for operation within the mesh.
+    NOTE: All services must provide name, version, and environment.
+    """
     name: str
     version: str
     environment: str
@@ -16,7 +20,12 @@ class ServiceConfig:
 
 @dataclass
 class MeshConfig:
-    """Service mesh configuration."""
+    """Service mesh configuration for inter-service communication.
+    
+    Handles service discovery and communication patterns within the mesh.
+    NOTE: Consul is the primary service discovery mechanism
+    TODO: Add support for alternative service discovery providers
+    """
     consul_host: str
     consul_port: int
     enable_mtls: bool = True
@@ -27,32 +36,63 @@ class MeshConfig:
 
 @dataclass
 class CacheConfig:
-    """Cache configuration."""
+    """Redis cache configuration for distributed caching.
+    
+    Manages caching behavior and connection settings.
+    NOTE: Default TTL of 1 hour can be overridden per service
+    """
     redis_host: str
     redis_port: int
-    ttl: int = 3600
+    ttl: int = 3600  # Default 1 hour TTL
     max_connections: int = 10
     enable_cluster: bool = False
 
 class ConfigLoader:
-    """Configuration loader with environment variable support."""
+    """Configuration loader with environment variable override support.
+    
+    Loads configuration from YAML files and allows override through environment
+    variables using the DP_ prefix. Supports nested configuration using
+    dot notation in both YAML and environment variables.
+    
+    Example:
+        YAML: service.name: "auth"
+        Env: DP_SERVICE_NAME="auth"
+    
+    NOTE: Environment variables take precedence over file configuration
+    FIXME: Add support for configuration reloading without service restart
+    """
     
     def __init__(self, config_path: Optional[str] = None):
+        """Initialize configuration loader.
+        
+        Args:
+            config_path: Path to YAML configuration file
+                        Falls back to CONFIG_PATH environment variable
+        """
         self.config_path = config_path or os.getenv("CONFIG_PATH")
         self.config_data: Dict[str, Any] = {}
         
     def load(self) -> Dict[str, Any]:
-        """Load configuration from file and environment."""
+        """Load and validate configuration from file and environment.
+        
+        Returns:
+            Merged configuration dictionary
+            
+        Raises:
+            InvalidConfigError: If YAML parsing fails
+            MissingConfigError: If required values are missing
+            ConfigError: For other configuration-related errors
+        """
         try:
             # Load from file if exists
             if self.config_path and os.path.exists(self.config_path):
                 with open(self.config_path) as f:
                     self.config_data = yaml.safe_load(f)
             
-            # Override with environment variables
+            # Environment variables override file configuration
             self._override_from_env()
             
-            # Validate configuration
+            # Ensure all required values are present
             self._validate_config()
             
             return self.config_data
@@ -63,20 +103,35 @@ class ConfigLoader:
             raise ConfigError(f"Configuration loading failed: {str(e)}")
     
     def _override_from_env(self):
-        """Override configuration with environment variables."""
+        """Override configuration with environment variables.
+        
+        Environment variables prefixed with DP_ are mapped to nested
+        configuration keys using underscore separation.
+        Example: DP_SERVICE_NAME -> service.name
+        """
         for key, value in os.environ.items():
             if key.startswith("DP_"):  # Datapunk prefix
                 config_key = key[3:].lower()
                 self._set_nested_value(self.config_data, config_key.split('_'), value)
     
     def _set_nested_value(self, data: Dict, keys: list, value: Any):
-        """Set value in nested dictionary."""
+        """Set value in nested dictionary using key path.
+        
+        Args:
+            data: Target dictionary
+            keys: List of nested keys
+            value: Value to set
+        """
         for key in keys[:-1]:
             data = data.setdefault(key, {})
         data[keys[-1]] = value
     
     def _validate_config(self):
-        """Validate required configuration values."""
+        """Validate required configuration values.
+        
+        Ensures critical configuration values are present.
+        TODO: Add type validation for configuration values
+        """
         required_keys = [
             "service.name",
             "service.version",
@@ -88,7 +143,15 @@ class ConfigLoader:
                 raise MissingConfigError(f"Missing required configuration: {key}")
     
     def _get_nested_value(self, data: Dict, keys: list) -> Any:
-        """Get value from nested dictionary."""
+        """Get value from nested dictionary using key path.
+        
+        Args:
+            data: Source dictionary
+            keys: List of nested keys
+        
+        Returns:
+            Value if found, None otherwise
+        """
         for key in keys:
             if not isinstance(data, dict) or key not in data:
                 return None
@@ -96,7 +159,11 @@ class ConfigLoader:
         return data
 
     def get_service_config(self) -> ServiceConfig:
-        """Get service configuration."""
+        """Get service configuration as dataclass.
+        
+        Returns:
+            ServiceConfig with current configuration values
+        """
         service = self.config_data.get("service", {})
         return ServiceConfig(
             name=service["name"],
@@ -108,7 +175,11 @@ class ConfigLoader:
         )
 
     def get_mesh_config(self) -> MeshConfig:
-        """Get mesh configuration."""
+        """Get mesh configuration as dataclass.
+        
+        Returns:
+            MeshConfig with current configuration values
+        """
         mesh = self.config_data.get("mesh", {})
         return MeshConfig(
             consul_host=mesh.get("consul_host", "consul"),
@@ -121,7 +192,11 @@ class ConfigLoader:
         )
 
     def get_cache_config(self) -> CacheConfig:
-        """Get cache configuration."""
+        """Get cache configuration as dataclass.
+        
+        Returns:
+            CacheConfig with current configuration values
+        """
         cache = self.config_data.get("cache", {})
         return CacheConfig(
             redis_host=cache.get("redis_host", "redis"),
