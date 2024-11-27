@@ -1,3 +1,21 @@
+"""
+Certificate Revocation Manager for Datapunk's Security Infrastructure
+
+This module implements certificate revocation handling within the service mesh security layer,
+integrating with the distributed caching system for performance optimization.
+
+Key features:
+- Certificate revocation with distributed cache updates
+- Real-time revocation status checking
+- CRL (Certificate Revocation List) management
+- Fail-closed security model for error handling
+
+Security considerations:
+- Implements immediate revocation propagation across services
+- Maintains revocation state in both CRL and distributed cache
+- Handles edge cases with secure defaults (fail-closed)
+"""
+
 from typing import Optional, List, Dict
 import asyncio
 from datetime import datetime
@@ -11,11 +29,18 @@ from ..cache import CacheClient
 logger = structlog.get_logger()
 
 class CertificateRevocationManager:
-    """Manages certificate revocation."""
+    """
+    Manages certificate revocation across the service mesh.
+    
+    Implements a dual-layer revocation system using both CRL and distributed cache
+    for optimal performance and reliability. Cache serves as a fast-path check while
+    CRL provides authoritative revocation status.
+    """
     
     def __init__(self,
                  cert_manager: CertificateManager,
                  cache_client: CacheClient):
+        # NOTE: Cache client must support distributed operations for mesh-wide revocation
         self.cert_manager = cert_manager
         self.cache = cache_client
         self.logger = logger.bind(component="cert_revocation")
@@ -24,23 +49,38 @@ class CertificateRevocationManager:
     async def revoke_certificate(self,
                                cert_id: str,
                                reason: str = "unspecified") -> None:
-        """Revoke a certificate."""
+        """
+        Revokes a certificate and propagates revocation across the service mesh.
+        
+        Critical operation that must maintain consistency between CRL and cache.
+        Follows a specific order of operations to prevent race conditions:
+        1. Validate certificate
+        2. Update CRL
+        3. Invalidate service certificates
+        4. Update cache
+        
+        Args:
+            cert_id: Unique identifier of the certificate to revoke
+            reason: Reason for revocation (defaults to "unspecified")
+            
+        Raises:
+            ValueError: If certificate not found
+            Exception: For any other revocation failures
+        """
         try:
-            # Get certificate details
+            # FIXME: Add retry logic for distributed operations
             cert_info = await self.cert_manager.get_certificate(cert_id)
             if not cert_info:
                 raise ValueError(f"Certificate {cert_id} not found")
             
-            # Add to CRL
             await self._add_to_crl(cert_info, reason)
             
-            # Invalidate service certificate
+            # Ensure service certificates are invalidated before updating cache
             await self.cert_manager.invalidate_service_cert(
                 cert_info.get("service_name"),
                 cert_id
             )
             
-            # Update revocation cache
             await self._update_revocation_cache(cert_id)
             
             self.logger.info("certificate_revoked",
