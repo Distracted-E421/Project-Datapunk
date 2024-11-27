@@ -11,33 +11,72 @@ from ...monitoring import MetricsCollector
 T = TypeVar('T')  # Message type
 R = TypeVar('R')  # Result type
 
+"""
+Message broker implementation for Datapunk's pub/sub messaging system.
+
+Provides a robust message broker with:
+- Multiple delivery guarantees (at-least-once, at-most-once, exactly-once)
+- Topic-based routing with pattern matching
+- Message persistence and compression
+- Automatic cleanup of old messages
+- Detailed metrics collection
+
+Designed to be the backbone of asynchronous communication between services
+while maintaining reliability and performance under high load.
+"""
+
 class DeliveryMode(Enum):
-    """Message delivery modes"""
+    """
+    Message delivery guarantees supported by the broker.
+    
+    Affects how messages are handled and retried:
+    - AT_LEAST_ONCE: Messages may be delivered multiple times (default, safest)
+    - AT_MOST_ONCE: Messages may be lost but never duplicated
+    - EXACTLY_ONCE: Messages delivered exactly once (higher overhead)
+    
+    NOTE: EXACTLY_ONCE requires additional coordination overhead
+    """
     AT_LEAST_ONCE = "at_least_once"
     AT_MOST_ONCE = "at_most_once"
     EXACTLY_ONCE = "exactly_once"
 
 class TopicType(Enum):
-    """Topic types"""
-    FANOUT = "fanout"      # Broadcast to all subscribers
-    DIRECT = "direct"      # Route to specific subscribers
-    TOPIC = "topic"        # Pattern-based routing
-    HEADERS = "headers"    # Header-based routing
+    """
+    Supported message routing patterns.
+    
+    Determines how messages are distributed to subscribers:
+    - FANOUT: Broadcast to all subscribers (fastest)
+    - DIRECT: Point-to-point delivery
+    - TOPIC: Pattern-based routing (most flexible)
+    - HEADERS: Content-based routing (most overhead)
+    """
+    FANOUT = "fanout"
+    DIRECT = "direct"
+    TOPIC = "topic"
+    HEADERS = "headers"
 
 @dataclass
 class BrokerConfig:
-    """Configuration for message broker"""
+    """
+    Configuration for message broker behavior.
+    
+    Allows fine-tuning of broker parameters to balance between
+    reliability, performance, and resource usage.
+    
+    TODO: Add support for message prioritization
+    FIXME: Consider adding circuit breaker configuration
+    """
     delivery_mode: DeliveryMode = DeliveryMode.AT_LEAST_ONCE
     topic_type: TopicType = TopicType.FANOUT
-    max_message_size: int = 1024 * 1024  # 1MB
+    max_message_size: int = 1024 * 1024  # 1MB limit prevents memory issues
     enable_persistence: bool = True
     storage_path: Optional[str] = None
     enable_compression: bool = True
-    compression_threshold: int = 1024  # bytes
+    compression_threshold: int = 1024
     max_retry_attempts: int = 3
-    retry_delay: float = 1.0  # seconds
+    retry_delay: float = 1.0
     enable_dlq: bool = True
-    cleanup_interval: int = 3600  # 1 hour in seconds
+    cleanup_interval: int = 3600
     max_queue_size: int = 10000
     batch_size: int = 100
 
@@ -64,7 +103,19 @@ class SubscriptionConfig:
     backoff_base: float = 2.0
 
 class MessageBroker(Generic[T, R]):
-    """Implements pub/sub message broker"""
+    """
+    Implements pub/sub message broker with configurable behavior.
+    
+    Features:
+    - Configurable message delivery guarantees
+    - Multiple routing patterns
+    - Message persistence and compression
+    - Automatic cleanup and DLQ handling
+    - Detailed metrics collection
+    
+    NOTE: Consider memory usage when setting queue size limits
+    TODO: Implement message prioritization
+    """
     def __init__(
         self,
         config: BrokerConfig,
@@ -108,7 +159,16 @@ class MessageBroker(Generic[T, R]):
         message: T,
         headers: Optional[Dict[str, str]] = None
     ) -> bool:
-        """Publish message to topic"""
+        """
+        Publish message to topic with delivery guarantees.
+        
+        Handles message validation, storage, and delivery to subscribers
+        according to configured delivery mode and topic type.
+        
+        Returns True if message was accepted for delivery, False otherwise.
+        
+        FIXME: Handle edge case where subscriber list changes during delivery
+        """
         if not self._validate_message_size(message):
             if self.metrics:
                 await self.metrics.increment(
@@ -160,7 +220,16 @@ class MessageBroker(Generic[T, R]):
         callback: Callable[[T], R],
         subscriber_id: Optional[str] = None
     ) -> str:
-        """Subscribe to topic"""
+        """
+        Subscribe to topic with callback function.
+        
+        Registers subscriber for message delivery and handles:
+        - Subscriber ID generation
+        - Callback registration
+        - Metrics collection
+        
+        NOTE: Callbacks should be idempotent for at-least-once delivery
+        """
         async with self._lock:
             # Generate subscriber ID if not provided
             subscriber_id = subscriber_id or f"{topic}_{len(self._subscribers)}"
@@ -191,7 +260,16 @@ class MessageBroker(Generic[T, R]):
                 await self.metrics.increment("broker.subscriber.removed")
 
     async def _deliver_message(self, topic: str, message: Dict):
-        """Deliver message to subscribers"""
+        """
+        Deliver message to subscribers with retry handling.
+        
+        Implements delivery guarantees and handles:
+        - Retry logic for failed deliveries
+        - DLQ routing for exhausted retries
+        - Metrics collection for monitoring
+        
+        TODO: Add support for batch delivery optimization
+        """
         if topic not in self._topics:
             return
 
@@ -252,7 +330,14 @@ class MessageBroker(Generic[T, R]):
             return False
 
     async def _cleanup_loop(self):
-        """Periodic cleanup of old messages"""
+        """
+        Periodically clean up old messages and update metrics.
+        
+        Prevents unbounded growth of message storage while
+        maintaining system stability under load.
+        
+        NOTE: Cleanup interval should be tuned based on message volume
+        """
         while self._running:
             try:
                 await asyncio.sleep(self.config.cleanup_interval)
