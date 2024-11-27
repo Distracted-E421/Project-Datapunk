@@ -9,14 +9,48 @@ from collections import defaultdict
 from .security_metrics import SecurityMetrics
 from .security_audit import SecurityAuditor, AuditEvent, AuditEventType
 
+"""
+Service Mesh Threat Detection System
+
+Implements real-time threat detection and response for the Datapunk
+service mesh. Uses a combination of rule-based detection and pattern
+analysis to identify and respond to security threats.
+
+Key features:
+- Rule-based threat detection
+- IP-based blocking
+- Automatic threat response
+- Security event correlation
+- Performance-optimized tracking
+
+See sys-arch.mmd Security/ThreatDetection for implementation details.
+"""
+
 class ThreatLevel(Enum):
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    CRITICAL = "critical"
+    """
+    Threat severity classification system.
+    
+    Defines standardized threat levels for consistent response
+    handling across the service mesh. Higher levels trigger
+    more aggressive protective measures.
+    """
+    LOW = "low"           # Potential anomaly, monitoring required
+    MEDIUM = "medium"     # Confirmed anomaly, increased monitoring
+    HIGH = "high"        # Active threat, protective action required
+    CRITICAL = "critical" # Severe threat, immediate response required
 
 @dataclass
 class ThreatRule:
+    """
+    Threat detection rule configuration.
+    
+    Defines thresholds and response parameters for specific
+    types of security events. Time windows are carefully sized
+    to balance detection accuracy with memory usage.
+    
+    TODO: Add support for custom response actions
+    TODO: Implement machine learning-based thresholds
+    """
     name: str
     threshold: int
     time_window: int  # seconds
@@ -25,6 +59,13 @@ class ThreatRule:
 
 @dataclass
 class ThreatEvent:
+    """
+    Security event container for threat analysis.
+    
+    Captures comprehensive context about potential security
+    threats for analysis and correlation. Structure supports
+    both real-time and historical analysis.
+    """
     service_id: str
     source_ip: str
     event_type: str
@@ -32,21 +73,37 @@ class ThreatEvent:
     details: Dict[str, any]
 
 class ThreatDetector:
+    """
+    Real-time threat detection and response system.
+    
+    Coordinates threat detection across the service mesh using
+    configurable rules and automatic response actions. Designed
+    for high-throughput event processing with minimal latency.
+    
+    NOTE: Uses memory-efficient event tracking with automatic
+    cleanup to prevent resource exhaustion.
+    """
     def __init__(
         self,
         security_metrics: SecurityMetrics,
         security_auditor: SecurityAuditor
     ):
+        """
+        Initialize threat detector with security integrations.
+        
+        NOTE: Requires both metrics and audit systems for
+        comprehensive threat visibility.
+        """
         self.security_metrics = security_metrics
         self.security_auditor = security_auditor
         self.logger = logging.getLogger(__name__)
         
-        # Event tracking
+        # Event tracking with automatic expiration
         self.events: Dict[str, List[ThreatEvent]] = defaultdict(list)
         self.blocked_ips: Set[str] = set()
         self.cooldowns: Dict[str, float] = {}
         
-        # Default rules
+        # Default rules tuned for common attack patterns
         self.rules: Dict[str, ThreatRule] = {
             "auth_failure": ThreatRule(
                 name="Authentication Failures",
@@ -72,7 +129,16 @@ class ThreatDetector:
         }
 
     async def process_event(self, event: ThreatEvent) -> Optional[ThreatLevel]:
-        """Process a new security event and detect threats"""
+        """
+        Process security event for threat detection.
+        
+        Analyzes events against detection rules and triggers
+        appropriate responses. Events are tracked with automatic
+        expiration to maintain detection accuracy.
+        
+        NOTE: Processing continues even if metrics/audit logging
+        fails to ensure threat detection remains active.
+        """
         try:
             # Skip if IP is in cooldown
             if event.source_ip in self.cooldowns:
@@ -80,13 +146,13 @@ class ThreatDetector:
                     return None
                 del self.cooldowns[event.source_ip]
 
-            # Add event to tracking
+            # Add event to tracking with expiration
             self.events[event.source_ip].append(event)
             
-            # Clean old events
+            # Clean expired events
             await self._clean_old_events()
 
-            # Check rules
+            # Apply detection rules
             threat_level = await self._check_rules(event.source_ip)
             if threat_level:
                 await self._handle_threat(event, threat_level)
