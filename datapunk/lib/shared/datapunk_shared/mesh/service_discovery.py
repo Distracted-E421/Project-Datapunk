@@ -1,3 +1,16 @@
+"""
+Service discovery and registration module for Datapunk's service mesh.
+
+This module handles:
+- Service registration and deregistration with Consul
+- Health check setup and monitoring
+- Load balancer integration for service instances
+- Metrics collection for service operations
+
+Part of the service mesh layer, ensuring reliable service communication
+and availability through dynamic discovery and health monitoring.
+"""
+
 from typing import Dict, List, Optional, Any
 import asyncio
 import consul
@@ -9,6 +22,14 @@ from .discovery_metrics import DiscoveryMetrics
 
 @dataclass
 class ServiceRegistration:
+    """
+    Data class representing a service registration configuration.
+    
+    Encapsulates all necessary details for registering a service with Consul,
+    including health check parameters and load balancing weight.
+    
+    NOTE: Ensure health_check_path is accessible and returns appropriate status
+    """
     name: str
     address: str
     port: int
@@ -19,6 +40,15 @@ class ServiceRegistration:
     weight: int = 1
 
 class ServiceDiscovery:
+    """
+    Manages service registration, health checks, and discovery.
+    
+    Integrates with Consul for service registration and health monitoring,
+    and with a load balancer for distributing requests across healthy instances.
+    
+    TODO: Consider adding support for additional service registries
+    """
+    
     def __init__(
         self,
         consul_host: str = "localhost",
@@ -27,6 +57,14 @@ class ServiceDiscovery:
         load_balancer: Optional[LoadBalancer] = None,
         metrics_enabled: bool = True
     ):
+        """
+        Initialize the service discovery component.
+        
+        Sets up connections to Consul, health checker, and load balancer.
+        Optionally enables metrics collection for monitoring service operations.
+        
+        NOTE: Default Consul host and port are for local development; update for production
+        """
         self.consul = consul.Consul(host=consul_host, port=consul_port)
         self.health_checker = health_checker or HealthChecker()
         self.load_balancer = load_balancer or LoadBalancer()
@@ -36,7 +74,18 @@ class ServiceDiscovery:
         self._registered_services: Dict[str, ServiceRegistration] = {}
 
     async def register_service(self, service: ServiceRegistration) -> bool:
-        """Register a service with Consul and set up health checks"""
+        """
+        Register a service with Consul and set up health checks.
+        
+        Handles the full lifecycle of service registration, including:
+        - Consul registration with health checks
+        - Load balancer instance registration
+        - Health monitoring task setup
+        
+        Returns True if registration is successful, False otherwise.
+        
+        FIXME: Handle edge cases where Consul registration partially succeeds
+        """
         try:
             # Register with Consul
             success = self.consul.agent.service.register(
@@ -90,7 +139,16 @@ class ServiceDiscovery:
             return False
 
     async def deregister_service(self, service_name: str) -> bool:
-        """Deregister a service from Consul and clean up"""
+        """
+        Deregister a service from Consul and clean up resources.
+        
+        Ensures that all associated resources, such as health checks and
+        load balancer instances, are properly cleaned up upon deregistration.
+        
+        Returns True if deregistration is successful, False otherwise.
+        
+        NOTE: Ensure service_name is correctly formatted and registered
+        """
         try:
             if service_name in self._registered_services:
                 service = self._registered_services[service_name]
@@ -127,7 +185,17 @@ class ServiceDiscovery:
             return False
 
     async def discover_service(self, service_name: str) -> Optional[ServiceInstance]:
-        """Discover and return an instance of the requested service"""
+        """
+        Discover and return an instance of the requested service.
+        
+        Attempts to retrieve a healthy service instance from the load balancer.
+        If not available, queries Consul for available instances and updates
+        the load balancer accordingly.
+        
+        Returns a ServiceInstance if found, None otherwise.
+        
+        TODO: Optimize discovery for large-scale deployments
+        """
         try:
             # First try load balancer
             instance = await self.load_balancer.get_instance(service_name)
@@ -158,7 +226,14 @@ class ServiceDiscovery:
             return None
 
     async def _watch_service_health(self, service_name: str) -> None:
-        """Watch Consul for health status changes"""
+        """
+        Watch Consul for health status changes and update load balancer.
+        
+        Continuously monitors the health status of registered services and
+        updates the load balancer with the latest health information.
+        
+        NOTE: Consider adding exponential backoff for error handling
+        """
         index = None
         while True:
             try:
