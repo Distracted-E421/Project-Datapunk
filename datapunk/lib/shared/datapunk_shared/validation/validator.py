@@ -1,3 +1,22 @@
+"""
+Core Validation Framework for Datapunk's Data Pipeline
+
+Implements a flexible, rule-based validation system with support for
+different validation levels and dependency management. Designed to
+handle complex validation scenarios across the service mesh.
+
+Key features:
+- Multi-level validation (STRICT/LENIENT/AUDIT)
+- Rule dependency resolution
+- Structured validation results
+- Metric tracking integration
+
+Architecture notes:
+- Rules are executed in dependency order
+- Failures are tracked with full context
+- Metrics are emitted for monitoring
+"""
+
 from typing import Any, Dict, List, Optional, Type, Union
 from dataclasses import dataclass
 import structlog
@@ -11,23 +30,46 @@ from ..tracing import trace_method
 logger = structlog.get_logger()
 
 class ValidationLevel(Enum):
-    STRICT = "strict"      # All rules must pass
-    LENIENT = "lenient"   # Non-critical rules can fail
-    AUDIT = "audit"       # Log violations but don't fail
+    """
+    Defines validation strictness levels.
+    
+    STRICT: Fail on any rule violation (used for critical data)
+    LENIENT: Allow non-critical failures (used for partial data)
+    AUDIT: Log violations without failing (used for data analysis)
+    """
+    STRICT = "strict"
+    LENIENT = "lenient"
+    AUDIT = "audit"
 
 @dataclass
 class ValidationRule:
-    """Definition of a validation rule."""
+    """
+    Definition of a validation rule with metadata and execution policy.
+    
+    Supports dependency specification for complex validation scenarios
+    where rules must be executed in a specific order.
+    
+    NOTE: Dependencies are resolved at runtime to prevent cycles.
+    """
     name: str
     description: str
     validator: callable
     error_message: str
     level: ValidationLevel = ValidationLevel.STRICT
-    dependencies: List[str] = None
-    metadata: Dict[str, Any] = None
+    dependencies: List[str] = None  # Rules that must execute first
+    metadata: Dict[str, Any] = None  # Additional rule context
 
 class ValidationResult:
-    """Result of a validation operation."""
+    """
+    Comprehensive validation result tracking.
+    
+    Maintains separate lists for different severity levels:
+    - errors: Critical validation failures
+    - warnings: Non-critical issues
+    - audit_logs: Validation observations
+    
+    NOTE: All entries include timestamps for debugging and analysis.
+    """
     def __init__(self):
         self.passed = True
         self.errors: List[Dict] = []
@@ -36,7 +78,12 @@ class ValidationResult:
         self.metadata: Dict[str, Any] = {}
         
     def add_error(self, rule: str, message: str, details: Dict = None):
-        """Add validation error."""
+        """
+        Records validation error with context.
+        
+        Automatically sets passed=False as errors indicate
+        validation failure at STRICT level.
+        """
         self.passed = False
         self.errors.append({
             "rule": rule,
@@ -46,7 +93,7 @@ class ValidationResult:
         })
         
     def add_warning(self, rule: str, message: str, details: Dict = None):
-        """Add validation warning."""
+        """Records non-critical validation issues."""
         self.warnings.append({
             "rule": rule,
             "message": message,
@@ -55,7 +102,7 @@ class ValidationResult:
         })
         
     def add_audit_log(self, rule: str, message: str, details: Dict = None):
-        """Add audit log entry."""
+        """Records validation observations for analysis."""
         self.audit_logs.append({
             "rule": rule,
             "message": message,
@@ -64,7 +111,18 @@ class ValidationResult:
         })
 
 class DataValidator:
-    """Main validator implementation."""
+    """
+    Main validator implementation orchestrating rule execution.
+    
+    Handles:
+    - Rule registration and management
+    - Dependency-ordered validation
+    - Result tracking and metrics
+    - Error handling and logging
+    
+    TODO: Add rule caching for frequently used combinations
+    FIXME: Improve dependency cycle detection
+    """
     
     def __init__(self, metrics: MetricsClient):
         self.rules: Dict[str, ValidationRule] = {}
@@ -72,7 +130,12 @@ class DataValidator:
         self.logger = logger.bind(component="validator")
     
     def register_rule(self, rule: ValidationRule):
-        """Register a validation rule."""
+        """
+        Registers validation rule for use.
+        
+        NOTE: Rule names must be unique across the validator instance.
+        Consider namespacing for complex validation scenarios.
+        """
         self.rules[rule.name] = rule
         self.logger.info("validation_rule_registered",
                         rule=rule.name,
@@ -83,7 +146,17 @@ class DataValidator:
                       data: Any,
                       rule_names: List[str] = None,
                       context: Dict = None) -> ValidationResult:
-        """Validate data against specified rules."""
+        """
+        Executes validation rules against provided data.
+        
+        Handles rule execution order, result tracking, and metric emission.
+        Falls back to all registered rules if no specific rules provided.
+        
+        Args:
+            data: Data to validate
+            rule_names: Specific rules to apply (optional)
+            context: Additional validation context
+        """
         result = ValidationResult()
         context = context or {}
         
