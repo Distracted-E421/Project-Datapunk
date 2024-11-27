@@ -1,3 +1,20 @@
+"""
+Authentication Metrics Collection System
+
+Provides comprehensive monitoring of authentication and authorization
+activities across the Datapunk service mesh. Integrates with Prometheus
+for real-time security metrics collection and anomaly detection.
+
+Key metrics:
+- Authentication success/failure rates
+- Token verification statistics
+- Rate limit monitoring
+- Active service tracking
+- Latency measurements
+
+See sys-arch.mmd Infrastructure/Observability for integration details.
+"""
+
 from typing import Dict, Any
 import time
 import logging
@@ -6,6 +23,16 @@ from prometheus_client import Counter, Histogram, Gauge
 
 @dataclass
 class AuthMetricsData:
+    """
+    Container for authentication-related metrics.
+    
+    Aggregates security metrics using Prometheus collectors for
+    real-time monitoring and alerting. Metrics are labeled by
+    service_id for granular analysis.
+    
+    TODO: Add metrics for credential rotation events
+    TODO: Implement authentication pattern analysis
+    """
     successful_auths: Counter = field(default_factory=lambda: Counter(
         'service_auth_successful_total',
         'Total number of successful service authentications',
@@ -42,26 +69,65 @@ class AuthMetricsData:
     ))
 
 class AuthMetrics:
+    """
+    Authentication metrics collection and management.
+    
+    Provides methods for recording and tracking authentication-related
+    events and performance metrics. Designed for integration with
+    Prometheus/Grafana monitoring stack.
+    
+    NOTE: All methods are async to prevent blocking during high-volume
+    metric collection.
+    """
     def __init__(self):
+        """
+        Initialize metrics collectors.
+        
+        NOTE: Metrics are initialized lazily to prevent prometheus
+        collector registration conflicts.
+        """
         self.metrics = AuthMetricsData()
         self.logger = logging.getLogger(__name__)
 
     async def record_service_registration(self, service_id: str) -> None:
-        """Record service registration metrics"""
+        """
+        Track new service registrations.
+        
+        Updates active service count for capacity planning and
+        security monitoring.
+        
+        NOTE: Counter increments are atomic to ensure accurate
+        service counts.
+        """
         try:
             self.metrics.active_services.inc()
         except Exception as e:
             self.logger.error(f"Failed to record service registration metric: {str(e)}")
 
     async def record_successful_auth(self, service_id: str) -> None:
-        """Record successful authentication"""
+        """
+        Record successful authentication events.
+        
+        Tracks successful authentications for security pattern
+        analysis and anomaly detection.
+        
+        TODO: Add authentication source tracking
+        """
         try:
             self.metrics.successful_auths.labels(service_id=service_id).inc()
         except Exception as e:
             self.logger.error(f"Failed to record successful auth metric: {str(e)}")
 
     async def record_failed_auth(self, service_id: str, reason: str = "unknown") -> None:
-        """Record failed authentication"""
+        """
+        Record failed authentication attempts.
+        
+        Captures authentication failures with reason codes for
+        security analysis and threat detection.
+        
+        NOTE: Failure reasons are standardized for consistent
+        analysis. See documentation for valid reason codes.
+        """
         try:
             self.metrics.failed_auths.labels(
                 service_id=service_id,
@@ -76,7 +142,15 @@ class AuthMetrics:
         operation: str,
         start_time: float
     ) -> None:
-        """Record authentication operation latency"""
+        """
+        Track authentication operation timing.
+        
+        Measures authentication performance for SLA monitoring
+        and performance optimization.
+        
+        NOTE: Uses high-precision time for accurate latency
+        measurement.
+        """
         try:
             duration = time.time() - start_time
             self.metrics.auth_latency.labels(
