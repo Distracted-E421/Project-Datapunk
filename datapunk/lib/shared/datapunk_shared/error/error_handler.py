@@ -7,16 +7,69 @@ from .error_types import ServiceError, ErrorCategory, ErrorSeverity, ErrorContex
 from ..monitoring.metrics import MetricsClient
 from ..monitoring.tracing import TracingClient
 
+"""
+Centralized Error Handler for Datapunk Services
+
+This module implements a centralized error handling system that provides:
+- Standardized error processing across services
+- Error categorization and severity management
+- Retry policies and recovery strategies
+- Metrics collection and monitoring
+- Distributed tracing integration
+
+Integration Points:
+- Service mesh error reporting
+- Metrics collection via MetricsClient
+- Distributed tracing via TracingClient
+- Recovery strategy orchestration
+- Logging and monitoring
+
+Design Philosophy:
+The error handler follows the principle of "fail fast, recover gracefully"
+while maintaining transparency through comprehensive monitoring and logging.
+"""
+
 @dataclass
 class ErrorHandlerConfig:
+    """
+    Configuration for error handler behavior and integration.
+    
+    IMPORTANT: These settings affect error handling across all services.
+    Adjust carefully based on production requirements.
+    
+    NOTE: max_retries should be set considering the nature of operations
+    and potential impact on system resources.
+    """
     service_id: str
-    max_retries: int = 3
-    enable_metrics: bool = True
-    enable_tracing: bool = True
-    log_level: str = "INFO"
-    default_http_status: int = 500
+    max_retries: int = 3  # Maximum retry attempts for recoverable errors
+    enable_metrics: bool = True  # Enable metrics collection
+    enable_tracing: bool = True  # Enable distributed tracing
+    log_level: str = "INFO"  # Default logging level
+    default_http_status: int = 500  # Default HTTP status for unhandled errors
 
 class ErrorHandler:
+    """
+    Centralized error handling system for Datapunk services.
+    
+    Key Features:
+    - Category-specific error handling
+    - Automatic retry policies
+    - Recovery strategy management
+    - Metrics and tracing integration
+    - Standardized error responses
+    
+    Usage:
+    ```python
+    handler = ErrorHandler(config)
+    handler.add_handler(ErrorCategory.NETWORK, network_error_handler)
+    handler.add_recovery_strategy("network", network_recovery)
+    ```
+    
+    TODO: Implement circuit breaker pattern for repeated failures
+    TODO: Add support for custom error transformers
+    TODO: Implement error aggregation for batch operations
+    """
+
     def __init__(
         self,
         config: ErrorHandlerConfig,
@@ -40,7 +93,15 @@ class ErrorHandler:
         self._init_default_handlers()
 
     def _init_default_handlers(self) -> None:
-        """Initialize default error handlers for each category"""
+        """
+        Initialize default error handlers for each category.
+        
+        These handlers provide baseline error handling behavior.
+        Services can override or extend these handlers as needed.
+        
+        NOTE: Default handlers focus on common error scenarios.
+        Add specialized handlers for service-specific requirements.
+        """
         # Authentication errors
         self.add_handler(
             ErrorCategory.AUTHENTICATION,
@@ -64,11 +125,25 @@ class ErrorHandler:
         error: ServiceError,
         retry_count: int = 0
     ) -> Optional[Dict[str, Any]]:
-        """Handle a service error"""
+        """
+        Handle a service error with retry and recovery logic.
+        
+        Error Handling Flow:
+        1. Record error metrics and traces
+        2. Execute category-specific handlers
+        3. Attempt recovery if allowed
+        4. Return standardized error response
+        
+        IMPORTANT: Retry count is tracked to prevent infinite loops
+        in recovery attempts.
+        
+        NOTE: Recovery strategies should be idempotent to prevent
+        side effects during retries.
+        """
         try:
             start_time = time.time()
             
-            # Record error metrics
+            # Record error metrics for monitoring
             if self.metrics:
                 await self.metrics.increment_counter(
                     'service_errors_total',
@@ -79,14 +154,15 @@ class ErrorHandler:
                     }
                 )
 
-            # Record error trace
+            # Record error in distributed tracing
             if self.tracing:
                 await self.tracing.record_error(error)
 
-            # Log error
+            # Log error with appropriate context
             self._log_error(error)
 
             # Execute category-specific handlers
+            # NOTE: Handlers are executed in order of registration
             for handler in self._handlers.get(error.category, []):
                 try:
                     result = await handler(error)
@@ -95,7 +171,7 @@ class ErrorHandler:
                 except Exception as e:
                     self.logger.error(f"Error handler failed: {str(e)}")
 
-            # Try recovery if available and retries allowed
+            # Attempt recovery for retryable errors
             if error.retry_allowed and retry_count < self.config.max_retries:
                 recovery_strategy = self._recovery_strategies.get(error.category.value)
                 if recovery_strategy:
@@ -104,10 +180,11 @@ class ErrorHandler:
                     except Exception as e:
                         self.logger.error(f"Recovery strategy failed: {str(e)}")
 
-            # Return standardized error response
+            # Return standardized error response if all handling fails
             return self._create_error_response(error)
 
         finally:
+            # Record error handling duration for performance monitoring
             if self.metrics:
                 duration = time.time() - start_time
                 await self.metrics.record_histogram(
@@ -133,7 +210,15 @@ class ErrorHandler:
         self._recovery_strategies[category] = strategy
 
     def _log_error(self, error: ServiceError) -> None:
-        """Log error with appropriate level and context"""
+        """
+        Log error with appropriate level and context.
+        
+        IMPORTANT: Sensitive information should be redacted before logging.
+        Use appropriate log levels based on error severity.
+        
+        NOTE: Additional context is included to aid in debugging
+        and correlation with distributed traces.
+        """
         log_level = logging.getLevelName(error.severity.value.upper())
         
         log_data = {
@@ -153,7 +238,22 @@ class ErrorHandler:
         )
 
     def _create_error_response(self, error: ServiceError) -> Dict[str, Any]:
-        """Create standardized error response"""
+        """
+        Create standardized error response for API consumers.
+        
+        Response Format:
+        {
+            'error': {
+                'code': string,      # Error code for client handling
+                'message': string,   # Human-readable error message
+                'category': string,  # Error category for classification
+                'severity': string,  # Error severity level
+                'trace_id': string,  # Correlation ID for debugging
+                'timestamp': float,  # Error occurrence time
+                'retry_allowed': bool # Whether retry is allowed
+            }
+        }
+        """
         return {
             'error': {
                 'code': error.code,
