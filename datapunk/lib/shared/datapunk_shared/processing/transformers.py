@@ -9,19 +9,65 @@ from ..exceptions import TransformationError
 
 logger = structlog.get_logger()
 
+"""
+Data Transformation Utilities for Datapunk
+
+A comprehensive collection of data transformation utilities designed to handle
+various data cleaning, normalization, and standardization tasks. Provides
+consistent data handling across the platform.
+
+Key Features:
+- String cleaning and normalization
+- Datetime standardization
+- Numeric value handling
+- Boolean normalization
+- JSON data processing
+- Array handling
+
+Design Philosophy:
+- Consistent data handling
+- Flexible configuration
+- Robust error handling
+- Clear validation rules
+
+NOTE: All transformers are async for consistency with ETL pipeline
+TODO: Add support for custom transformation rules
+"""
+
 class DataTransformer:
-    """Collection of data transformation utilities."""
+    """
+    Collection of data transformation utilities.
+    
+    Key Capabilities:
+    - String normalization
+    - Date/time standardization
+    - Numeric value processing
+    - Boolean value handling
+    - JSON data management
+    - Array processing
+    
+    FIXME: Consider adding caching for expensive transformations
+    """
     
     @staticmethod
     async def clean_string(value: str, **kwargs) -> str:
-        """Clean and normalize string values."""
+        """
+        Cleans and normalizes string values with configurable options.
+        
+        Design Considerations:
+        - Handles empty/null values gracefully
+        - Supports multiple cleaning options
+        - Maintains string integrity
+        
+        WARNING: May modify string length/content
+        """
         if not value:
             return value
             
-        # Apply transformations
+        # Apply base transformations
         value = value.strip()
         
-        # Optional transformations
+        # Apply optional transformations based on configuration
         if kwargs.get("lowercase", False):
             value = value.lower()
         if kwargs.get("uppercase", False):
@@ -40,14 +86,23 @@ class DataTransformer:
         output_format: Optional[str] = None,
         timezone_name: Optional[str] = None
     ) -> str:
-        """Normalize datetime values to consistent format."""
+        """
+        Normalizes datetime values to consistent format.
+        
+        Implementation Notes:
+        - Handles multiple input formats
+        - Supports timezone conversion
+        - Provides flexible output formatting
+        
+        TODO: Add support for custom format detection
+        """
         try:
             # Convert string to datetime if needed
             if isinstance(value, str):
                 if input_format:
                     dt = datetime.strptime(value, input_format)
                 else:
-                    # Try common formats
+                    # Try common formats for flexibility
                     formats = [
                         "%Y-%m-%dT%H:%M:%S.%fZ",
                         "%Y-%m-%dT%H:%M:%SZ",
@@ -65,13 +120,13 @@ class DataTransformer:
             else:
                 dt = value
             
-            # Set timezone if specified
+            # Handle timezone conversion if specified
             if timezone_name:
                 import pytz
                 timezone = pytz.timezone(timezone_name)
                 dt = dt.astimezone(timezone)
             
-            # Format output
+            # Format output as requested
             if output_format:
                 return dt.strftime(output_format)
             return dt.isoformat()
@@ -90,9 +145,19 @@ class DataTransformer:
         min_value: Optional[float] = None,
         max_value: Optional[float] = None
     ) -> Union[int, float]:
-        """Normalize numeric values."""
+        """
+        Normalizes numeric values with validation.
+        
+        Design Considerations:
+        - Handles string-to-number conversion
+        - Supports precision control
+        - Validates value ranges
+        - Maintains numeric type integrity
+        
+        WARNING: May raise error for invalid ranges
+        """
         try:
-            # Convert to number if string
+            # Convert strings to numbers
             if isinstance(value, str):
                 value = value.strip().replace(',', '')
                 value = float(value)
@@ -103,11 +168,11 @@ class DataTransformer:
             else:
                 value = float(value)
             
-            # Apply precision
+            # Apply precision if specified
             if precision is not None:
                 value = round(value, precision)
             
-            # Validate range
+            # Validate range if specified
             if min_value is not None and value < min_value:
                 raise ValueError(f"Value {value} below minimum {min_value}")
             if max_value is not None and value > max_value:
