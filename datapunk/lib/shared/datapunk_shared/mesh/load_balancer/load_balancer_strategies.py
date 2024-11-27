@@ -8,20 +8,28 @@ from .load_balancer_metrics import LoadBalancerMetrics
 
 logger = structlog.get_logger()
 
+# ServiceInstance represents a backend service endpoint with health and performance metrics
+# Health score ranges from 0.0 (unhealthy) to 1.0 (fully healthy)
 @dataclass
 class ServiceInstance:
-    """Service instance details."""
-    id: str
-    address: str
-    port: int
-    weight: int = 1
-    active_connections: int = 0
-    last_used: float = 0.0
-    health_score: float = 1.0
-    metadata: Dict[str, Any] = None
+    """Service instance details with health and performance tracking."""
+    id: str  # Unique identifier for the service instance
+    address: str  # Network address (IP or hostname)
+    port: int  # Service port number
+    weight: int = 1  # Relative capacity weight for load distribution
+    active_connections: int = 0  # Current number of active connections
+    last_used: float = 0.0  # Timestamp of last request (Unix timestamp)
+    health_score: float = 1.0  # Dynamic health score based on monitoring
+    metadata: Dict[str, Any] = None  # Additional instance-specific metadata
 
 class LoadBalancerStrategy(ABC):
-    """Base class for load balancing strategies."""
+    """Base strategy for load balancing with health awareness.
+    
+    Implementations should consider:
+    - Instance health scores for availability
+    - Current load and capacity
+    - Historical performance metrics
+    """
     
     def __init__(self, metrics: LoadBalancerMetrics):
         self.metrics = metrics
@@ -34,13 +42,20 @@ class LoadBalancerStrategy(ABC):
         """Select next instance based on strategy."""
         pass
     
-    def _filter_healthy(self,
-                       instances: List[ServiceInstance]) -> List[ServiceInstance]:
-        """Filter for healthy instances."""
+    def _filter_healthy(self, instances: List[ServiceInstance]) -> List[ServiceInstance]:
+        """Filter instances with health scores above 0.5.
+        
+        NOTE: Threshold of 0.5 chosen based on production testing.
+        TODO: Make health threshold configurable per service
+        """
         return [i for i in instances if i.health_score > 0.5]
 
 class WeightedRoundRobin(LoadBalancerStrategy):
-    """Weighted round-robin selection."""
+    """Weighted round-robin selection with dynamic weight adjustment.
+    
+    Maintains separate weight counters per service to ensure fair distribution
+    while respecting instance capacity differences.
+    """
     
     def __init__(self, metrics: LoadBalancerMetrics):
         super().__init__(metrics)
@@ -49,7 +64,11 @@ class WeightedRoundRobin(LoadBalancerStrategy):
     def select_instance(self,
                        service: str,
                        instances: List[ServiceInstance]) -> Optional[ServiceInstance]:
-        """Select instance using weighted round-robin."""
+        """Select instance using weighted round-robin algorithm.
+        
+        FIXME: Current implementation may show slight bias towards higher-weighted
+        instances during rapid rebalancing
+        """
         healthy = self._filter_healthy(instances)
         if not healthy:
             return None
@@ -81,7 +100,11 @@ class WeightedRoundRobin(LoadBalancerStrategy):
         return next(i for i in healthy if i.id == selected_id)
 
 class LeastConnections(LoadBalancerStrategy):
-    """Least connections selection with health weighting."""
+    """Least connections selection weighted by instance health.
+    
+    Optimizes for even load distribution while considering instance health,
+    preventing overload of degraded instances.
+    """
     
     def select_instance(self,
                        service: str,
@@ -98,7 +121,11 @@ class LeastConnections(LoadBalancerStrategy):
         return min(healthy, key=load_score)
 
 class PowerOfTwo(LoadBalancerStrategy):
-    """Power of two random choices with health weighting."""
+    """Power of two random choices with health-weighted load scoring.
+    
+    Provides O(1) selection time while maintaining good load distribution.
+    Particularly effective under high concurrent load scenarios.
+    """
     
     def select_instance(self,
                        service: str,
@@ -121,7 +148,16 @@ class PowerOfTwo(LoadBalancerStrategy):
         return min(candidates, key=load_score)
 
 class AdaptiveLoadBalancer:
-    """Adaptive load balancer that switches strategies based on conditions."""
+    """Adaptive load balancer that switches strategies based on system conditions.
+    
+    Strategy selection logic:
+    - Uses least connections when load variance > 30%
+    - Uses power of two under high load (>100 connections/instance)
+    - Defaults to weighted round-robin for normal conditions
+    
+    NOTE: Thresholds determined through load testing and may need adjustment
+    based on specific service characteristics
+    """
     
     def __init__(self, metrics: LoadBalancerMetrics):
         self.metrics = metrics
@@ -136,7 +172,11 @@ class AdaptiveLoadBalancer:
     def select_strategy(self,
                        service: str,
                        instances: List[ServiceInstance]) -> str:
-        """Select best strategy based on current conditions."""
+        """Select optimal strategy based on current system conditions.
+        
+        TODO: Add historical performance analysis for strategy selection
+        TODO: Make thresholds configurable per service
+        """
         # Use least connections when load is uneven
         load_variance = self._calculate_load_variance(instances)
         if load_variance > 0.3:  # 30% variance threshold
@@ -181,7 +221,11 @@ class AdaptiveLoadBalancer:
     
     def _calculate_load_variance(self,
                                instances: List[ServiceInstance]) -> float:
-        """Calculate variance in instance load."""
+        """Calculate coefficient of variation for instance loads.
+        
+        Returns normalized variance (standard deviation / mean) to compare
+        load distribution across instances regardless of absolute load levels.
+        """
         if not instances:
             return 0.0
             
