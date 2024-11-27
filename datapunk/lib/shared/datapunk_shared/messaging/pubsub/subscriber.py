@@ -10,15 +10,52 @@ from ...monitoring import MetricsCollector
 T = TypeVar('T')  # Message type
 R = TypeVar('R')  # Result type
 
+"""
+Message Subscription and Processing System for Datapunk
+
+This module implements a flexible message subscription system that supports:
+- Individual message processing
+- Batch processing for improved throughput
+- Streaming for real-time data handling
+- Automatic retry and dead letter queue handling
+- Metrics collection for monitoring
+
+Design Philosophy:
+- Prioritizes reliability over raw performance
+- Implements backpressure through semaphores
+- Supports multiple processing modes for different use cases
+- Integrates with platform monitoring for observability
+
+NOTE: This implementation assumes messages are uniquely identifiable
+TODO: Add support for message prioritization
+"""
+
 class SubscriptionMode(Enum):
-    """Subscription processing modes"""
+    """
+    Processing modes for message subscription.
+    
+    Why These Modes:
+    INDIVIDUAL: Best for low-latency, order-sensitive processing
+    BATCH: Optimizes throughput for high-volume scenarios
+    STREAMING: Enables real-time processing with minimal buffering
+    """
     INDIVIDUAL = "individual"  # Process messages individually
     BATCH = "batch"           # Process messages in batches
     STREAMING = "streaming"   # Stream messages continuously
 
 @dataclass
 class SubscriptionConfig:
-    """Configuration for message subscription"""
+    """
+    Configuration for message subscription behavior.
+    
+    Design Considerations:
+    - batch_size balances memory usage vs throughput
+    - prefetch_count prevents overwhelming the consumer
+    - ack_timeout prevents message loss in failure scenarios
+    
+    WARNING: Setting max_concurrent too high may overwhelm system resources
+    TODO: Add validation for interdependent parameters
+    """
     mode: SubscriptionMode = SubscriptionMode.INDIVIDUAL
     batch_size: int = 100
     batch_timeout: float = 5.0  # seconds
@@ -32,7 +69,17 @@ class SubscriptionConfig:
     dead_letter_topic: Optional[str] = None
 
 class MessageSubscriber(Generic[T, R]):
-    """Handles message subscription and processing"""
+    """
+    Handles message subscription and processing with configurable behavior.
+    
+    Key Features:
+    - Supports multiple processing modes
+    - Implements automatic acknowledgment tracking
+    - Provides backpressure through semaphores
+    - Integrates with retry policies and metrics
+    
+    FIXME: Consider adding circuit breaker for downstream service protection
+    """
     def __init__(
         self,
         config: SubscriptionConfig,
@@ -52,7 +99,16 @@ class MessageSubscriber(Generic[T, R]):
         self._semaphore = asyncio.Semaphore(config.max_concurrent)
 
     async def start(self):
-        """Start subscriber processing"""
+        """
+        Initializes subscriber processing and monitoring.
+        
+        Implementation Notes:
+        - Starts batch processor if in batch mode
+        - Initializes ack timeout checker for manual ack mode
+        - Creates processing tasks with proper cancellation support
+        
+        WARNING: Ensure proper cleanup by calling stop() when done
+        """
         self._running = True
         
         if self.config.mode == SubscriptionMode.BATCH:
@@ -91,7 +147,17 @@ class MessageSubscriber(Generic[T, R]):
         message_id: str,
         message: T
     ) -> Optional[R]:
-        """Process a single message"""
+        """
+        Processes a single message with configured behavior.
+        
+        Design Decisions:
+        - Uses semaphore for backpressure control
+        - Tracks unacked messages for reliability
+        - Supports both individual and batch processing
+        - Integrates retry policy when enabled
+        
+        NOTE: Message processing order is not guaranteed in batch mode
+        """
         async with self._semaphore:
             try:
                 if not self.config.enable_auto_ack:
@@ -154,7 +220,16 @@ class MessageSubscriber(Generic[T, R]):
                 )
 
     async def _check_ack_timeouts(self):
-        """Check for message acknowledgement timeouts"""
+        """
+        Monitors and handles message acknowledgment timeouts.
+        
+        Why This Matters:
+        - Prevents message loss in failure scenarios
+        - Ensures timely message reprocessing
+        - Provides visibility into processing issues
+        
+        TODO: Add configurable timeout handling strategies
+        """
         while self._running:
             try:
                 await asyncio.sleep(1.0)  # Check every second
@@ -186,7 +261,17 @@ class MessageSubscriber(Generic[T, R]):
                     await self.metrics.increment("subscriber.message.timeout")
 
     async def get_stats(self) -> Dict[str, Any]:
-        """Get subscriber statistics"""
+        """
+        Provides operational statistics for monitoring.
+        
+        Collected Metrics:
+        - Current processing mode
+        - Unacknowledged message count
+        - Active processing tasks
+        - Batch processor stats (if enabled)
+        
+        NOTE: Consider adding these metrics to a monitoring dashboard
+        """
         stats = {
             "mode": self.config.mode.value,
             "unacked_messages": len(self._unacked_messages),
