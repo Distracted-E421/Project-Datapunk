@@ -12,10 +12,49 @@ from .monitoring.volume_monitor import VolumeMonitor
 
 logger = structlog.get_logger(__name__)
 
+"""BaseService: Core foundation for all Datapunk microservices.
+
+This class implements the fundamental infrastructure required by all Datapunk services,
+including database connections, caching, message brokering, metrics collection, and
+health monitoring. It follows the service mesh architecture outlined in sys-arch.mmd.
+
+Key Features:
+- Automatic resource management and cleanup
+- Integrated monitoring and metrics collection
+- Health check coordination
+- Standardized error handling
+- Volume monitoring for data storage
+
+Implementation Notes:
+- Services should inherit from this class and implement their specific logic
+- Resource initialization is lazy and configurable via the config dict
+- Health checks are automatically registered and monitored
+- Error handling includes standardized logging and metrics collection
+"""
+
 class BaseService:
-    """Base class for all Datapunk services"""
+    """Base class for all Datapunk services.
+    
+    Implements core infrastructure components as defined in the system architecture:
+    - Database connection pooling with automatic cleanup
+    - Distributed caching with invalidation support
+    - Message broker integration for service mesh communication
+    - Prometheus metrics for monitoring and alerting
+    - Health check system for service mesh coordination
+    - Volume monitoring for data storage management
+    """
     
     def __init__(self, service_name: str, config: Dict[str, Any]):
+        """Initialize service with configuration.
+        
+        Args:
+            service_name: Unique identifier for this service instance
+            config: Configuration dictionary containing settings for:
+                   - database_enabled: Enable database connection pooling
+                   - cache_enabled: Enable distributed caching
+                   - messaging_enabled: Enable message broker
+                   - volumes: Volume configuration for storage
+        """
         self.service_name = service_name
         self.config = config
         self.logger = logger.bind(service=service_name)
@@ -48,7 +87,18 @@ class BaseService:
         )
     
     async def initialize(self):
-        """Initialize service components"""
+        """Initialize service components based on configuration.
+        
+        Lazily initializes enabled components in order:
+        1. Database connection pool
+        2. Cache manager
+        3. Message broker
+        4. Health check registration
+        5. Volume monitoring
+        
+        Raises:
+            Exception: If any component fails to initialize
+        """
         try:
             if self.config.get('database_enabled'):
                 self.db = await DatabasePool.create(self.config['database'])
@@ -71,7 +121,15 @@ class BaseService:
             raise
     
     async def cleanup(self):
-        """Cleanup service resources"""
+        """Release all service resources in reverse initialization order.
+        
+        Ensures graceful shutdown of:
+        - Message broker connections
+        - Cache connections
+        - Database connections
+        
+        Note: Continues cleanup even if individual components fail
+        """
         try:
             if self.db:
                 await self.db.close()
@@ -83,7 +141,19 @@ class BaseService:
             self.logger.error("Error during cleanup", error=str(e))
     
     async def check_health(self) -> Dict[str, Any]:
-        """Check service health"""
+        """Perform comprehensive health check of all service components.
+        
+        Checks health status of:
+        - Database connections
+        - Cache availability
+        - Message broker connectivity
+        - Storage volume status
+        
+        Returns:
+            Dict containing health status and component-specific metrics
+        
+        Note: Service is considered unhealthy if any volume reports error status
+        """
         health_status = {
             "service": self.service_name,
             "status": "healthy",
@@ -113,7 +183,14 @@ class BaseService:
         return health_status
     
     def handle_error(self, error: Exception, context: Dict[str, Any] = None):
-        """Standardized error handling"""
+        """Standardized error handling with metrics and logging.
+        
+        Args:
+            error: The exception that occurred
+            context: Additional context about the error
+        
+        Note: Automatically increments error counter metric and logs with context
+        """
         self.error_counter.inc()
         self.logger.error(
             "Error occurred",
