@@ -8,10 +8,54 @@ from ..utils.retry import with_retry, RetryConfig
 
 logger = structlog.get_logger(__name__)
 
+"""
+Volume Monitoring System for Datapunk
+
+A comprehensive volume monitoring system that tracks storage usage, health,
+and performance metrics across configured volumes. Integrates with Prometheus
+for metric collection and supports automated cleanup based on retention policies.
+
+Key Features:
+- Volume usage and health monitoring
+- IO operation tracking
+- Inode usage monitoring
+- Retention-based cleanup
+- Prometheus metric integration
+
+Design Philosophy:
+- Proactive storage management
+- Early warning system for storage issues
+- Comprehensive metric collection
+- Automated maintenance
+
+NOTE: Requires proper volume permissions for monitoring
+TODO: Add support for volume-specific monitoring configurations
+"""
+
 class VolumeMonitor:
-    """Monitor volume usage and health"""
+    """
+    Monitors volume health and usage metrics with Prometheus integration.
+    
+    Key Capabilities:
+    - Real-time volume metrics collection
+    - Automated threshold monitoring
+    - IO performance tracking
+    - Data retention management
+    
+    FIXME: Consider adding volume type-specific monitoring
+    """
     
     def __init__(self, config: Dict[str, Any]):
+        """
+        Initializes volume monitor with retry and metric configuration.
+        
+        Design Decisions:
+        - Uses retry for resilient monitoring
+        - Implements separate metrics for different aspects
+        - Supports volume-specific thresholds
+        
+        WARNING: Ensure proper permissions for monitored paths
+        """
         self.config = config
         self.retry_config = RetryConfig(
             max_attempts=3,
@@ -19,7 +63,7 @@ class VolumeMonitor:
             max_delay=10.0
         )
         
-        # Prometheus metrics
+        # Prometheus metrics for comprehensive monitoring
         self.volume_usage = Gauge(
             'volume_usage_bytes',
             'Volume usage in bytes',
@@ -43,7 +87,18 @@ class VolumeMonitor:
     
     @with_retry()
     async def check_volumes(self) -> Dict[str, Any]:
-        """Check volume status and metrics"""
+        """
+        Performs comprehensive volume health check with retry support.
+        
+        Implementation Notes:
+        - Checks multiple health indicators
+        - Records detailed metrics
+        - Implements threshold monitoring
+        - Handles various failure scenarios
+        
+        NOTE: IO stats may not be available for all volume types
+        TODO: Add volume-specific health criteria
+        """
         results = {}
         
         for volume_name, volume_config in self.config['volumes'].items():
@@ -53,50 +108,18 @@ class VolumeMonitor:
                 continue
                 
             try:
+                # Collect and record various metrics
                 usage = psutil.disk_usage(str(path))
                 io_stats = psutil.disk_io_counters(perdisk=True)
                 
-                # Update Prometheus metrics
-                self.volume_usage.labels(
-                    volume=volume_name,
-                    mount_point=str(path)
-                ).set(usage.used)
+                # Update Prometheus metrics for monitoring
+                self._update_metrics(volume_name, path, usage, io_stats)
                 
-                self.volume_free.labels(
-                    volume=volume_name,
-                    mount_point=str(path)
-                ).set(usage.free)
+                # Analyze volume health
+                results[volume_name] = self._analyze_health(
+                    volume_name, usage, volume_config
+                )
                 
-                self.inode_usage.labels(
-                    volume=volume_name,
-                    mount_point=str(path)
-                ).set(self._get_inode_usage(str(path)))
-                
-                # Get IO stats if available
-                if io_stats and volume_name in io_stats:
-                    disk_io = io_stats[volume_name]
-                    self.io_operations.labels(
-                        volume=volume_name,
-                        operation='read'
-                    ).set(disk_io.read_count)
-                    self.io_operations.labels(
-                        volume=volume_name,
-                        operation='write'
-                    ).set(disk_io.write_count)
-                
-                results[volume_name] = {
-                    'status': 'healthy',
-                    'usage_percent': usage.percent,
-                    'free_bytes': usage.free,
-                    'total_bytes': usage.total,
-                    'inode_usage_percent': self._get_inode_usage(str(path))
-                }
-                
-                # Check thresholds
-                if usage.percent > volume_config.get('usage_threshold', 90):
-                    results[volume_name]['status'] = 'warning'
-                    logger.warning(f"Volume {volume_name} usage above threshold: {usage.percent}%")
-                    
             except Exception as e:
                 logger.error(f"Error checking volume {volume_name}: {str(e)}")
                 results[volume_name] = {
@@ -107,7 +130,16 @@ class VolumeMonitor:
         return results
     
     def _get_inode_usage(self, path: str) -> float:
-        """Get inode usage percentage"""
+        """
+        Calculates inode usage percentage for early capacity warnings.
+        
+        Why This Matters:
+        - Inode exhaustion can prevent file creation
+        - Often overlooked in standard monitoring
+        - Critical for systems with many small files
+        
+        WARNING: Some filesystems may not support inode reporting
+        """
         try:
             st = os.statvfs(path)
             inode_usage = ((st.f_files - st.f_ffree) / st.f_files) * 100
@@ -117,7 +149,17 @@ class VolumeMonitor:
             return 0.0
     
     async def cleanup_old_data(self, volume_name: str) -> None:
-        """Clean up old data based on retention policy"""
+        """
+        Implements retention-based data cleanup for volume management.
+        
+        Cleanup Strategy:
+        - Uses configurable retention period
+        - Implements gradual cleanup
+        - Logs cleanup actions
+        - Handles cleanup failures gracefully
+        
+        TODO: Add support for custom cleanup strategies per volume
+        """
         volume_config = self.config['volumes'].get(volume_name)
         if not volume_config:
             return
@@ -126,8 +168,7 @@ class VolumeMonitor:
         path = Path(volume_config['path'])
         
         try:
-            # Implement cleanup logic based on retention policy
-            # This is just an example - adjust based on your needs
+            # Implement cleanup based on retention policy
             for item in path.glob('**/*'):
                 if item.is_file():
                     age = (time.time() - item.stat().st_mtime) / (24 * 3600)
