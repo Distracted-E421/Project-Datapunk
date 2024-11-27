@@ -11,9 +11,33 @@ from cryptography.hazmat.primitives import serialization
 import os
 from ..monitoring import MetricsCollector
 
+"""
+Comprehensive encryption system with key rotation and compression.
+
+Provides secure data encryption with:
+- Symmetric and asymmetric encryption options
+- Automatic key rotation for forward secrecy
+- Transparent compression for large payloads
+- Key derivation from passwords
+- Performance metrics collection
+
+NOTE: Uses Fernet for general encryption (AES-CBC) and AES-GCM for 
+specific needs requiring authenticated encryption
+"""
+
 @dataclass
 class EncryptionConfig:
-    """Configuration for encryption"""
+    """
+    Encryption configuration with security and performance parameters.
+    
+    Key parameters:
+    - key_size: 32 bytes provides AES-256 security level
+    - iterations: 100000 for PBKDF2 follows NIST recommendations
+    - key_rotation_interval: 30 days balances security and overhead
+    
+    NOTE: Compression enabled by default for payloads >1KB
+    TODO: Make compression threshold configurable per service
+    """
     key_size: int = 32  # bytes
     salt_size: int = 16  # bytes
     iterations: int = 100000
@@ -35,7 +59,18 @@ class KeyDerivationError(EncryptionError):
     pass
 
 class EncryptionKeyManager:
-    """Manages encryption keys and rotation"""
+    """
+    Manages encryption keys with automatic rotation.
+    
+    Features:
+    - Automatic key rotation based on configured interval
+    - Key derivation from passwords using PBKDF2
+    - RSA key pair generation for asymmetric encryption
+    - Previous key retention for decryption during rotation
+    
+    FIXME: Key rotation may cause brief decryption failures
+    TODO: Add key persistence and recovery mechanisms
+    """
     def __init__(self, config: EncryptionConfig):
         self.config = config
         self._current_key: Optional[bytes] = None
@@ -49,7 +84,16 @@ class EncryptionKeyManager:
         return Fernet.generate_key()
 
     def derive_key(self, password: str, salt: Optional[bytes] = None) -> Tuple[bytes, bytes]:
-        """Derive encryption key from password"""
+        """
+        Derive encryption key from password using PBKDF2-HMAC-SHA256.
+        
+        Uses high iteration count and random salt to prevent:
+        - Rainbow table attacks
+        - Brute force attempts
+        - Dictionary attacks
+        
+        NOTE: Salt is generated if not provided
+        """
         if not self.config.enable_key_derivation:
             raise KeyDerivationError("Key derivation is disabled")
 
@@ -64,7 +108,17 @@ class EncryptionKeyManager:
         return key, salt
 
     def generate_rsa_keypair(self) -> Tuple[bytes, bytes]:
-        """Generate RSA key pair"""
+        """
+        Generate RSA key pair for asymmetric encryption.
+        
+        Uses:
+        - 2048-bit key size (configurable)
+        - Public exponent 65537 (standard security practice)
+        - PKCS8 format for broad compatibility
+        
+        WARNING: Private key is not encrypted at rest
+        TODO: Add private key encryption support
+        """
         if not self.config.enable_asymmetric:
             raise EncryptionError("Asymmetric encryption is disabled")
 
@@ -87,7 +141,17 @@ class EncryptionKeyManager:
         return private_pem, public_pem
 
 class DataEncryption:
-    """Handles data encryption and decryption"""
+    """
+    Handles data encryption/decryption with compression support.
+    
+    Features:
+    - Multiple encryption modes (symmetric/asymmetric)
+    - Transparent compression for large payloads
+    - Automatic key rotation handling
+    - Performance metrics collection
+    
+    NOTE: JSON data is automatically handled as dictionary
+    """
     def __init__(
         self,
         config: EncryptionConfig,
@@ -112,7 +176,17 @@ class DataEncryption:
         key: Optional[bytes] = None,
         compress: Optional[bool] = None
     ) -> bytes:
-        """Encrypt data"""
+        """
+        Encrypt data with optional compression.
+        
+        Process:
+        1. Convert data to bytes (if needed)
+        2. Compress if enabled and beneficial
+        3. Encrypt with provided key or current key
+        4. Record metrics if enabled
+        
+        NOTE: Compression decision based on data size and config
+        """
         try:
             # Convert data to bytes
             if isinstance(data, dict):
@@ -159,7 +233,17 @@ class DataEncryption:
         key: Optional[bytes] = None,
         decompress: Optional[bool] = None
     ) -> Union[str, bytes, Dict]:
-        """Decrypt data"""
+        """
+        Decrypt data with automatic key selection.
+        
+        Features:
+        - Tries current key, then previous key
+        - Automatic decompression if needed
+        - JSON parsing for dictionary data
+        - Metric collection for monitoring
+        
+        NOTE: Returns string if data isn't valid JSON
+        """
         try:
             # Decrypt data
             if key:
