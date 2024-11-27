@@ -1,3 +1,22 @@
+"""
+Service Health Monitoring System
+
+Provides real-time health monitoring for services in the Datapunk mesh, tracking key
+performance metrics and resource usage. Implements a multi-level alerting system
+based on configurable thresholds.
+
+Key Features:
+- Resource usage monitoring (CPU, memory, connections)
+- Error rate tracking
+- Response time monitoring
+- Configurable alert thresholds
+- Historical metrics retention
+- Alert cooldown management
+
+NOTE: This implementation assumes monitored services expose a process ID (PID)
+for resource monitoring. Services without PIDs will only track basic health metrics.
+"""
+
 from typing import Optional, Dict, Any, List, Set
 from dataclasses import dataclass
 import asyncio
@@ -10,7 +29,15 @@ import psutil
 import statistics
 
 class MonitoringLevel(Enum):
-    """Monitoring severity levels"""
+    """
+    Alert severity levels for service health status.
+    
+    These levels map to different alert policies and response procedures:
+    - INFO: Normal operation, no action needed
+    - WARNING: Potential issues, monitor closely
+    - ERROR: Service degraded, investigation needed
+    - CRITICAL: Immediate action required
+    """
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -18,7 +45,12 @@ class MonitoringLevel(Enum):
 
 @dataclass
 class HealthMetrics:
-    """Health metrics data point"""
+    """
+    Comprehensive health snapshot for a service instance.
+    
+    Combines health check results with resource utilization metrics
+    to provide a complete view of service health.
+    """
     service_id: str
     status: HealthStatus
     error_rate: float
@@ -31,19 +63,38 @@ class HealthMetrics:
 
 @dataclass
 class MonitoringConfig:
-    """Configuration for health monitoring"""
-    check_interval: float = 15.0  # seconds
-    metrics_retention: int = 24 * 60 * 60  # 24 hours in seconds
-    error_threshold: float = 0.1  # 10% error rate
-    response_time_threshold: float = 1.0  # 1 second
-    memory_threshold: float = 0.9  # 90% usage
-    cpu_threshold: float = 0.8  # 80% usage
-    connection_threshold: int = 1000
-    enable_alerts: bool = True
-    alert_cooldown: int = 300  # 5 minutes between similar alerts
+    """
+    Configuration parameters for health monitoring.
+    
+    Default values are tuned for typical microservice behavior.
+    Adjust thresholds based on specific service requirements and
+    infrastructure capabilities.
+    
+    NOTE: Metrics retention affects memory usage. Scale according
+    to available resources and analysis needs.
+    """
+    check_interval: float = 15.0     # Check frequency in seconds
+    metrics_retention: int = 86400   # 24 hours in seconds
+    error_threshold: float = 0.1     # 10% error rate threshold
+    response_time_threshold: float = 1.0  # 1 second response threshold
+    memory_threshold: float = 0.9    # 90% memory usage threshold
+    cpu_threshold: float = 0.8       # 80% CPU usage threshold
+    connection_threshold: int = 1000  # Maximum connections
+    enable_alerts: bool = True       # Enable alert generation
+    alert_cooldown: int = 300        # 5 minutes between alerts
 
 class HealthMonitor:
-    """Monitors service health metrics"""
+    """
+    Core health monitoring system for the service mesh.
+    
+    Coordinates health checks, metric collection, and alert generation
+    for all registered services. Maintains historical metrics for
+    trend analysis and debugging.
+    
+    TODO: Add support for custom health check implementations
+    TODO: Implement metric persistence for long-term analysis
+    """
+    
     def __init__(
         self,
         config: MonitoringConfig,
@@ -116,12 +167,20 @@ class HealthMonitor:
         self,
         service: ServiceRegistration
     ) -> HealthMetrics:
-        """Collect health metrics for a service"""
-        # Check basic health
+        """
+        Collect comprehensive health metrics for a service instance.
+        
+        Combines active health checks with resource utilization metrics.
+        Falls back gracefully when resource metrics are unavailable.
+        
+        IMPORTANT: Resource metrics collection requires process ID access.
+        Services without PIDs will report 0 for resource metrics.
+        """
+        # Basic health check
         is_healthy = await self.health_check.check_instance_health(service)
         status = HealthStatus.HEALTHY if is_healthy else HealthStatus.UNHEALTHY
 
-        # Get resource usage
+        # Collect resource metrics if PID available
         try:
             process = psutil.Process(service.pid) if hasattr(service, 'pid') else None
             if process:
@@ -129,30 +188,21 @@ class HealthMonitor:
                 cpu_usage = process.cpu_percent() / 100.0
                 connections = len(process.connections())
             else:
-                memory_usage = 0.0
-                cpu_usage = 0.0
-                connections = 0
+                memory_usage = cpu_usage = connections = 0
         except Exception:
-            memory_usage = 0.0
-            cpu_usage = 0.0
-            connections = 0
+            # Fallback if process monitoring fails
+            memory_usage = cpu_usage = connections = 0
 
-        # Calculate error rate and response time from history
-        history = self._metrics_history.get(service.id, [])[-100:]  # Last 100 checks
+        # Calculate error rate and response time from recent history
+        history = self._metrics_history.get(service.id, [])[-100:]
         if history:
             error_rate = sum(1 for m in history if m.status == HealthStatus.UNHEALTHY) / len(history)
             response_time = statistics.mean(m.response_time for m in history)
         else:
-            error_rate = 0.0
-            response_time = 0.0
+            error_rate = response_time = 0.0
 
-        # Determine monitoring level
         level = self._determine_level(
-            error_rate,
-            response_time,
-            memory_usage,
-            cpu_usage,
-            connections
+            error_rate, response_time, memory_usage, cpu_usage, connections
         )
 
         return HealthMetrics(
@@ -175,7 +225,18 @@ class HealthMonitor:
         cpu_usage: float,
         connections: int
     ) -> MonitoringLevel:
-        """Determine monitoring level based on metrics"""
+        """
+        Determine monitoring level based on service metrics.
+        
+        Uses a multi-threshold approach to classify service health:
+        - CRITICAL: Severe threshold violations (2x error rate or 1.2x resource limits)
+        - ERROR: Single threshold violation
+        - WARNING: Approaching thresholds (80% of limits)
+        - INFO: Normal operation
+        
+        NOTE: Thresholds are configured in MonitoringConfig and can be adjusted
+        per deployment requirements.
+        """
         if (
             error_rate > self.config.error_threshold * 2 or
             memory_usage > self.config.memory_threshold * 1.2 or
