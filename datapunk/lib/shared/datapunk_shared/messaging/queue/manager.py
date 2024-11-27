@@ -12,8 +12,40 @@ from ...monitoring import MetricsCollector
 T = TypeVar('T')  # Message type
 R = TypeVar('R')  # Result type
 
+"""
+Queue Management System for Datapunk's Messaging Infrastructure
+
+A flexible queue management system supporting multiple queue types and processing patterns.
+Designed to handle various messaging scenarios while maintaining reliability and performance.
+
+Key Features:
+- Multiple queue types (FIFO, Priority, Delay, Batch, Topic)
+- Message persistence and compression
+- Dead letter queue integration
+- Retry policy support
+- Metrics collection
+
+Design Philosophy:
+- Prioritizes message reliability over raw performance
+- Supports both synchronous and asynchronous processing
+- Implements backpressure through queue size limits
+- Provides comprehensive monitoring capabilities
+
+NOTE: This implementation assumes single-process usage
+TODO: Add support for distributed queue management
+"""
+
 class QueueType(Enum):
-    """Types of message queues"""
+    """
+    Supported queue types with different message handling characteristics.
+    
+    Why These Types:
+    FIFO: Ensures strict message ordering
+    PRIORITY: Handles urgent messages first
+    DELAY: Supports scheduled message processing
+    BATCH: Optimizes throughput for high volume
+    TOPIC: Enables pub/sub message routing
+    """
     FIFO = "fifo"           # First In First Out
     PRIORITY = "priority"   # Priority-based
     DELAY = "delay"        # Delayed delivery
@@ -22,7 +54,17 @@ class QueueType(Enum):
 
 @dataclass
 class QueueConfig:
-    """Configuration for message queue"""
+    """
+    Queue behavior configuration.
+    
+    Design Considerations:
+    - max_size prevents memory exhaustion
+    - compression_threshold balances CPU vs memory usage
+    - cleanup_interval manages memory usage over time
+    
+    WARNING: Setting batch_size too high may cause processing delays
+    TODO: Add validation for interdependent parameters
+    """
     queue_type: QueueType = QueueType.FIFO
     max_size: int = 10000
     enable_persistence: bool = True
@@ -39,7 +81,17 @@ class QueueConfig:
     enable_retry: bool = True
 
 class QueueMessage(Generic[T]):
-    """Represents a message in the queue"""
+    """
+    Message container with metadata for queue management.
+    
+    Features:
+    - Unique message identification
+    - Priority support
+    - Delayed processing capability
+    - Attempt tracking for retry logic
+    
+    NOTE: metadata dict can be used for custom routing/processing logic
+    """
     def __init__(
         self,
         id: str,
@@ -57,7 +109,18 @@ class QueueMessage(Generic[T]):
         self.attempts = 0
 
 class QueueManager(Generic[T, R]):
-    """Manages message queues and processing"""
+    """
+    Manages message queues with configurable processing behavior.
+    
+    Key Capabilities:
+    - Multiple queue type support
+    - Message persistence
+    - Batch processing
+    - Retry handling
+    - Dead letter queue integration
+    
+    FIXME: Consider adding queue partitioning for better scaling
+    """
     def __init__(
         self,
         config: QueueConfig,
@@ -79,7 +142,16 @@ class QueueManager(Generic[T, R]):
         self._lock = asyncio.Lock()
 
     async def start(self):
-        """Start queue processing"""
+        """
+        Initializes queue processing and maintenance tasks.
+        
+        Implementation Notes:
+        - Loads persisted state if enabled
+        - Starts batch processor if configured
+        - Initializes cleanup task
+        
+        WARNING: Ensure proper cleanup by calling stop() when done
+        """
         self._running = True
         if self.config.enable_persistence:
             await self._load_state()
@@ -127,7 +199,17 @@ class QueueManager(Generic[T, R]):
         delay: Optional[int] = None,
         metadata: Optional[Dict[str, Any]] = None
     ) -> str:
-        """Add message to queue"""
+        """
+        Adds message to specified queue with optional parameters.
+        
+        Design Decisions:
+        - Uses lock for thread safety
+        - Implements queue size limits
+        - Supports priority insertion
+        - Handles delayed messages
+        
+        NOTE: Priority ordering only applies to PRIORITY queue type
+        """
         async with self._lock:
             # Create queue if it doesn't exist
             if queue_name not in self._queues:
@@ -232,7 +314,17 @@ class QueueManager(Generic[T, R]):
                     )
 
     async def _process_message(self, queue_name: str):
-        """Process single message"""
+        """
+        Processes single message with retry and DLQ handling.
+        
+        Error Handling Strategy:
+        - Tracks attempt count
+        - Applies retry policy if configured
+        - Moves to DLQ after max retries
+        - Records metrics for monitoring
+        
+        TODO: Add support for custom error handlers
+        """
         message = await self.dequeue(queue_name)
         if not message:
             return
@@ -345,7 +437,16 @@ class QueueManager(Generic[T, R]):
                     )
 
     async def _cleanup_queues(self):
-        """Clean up processed messages"""
+        """
+        Performs periodic queue maintenance.
+        
+        Maintenance Tasks:
+        - Removes processed messages
+        - Manages memory usage
+        - Updates metrics
+        
+        NOTE: Consider implementing more aggressive cleanup for high-volume queues
+        """
         async with self._lock:
             for queue_name in self._queues:
                 # Remove processed messages
