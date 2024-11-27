@@ -1,5 +1,5 @@
 @sys-arch.mmd @project_status.md @DatapunkManifesto.txt 
-Ensure that all comments enhance the reader's understanding of the code and make it easier for future developers (and for us) to maintain and extend the project. Avoid cluttering the code with unnecessary or redundant comments. Apply your comments directly to the file. Additionally, please include a seperate block for a github commit summary(50 characters or less) and description of the changes made (3 to 10 bullet points).
+Ensure that all comments enhance the reader's understanding of the code and make it easier for future developers (and for us) to maintain and extend the project. Avoid cluttering the code with unnecessary or redundant comments. Apply your comments directly to the file. Additionally, please include a seperate block for a github commit summary(50 characters or less) and then another block for a detailed  description of the changes made (3 to 10 bullet points).
 
 Analyze the attached code file and write high-quality comments to improve its clarity and maintainability. Follow these principles when writing the comments, using all availible documentation:
 Explain "Why," Not Just "What": Focus on explaining the intent and reasoning behind complex or non-obvious decisions, rather than restating what the code does.
