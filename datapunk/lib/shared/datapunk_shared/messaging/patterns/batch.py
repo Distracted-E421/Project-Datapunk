@@ -8,29 +8,73 @@ from ...monitoring import MetricsCollector
 T = TypeVar('T')  # Type of message
 R = TypeVar('R')  # Type of result
 
+"""
+Batch processing module for Datapunk's messaging system.
+
+Provides configurable batch processing capabilities with:
+- Dynamic batch size and timing controls
+- Parallel processing support
+- Automatic retry handling
+- Compression for large batches
+- Detailed metrics collection
+
+Designed to optimize throughput while maintaining system stability
+through configurable processing limits and backpressure mechanisms.
+"""
+
 class BatchTrigger(Enum):
-    """Batch processing triggers"""
-    SIZE = "size"           # Trigger on batch size
-    TIMEOUT = "timeout"     # Trigger on time elapsed
-    BOTH = "both"          # Trigger on either condition
-    ALL = "all"            # Trigger when both conditions met
+    """
+    Defines conditions that trigger batch processing.
+    
+    Supports flexible batch processing strategies to balance
+    latency and throughput requirements:
+    - SIZE: Process when batch reaches max size
+    - TIMEOUT: Process after max wait time
+    - BOTH: Process on either condition
+    - ALL: Process only when both conditions are met
+    """
+    SIZE = "size"
+    TIMEOUT = "timeout"
+    BOTH = "both"
+    ALL = "all"
 
 @dataclass
 class BatchConfig:
-    """Configuration for batch processing"""
-    max_size: int = 100  # Maximum batch size
-    max_wait: float = 5.0  # Maximum wait time in seconds
+    """
+    Configuration for batch processing behavior.
+    
+    Allows fine-tuning of batch processing parameters to optimize
+    for different workload characteristics and resource constraints.
+    
+    NOTE: max_concurrent_batches should be set based on available system resources
+    FIXME: Consider adding batch priority handling
+    """
+    max_size: int = 100
+    max_wait: float = 5.0
     trigger: BatchTrigger = BatchTrigger.BOTH
     retry_failed: bool = True
     max_retries: int = 3
-    retry_delay: float = 1.0  # seconds
+    retry_delay: float = 1.0
     enable_partial_batches: bool = True
     enable_parallel_processing: bool = True
     max_concurrent_batches: int = 5
-    compression_threshold: int = 1024  # bytes
+    compression_threshold: int = 1024
 
 class BatchProcessor(Generic[T, R]):
-    """Handles batch processing of messages"""
+    """
+    Handles batch processing of messages with configurable behavior.
+    
+    Features:
+    - Automatic batch triggering based on size/time
+    - Parallel processing with concurrency control
+    - Retry logic for failed batches
+    - Compression for large batches
+    - Metrics collection for monitoring
+    
+    TODO: Add support for priority queues
+    TODO: Implement backpressure mechanisms
+    """
+    
     def __init__(
         self,
         config: BatchConfig,
@@ -48,12 +92,26 @@ class BatchProcessor(Generic[T, R]):
         self._batch_task: Optional[asyncio.Task] = None
 
     async def start(self):
-        """Start batch processor"""
+        """
+        Start the batch processor.
+        
+        Initializes the processing loop and begins accepting messages.
+        The processor will run until explicitly stopped.
+        
+        NOTE: Ensure proper cleanup by calling stop() when done
+        """
         self._processing = True
         self._batch_task = asyncio.create_task(self._batch_loop())
 
     async def stop(self):
-        """Stop batch processor"""
+        """
+        Stop the batch processor gracefully.
+        
+        Ensures all pending messages are processed before shutdown
+        and cleans up resources properly.
+        
+        FIXME: Handle edge case where new messages arrive during shutdown
+        """
         self._processing = False
         if self._batch_task:
             self._batch_task.cancel()
@@ -66,7 +124,14 @@ class BatchProcessor(Generic[T, R]):
                 await self._process_batch(self._current_batch)
 
     async def add_message(self, message: T):
-        """Add message to current batch"""
+        """
+        Add a message to the current batch.
+        
+        Messages are accumulated until batch processing is triggered
+        by configured conditions (size/time).
+        
+        NOTE: Consider message size when setting batch parameters
+        """
         async with self._lock:
             if not self._batch_start:
                 self._batch_start = datetime.utcnow()
@@ -99,7 +164,16 @@ class BatchProcessor(Generic[T, R]):
                     )
 
     def _should_process_batch(self) -> bool:
-        """Check if batch should be processed"""
+        """
+        Determine if the current batch should be processed.
+        
+        Evaluates batch processing triggers based on:
+        - Current batch size
+        - Time since first message
+        - Configured trigger conditions
+        
+        Returns True if batch should be processed, False otherwise.
+        """
         if not self._current_batch:
             return False
 
@@ -129,7 +203,14 @@ class BatchProcessor(Generic[T, R]):
             await self._process_batch(batch)
 
     async def _process_batch(self, batch: List[T]):
-        """Process a batch of messages"""
+        """
+        Process a batch of messages with retry logic.
+        
+        Implements exponential backoff for retries and supports
+        splitting large batches on failure for partial processing.
+        
+        NOTE: Batch splitting only occurs if enable_partial_batches is True
+        """
         if not batch:
             return
 
@@ -189,7 +270,14 @@ class BatchProcessor(Generic[T, R]):
                     )
 
     def _compress_batch(self, batch: List[T]) -> bytes:
-        """Compress batch data if it exceeds threshold"""
+        """
+        Compress batch data if it exceeds threshold.
+        
+        Uses zlib compression to reduce data size for large batches,
+        improving network efficiency and storage usage.
+        
+        TODO: Consider adding compression level configuration
+        """
         data = self._serialize_batch(batch)
         if len(data) > self.config.compression_threshold:
             import zlib
@@ -216,7 +304,14 @@ class BatchProcessor(Generic[T, R]):
         return pickle.loads(data)
 
     async def get_stats(self) -> Dict[str, Any]:
-        """Get batch processor statistics"""
+        """
+        Get current batch processor statistics.
+        
+        Provides metrics for monitoring batch processing performance
+        and health, including batch sizes and processing times.
+        
+        TODO: Add historical statistics tracking
+        """
         return {
             "current_batch_size": len(self._current_batch),
             "batch_age": (
