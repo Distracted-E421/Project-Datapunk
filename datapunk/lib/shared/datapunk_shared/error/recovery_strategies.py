@@ -1,3 +1,22 @@
+"""
+Recovery Strategies Module for Datapunk Error Handling System
+
+This module implements resilient error recovery patterns for the Datapunk service mesh,
+particularly focusing on network, cache, database, and resource failures. It aligns with
+the system's microservice architecture and provides configurable retry mechanisms.
+
+Key components:
+- Exponential backoff with optional jitter for rate limiting
+- Specialized recovery strategies for different failure modes
+- Integration with service mesh health monitoring
+- Configurable retry policies per service type
+
+Related services (see sys-arch.mmd):
+- Lake Service: Data storage and retrieval
+- Stream Service: Real-time data processing
+- Nexus Gateway: API routing and load balancing
+"""
+
 from typing import Dict, Any, Optional, Callable, Awaitable
 import asyncio
 import time
@@ -7,12 +26,28 @@ from .error_types import ServiceError, ErrorCategory, ErrorSeverity, ErrorContex
 
 @dataclass
 class RetryConfig:
-    initial_delay: float = 1.0
-    max_delay: float = 30.0
-    exponential_base: float = 2
-    jitter: bool = True
+    """
+    Configuration for retry behavior across recovery strategies.
+    
+    NOTE: These defaults are based on empirical testing with our service mesh
+    and should be adjusted based on specific service requirements.
+    """
+    initial_delay: float = 1.0  # Base delay for first retry
+    max_delay: float = 30.0     # Maximum delay cap to prevent excessive waits
+    exponential_base: float = 2  # Growth rate for exponential backoff
+    jitter: bool = True         # Randomization to prevent thundering herd
 
 class RecoveryStrategies:
+    """
+    Implements recovery strategies for different types of service failures.
+    
+    This class provides specialized recovery mechanisms for various failure modes
+    in the Datapunk service mesh, with configurable retry policies and logging.
+    
+    TODO: Add circuit breaker pattern implementation for cascade failure prevention
+    FIXME: Improve resource cleanup handling for partial failures
+    """
+    
     def __init__(self, retry_config: RetryConfig = RetryConfig()):
         self.retry_config = retry_config
         self.logger = logging.getLogger(__name__)
@@ -23,7 +58,14 @@ class RecoveryStrategies:
         retry_count: int,
         operation: Callable
     ) -> Optional[Dict[str, Any]]:
-        """Recovery strategy for network errors with exponential backoff"""
+        """
+        Handles network-related failures with exponential backoff.
+        
+        Used primarily by the Nexus Gateway for API routing recovery and
+        inter-service communication failures in the service mesh.
+        
+        NOTE: Consider service priority when implementing backoff strategy
+        """
         try:
             delay = self._calculate_backoff(retry_count)
             self.logger.info(f"Network recovery: waiting {delay}s before retry {retry_count}")
@@ -41,7 +83,14 @@ class RecoveryStrategies:
         retry_count: int,
         fallback_operation: Callable
     ) -> Optional[Dict[str, Any]]:
-        """Recovery strategy for cache errors with fallback to source"""
+        """
+        Manages cache failures by falling back to source data.
+        
+        Primarily used by the Lake Service for handling Redis cache misses
+        or failures, falling back to PostgreSQL when necessary.
+        
+        TODO: Implement cache warming strategy after successful recovery
+        """
         try:
             self.logger.info("Cache recovery: attempting fallback to source")
             return await fallback_operation()
@@ -57,7 +106,14 @@ class RecoveryStrategies:
         operation: Callable,
         connection_manager: Any
     ) -> Optional[Dict[str, Any]]:
-        """Recovery strategy for database errors with connection reset"""
+        """
+        Handles database connection and query failures.
+        
+        Used by Lake Service for PostgreSQL recovery, including handling of
+        pgvector, TimescaleDB, and PostGIS extension-specific errors.
+        
+        NOTE: Ensure connection pool is properly recycled after reset
+        """
         try:
             self.logger.info("Database recovery: attempting connection reset")
             await connection_manager.reset_connections()
@@ -78,7 +134,14 @@ class RecoveryStrategies:
         operation: Callable,
         resource_manager: Any
     ) -> Optional[Dict[str, Any]]:
-        """Recovery strategy for resource errors with cleanup"""
+        """
+        Manages resource exhaustion and cleanup.
+        
+        Critical for Stream Service when handling real-time data processing
+        and resource allocation for AI model inference.
+        
+        TODO: Add resource usage metrics collection for monitoring
+        """
         try:
             self.logger.info("Resource recovery: attempting resource cleanup")
             await resource_manager.cleanup_resources()
@@ -93,7 +156,15 @@ class RecoveryStrategies:
             return None
 
     def _calculate_backoff(self, retry_count: int) -> float:
-        """Calculate exponential backoff with jitter"""
+        """
+        Calculates exponential backoff with optional jitter.
+        
+        The backoff algorithm uses exponential growth with a max delay cap
+        and optional jitter to prevent thundering herd problems in the
+        service mesh.
+        
+        NOTE: Jitter range is 50-150% of base delay when enabled
+        """
         delay = min(
             self.retry_config.initial_delay * (
                 self.retry_config.exponential_base ** (retry_count - 1)
