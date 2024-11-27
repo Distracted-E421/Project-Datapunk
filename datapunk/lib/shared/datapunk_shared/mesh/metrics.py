@@ -6,8 +6,34 @@ from prometheus_client import Counter, Histogram, Gauge
 
 logger = structlog.get_logger()
 
+"""
+Comprehensive metrics collection for service mesh components.
+
+Provides monitoring for:
+- Load balancer performance
+- Retry operations
+- Service health
+- Error patterns
+- Latency tracking
+
+NOTE: Uses Prometheus-style metrics for compatibility
+"""
+
 @dataclass
 class LoadBalancerMetrics:
+    """
+    Load balancer performance and health metrics.
+    
+    Tracks:
+    - Request distribution
+    - Error patterns
+    - Latency profiles
+    - Connection states
+    - Instance health
+    
+    TODO: Add predictive load indicators
+    """
+    
     # Counters
     requests_total: Counter = field(default_factory=lambda: Counter(
         'load_balancer_requests_total',
@@ -42,7 +68,16 @@ class LoadBalancerMetrics:
     ))
 
     def record_request(self, service: str, instance: str, strategy: str):
-        """Record a request being processed."""
+        """
+        Record load balancing decision.
+        
+        Used for:
+        - Strategy effectiveness analysis
+        - Load distribution patterns
+        - Instance utilization tracking
+        
+        NOTE: Labels enable detailed analysis
+        """
         self.requests_total.labels(
             service=service,
             instance=instance,
@@ -71,7 +106,17 @@ class LoadBalancerMetrics:
         ).set(connections)
 
     def update_health_score(self, service: str, instance: str, score: float):
-        """Update the health score of an instance."""
+        """
+        Update instance health score.
+        
+        Score factors:
+        - Response latency
+        - Error rates
+        - Connection states
+        - Custom health checks
+        
+        WARNING: Score changes affect routing decisions
+        """
         self.instance_health_score.labels(
             service=service,
             instance=instance
@@ -79,6 +124,18 @@ class LoadBalancerMetrics:
 
 @dataclass
 class RetryMetrics:
+    """
+    Retry operation performance tracking.
+    
+    Monitors:
+    - Retry patterns
+    - Success rates
+    - Error categories
+    - Operation duration
+    
+    NOTE: Helps tune retry policies
+    """
+    
     retry_attempts_total: Counter = field(default_factory=lambda: Counter(
         'retry_attempts_total',
         'Total number of retry attempts',
@@ -112,7 +169,16 @@ class RetryMetrics:
         ).inc()
 
     def record_success(self, service: str, operation: str, attempts: int, duration: float):
-        """Record a successful retry operation."""
+        """
+        Record successful retry operation.
+        
+        Captures:
+        - Attempt count impact
+        - Duration patterns
+        - Service behavior
+        
+        Used for retry policy optimization
+        """
         self.retry_success_total.labels(
             service=service,
             operation=operation,
@@ -134,7 +200,18 @@ class RetryMetrics:
 
 @dataclass
 class ServiceMeshMetrics:
-    """Combined metrics for all mesh components."""
+    """
+    Combined service mesh performance metrics.
+    
+    Provides:
+    - Registration tracking
+    - Call monitoring
+    - Health status
+    - Circuit breaker states
+    
+    WARNING: High cardinality metrics may impact performance
+    TODO: Add metric aggregation support
+    """
     
     # Service registration metrics
     registrations_total: Counter = field(default_factory=lambda: Counter(
@@ -190,7 +267,19 @@ class ServiceMeshMetrics:
                            service: str,
                            operation: str,
                            duration: float):
-        """Record successful service call."""
+        """
+        Record successful service call.
+        
+        Tracks:
+        - Operation latency
+        - Service reliability
+        - Usage patterns
+        
+        Used for:
+        - Performance monitoring
+        - Capacity planning
+        - SLO tracking
+        """
         self.calls_total.labels(
             service=service,
             operation=operation,
@@ -206,7 +295,16 @@ class ServiceMeshMetrics:
                            service: str,
                            operation: str,
                            error: str):
-        """Record failed service call."""
+        """
+        Record failed service call.
+        
+        Categorizes:
+        - Error types
+        - Failure patterns
+        - Service issues
+        
+        NOTE: Error categorization aids troubleshooting
+        """
         self.calls_total.labels(
             service=service,
             operation=operation,
