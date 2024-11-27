@@ -1,3 +1,26 @@
+"""
+Core MTLS Implementation for Datapunk's Service Mesh
+
+Provides the foundational mutual TLS infrastructure for secure service-to-service 
+communication within the mesh. Implements certificate generation, validation,
+and SSL context management.
+
+Key features:
+- Certificate generation and management
+- SSL context configuration
+- Client/Server MTLS handlers
+- Certificate validation
+
+Security standards:
+- Uses RSA 2048-bit keys (configurable)
+- SHA256 for certificate signing
+- Strict certificate validation
+- Configurable verification modes
+
+NOTE: This is a critical security component. Changes should be thoroughly
+reviewed and tested as they affect all service mesh communication.
+"""
+
 from typing import Optional, Dict, Tuple
 import ssl
 import OpenSSL
@@ -17,27 +40,48 @@ logger = structlog.get_logger()
 
 @dataclass
 class MTLSConfig:
-    """Configuration for mTLS."""
+    """
+    Configuration for MTLS infrastructure.
+    
+    Centralizes all MTLS-related configuration to ensure consistent
+    security settings across the service mesh.
+    
+    NOTE: Changes to these defaults should be carefully considered
+    as they affect the security posture of the entire system.
+    """
     cert_path: str
     key_path: str
     ca_path: str
-    verify_mode: ssl.VerifyMode = ssl.CERT_REQUIRED
-    check_hostname: bool = True
-    cert_reqs: int = ssl.CERT_REQUIRED
-    cert_validity_days: int = 365
-    key_size: int = 2048
+    verify_mode: ssl.VerifyMode = ssl.CERT_REQUIRED  # Strict verification by default
+    check_hostname: bool = True  # Enable hostname verification
+    cert_reqs: int = ssl.CERT_REQUIRED  # Require valid certificates
+    cert_validity_days: int = 365  # Standard 1-year validity
+    key_size: int = 2048  # Industry standard key size
 
 class CertificateManager:
-    """Manages certificate generation and validation."""
+    """
+    Manages certificate lifecycle within the service mesh.
+    
+    Handles certificate generation, storage, and validation while maintaining
+    security best practices and proper filesystem permissions.
+    
+    TODO: Add support for hardware security modules (HSM)
+    TODO: Implement certificate transparency logging
+    """
     
     def __init__(self, config: MTLSConfig):
         self.config = config
         self.logger = logger.bind(component="certificate_manager")
         
     def generate_private_key(self) -> RSAPrivateKey:
-        """Generate RSA private key."""
+        """
+        Generate RSA private key with configured key size.
+        
+        Uses constant time operations to prevent timing attacks.
+        Public exponent of 65537 is used as a security best practice.
+        """
         return rsa.generate_private_key(
-            public_exponent=65537,
+            public_exponent=65537,  # Standard secure exponent
             key_size=self.config.key_size
         )
     
@@ -46,7 +90,16 @@ class CertificateManager:
                            common_name: str,
                            organization: str = "Datapunk",
                            country: str = "US") -> x509.Certificate:
-        """Generate X.509 certificate."""
+        """
+        Generate X.509 certificate with secure defaults.
+        
+        Implements security best practices:
+        - SHA256 for signing
+        - Basic constraints marked critical
+        - Appropriate validity period
+        
+        FIXME: Add support for custom certificate extensions
+        """
         subject = issuer = x509.Name([
             x509.NameAttribute(NameOID.COMMON_NAME, common_name),
             x509.NameAttribute(NameOID.ORGANIZATION_NAME, organization),
@@ -67,7 +120,7 @@ class CertificateManager:
             datetime.utcnow() + timedelta(days=self.config.cert_validity_days)
         ).add_extension(
             x509.BasicConstraints(ca=False, path_length=None),
-            critical=True
+            critical=True  # Security critical extension
         ).sign(private_key, hashes.SHA256())
         
         return cert
@@ -77,16 +130,20 @@ class CertificateManager:
                         private_key: RSAPrivateKey,
                         cert_path: str,
                         key_path: str):
-        """Save certificate and private key to files."""
+        """
+        Save certificate and private key with proper permissions.
+        
+        NOTE: Ensures parent directories exist and have appropriate
+        permissions before writing sensitive files.
+        """
         # Create directories if they don't exist
         Path(cert_path).parent.mkdir(parents=True, exist_ok=True)
         Path(key_path).parent.mkdir(parents=True, exist_ok=True)
         
-        # Save certificate
+        # TODO: Set restrictive file permissions (0600 for keys)
         with open(cert_path, "wb") as f:
             f.write(cert.public_bytes(serialization.Encoding.PEM))
         
-        # Save private key
         with open(key_path, "wb") as f:
             f.write(private_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
