@@ -1,21 +1,27 @@
 services:
-  # Infrastructure services (from base)
+  # Infrastructure Layer
+  # These services provide the foundation for service discovery,
+  # monitoring, and distributed tracing
   consul:
     extends:
       file: docker-compose.base.yml
       service: consul
+    # NOTE: Consul is the primary service registry and configuration store
 
   prometheus:
     extends:
       file: docker-compose.base.yml
       service: prometheus
+    # NOTE: Prometheus handles metrics collection and alerting
 
   jaeger:
     extends:
       file: docker-compose.base.yml
       service: jaeger
+    # NOTE: Jaeger provides distributed tracing capabilities
 
-  # Core services
+  # Core Services Layer
+  # These services form the backbone of the data processing pipeline
   lake:
     build:
       context: .
@@ -31,12 +37,13 @@ services:
     networks:
       - mesh-network
     volumes:
-      - lake-data:/data
+      - lake-data:/data  # Persistent storage for raw data
     healthcheck:
       test: ["CMD", "./scripts/healthcheck.sh"]
       interval: 30s
       timeout: 10s
       retries: 3
+    # NOTE: Lake service handles raw data ingestion and storage
 
   stream:
     build:
@@ -58,6 +65,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    # NOTE: Stream service processes real-time data flows
 
   nexus:
     build:
@@ -76,15 +84,16 @@ services:
     networks:
       - mesh-network
     ports:
-      - "8002:8002"
+      - "8002:8002"  # API gateway port
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 30s
+    # NOTE: Nexus serves as the API gateway and request router
 
-  # ML and Data Processing services
+  # ML and Data Processing Layer
   cortex:
     build:
       context: .
@@ -112,6 +121,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    # NOTE: Cortex handles ML model inference and GPU operations
+    # FIXME: Add fallback for systems without GPU support
 
   forge:
     build:
@@ -133,8 +144,9 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    # NOTE: Forge handles model training and optimization
 
-  # Frontend
+  # Frontend Layer
   frontend:
     build:
       context: containers/frontend
@@ -152,7 +164,10 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    # NOTE: Frontend provides the user interface
+    # TODO: Add development mode configuration
 
+# Persistent Storage Configuration
 volumes:
   lake-data:
     driver: local
@@ -184,8 +199,12 @@ volumes:
       type: none
       device: ${PWD}/data/vectors
       o: bind
+  # NOTE: Separate volumes for data and cache improve performance
+  # TODO: Add backup configuration for persistent volumes
 
+# Network Configuration
 networks:
   mesh-network:
     name: datapunk_mesh
     driver: bridge
+    # NOTE: Single network for service mesh communication
