@@ -5,6 +5,22 @@ from .error_types import ServiceError, ErrorCategory, ErrorSeverity
 from .recovery_strategies import RecoveryStrategies
 
 class ErrorHandlers:
+    """
+    Collection of specialized error handlers for different error categories.
+    
+    Each handler implements category-specific logic for:
+    - Error recovery attempts
+    - Resource cleanup
+    - Client response generation
+    - Monitoring integration
+    
+    IMPORTANT: Handlers should be stateless to ensure thread safety
+    and prevent resource leaks.
+    
+    TODO: Add metrics collection for handler success/failure rates
+    TODO: Implement handler-specific circuit breakers
+    """
+
     def __init__(
         self,
         recovery_strategies: RecoveryStrategies,
@@ -19,7 +35,17 @@ class ErrorHandlers:
         error: ServiceError,
         auth_service: Any
     ) -> Optional[Dict[str, Any]]:
-        """Handle authentication errors"""
+        """
+        Handle authentication failures with token refresh attempts.
+        
+        Recovery Strategy:
+        1. Check for expired token condition
+        2. Attempt token refresh if possible
+        3. Return new token or authentication required response
+        
+        NOTE: Token refresh should only be attempted if a valid
+        refresh token is available in the context.
+        """
         try:
             if error.context.additional_data.get('token_expired'):
                 # Attempt token refresh
@@ -48,7 +74,17 @@ class ErrorHandlers:
         db_manager: Any,
         operation: Callable
     ) -> Optional[Dict[str, Any]]:
-        """Handle database errors"""
+        """
+        Handle database errors with connection and deadlock recovery.
+        
+        Recovery Strategy:
+        1. Attempt connection recovery for connectivity issues
+        2. Apply backoff delay for deadlocks
+        3. Retry original operation if recovery succeeds
+        
+        IMPORTANT: Deadlock recovery includes random delay to
+        prevent thundering herd problem during retries.
+        """
         try:
             if "connection" in error.message.lower():
                 return await self.recovery.database_recovery(
@@ -73,7 +109,17 @@ class ErrorHandlers:
         self,
         error: ServiceError
     ) -> Optional[Dict[str, Any]]:
-        """Handle rate limit errors"""
+        """
+        Handle rate limit violations with retry guidance.
+        
+        Response includes:
+        - Retry delay duration
+        - Human-readable message
+        - Rate limit status
+        
+        NOTE: Retry delay is extracted from error context or
+        defaults to 60 seconds if not specified.
+        """
         try:
             retry_after = error.context.additional_data.get('retry_after', 60)
             return {
@@ -92,7 +138,17 @@ class ErrorHandlers:
         resource_manager: Any,
         operation: Callable
     ) -> Optional[Dict[str, Any]]:
-        """Handle resource errors"""
+        """
+        Handle resource exhaustion with optimization attempts.
+        
+        Recovery Strategy:
+        1. Attempt resource optimization
+        2. Retry operation if resources freed
+        3. Return failure if optimization unsuccessful
+        
+        TODO: Add resource usage metrics collection
+        TODO: Implement predictive resource optimization
+        """
         try:
             if "insufficient" in error.message.lower():
                 # Attempt to free up resources
@@ -115,7 +171,17 @@ class ErrorHandlers:
         error: ServiceError,
         operation: Callable
     ) -> Optional[Dict[str, Any]]:
-        """Handle network errors"""
+        """
+        Handle network failures with circuit breaker integration.
+        
+        Recovery Strategy:
+        1. Check circuit breaker status
+        2. Apply network recovery strategy if allowed
+        3. Return service unavailable if circuit open
+        
+        IMPORTANT: Circuit breaker prevents cascading failures
+        during network instability.
+        """
         try:
             if self.circuit_breaker and not self.circuit_breaker.is_allowed():
                 return {
@@ -154,7 +220,17 @@ class ErrorHandlers:
         error: ServiceError,
         operation: Callable
     ) -> Optional[Dict[str, Any]]:
-        """Handle timeout errors"""
+        """
+        Handle timeout errors with progressive timeout increase.
+        
+        Recovery Strategy:
+        1. Increase timeout by 50% for retry
+        2. Update context with new timeout
+        3. Retry operation with extended timeout
+        
+        NOTE: Timeout increase prevents premature failures for
+        operations that occasionally require more time.
+        """
         try:
             if error.retry_allowed:
                 # Increase timeout for retry
