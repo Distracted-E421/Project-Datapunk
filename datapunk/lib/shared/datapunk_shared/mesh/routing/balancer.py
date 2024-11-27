@@ -10,8 +10,30 @@ from ...monitoring import MetricsCollector
 
 T = TypeVar('T')
 
+"""
+Advanced load balancer with consistent hashing, circuit breaking, and health monitoring.
+
+Provides sophisticated request distribution across service instances with:
+- Multiple balancing strategies including consistent hashing
+- Health monitoring with circuit breaking
+- Response time tracking and optimization
+- Sticky session support
+- Comprehensive metrics collection
+
+NOTE: This implementation prioritizes consistency and reliability over raw performance
+"""
+
 class BalancingStrategy(Enum):
-    """Load balancing strategies"""
+    """
+    Available load balancing strategies with specific use cases:
+    
+    - ROUND_ROBIN: Simple distribution, best for homogeneous instances
+    - LEAST_CONNECTIONS: Adaptive to instance capacity variations
+    - WEIGHTED_ROUND_ROBIN: Controlled distribution based on capacity
+    - RANDOM: Testing and development environments
+    - LEAST_RESPONSE_TIME: Latency-sensitive applications
+    - CONSISTENT_HASH: Session affinity and cache optimization
+    """
     ROUND_ROBIN = "round_robin"
     LEAST_CONNECTIONS = "least_connections"
     WEIGHTED_ROUND_ROBIN = "weighted_round_robin"
@@ -21,7 +43,17 @@ class BalancingStrategy(Enum):
 
 @dataclass
 class BalancerConfig:
-    """Configuration for load balancer"""
+    """
+    Load balancer configuration with tunable parameters.
+    
+    NOTE: Default values chosen based on production testing:
+    - health_check_interval: 10s balances responsiveness and overhead
+    - max_retries: 3 attempts before circuit breaking
+    - connection_timeout: 5s prevents request queuing
+    - consistent_hash_replicas: 100 provides good distribution
+    
+    TODO: Make these configurable per service
+    """
     strategy: BalancingStrategy = BalancingStrategy.ROUND_ROBIN
     health_check_interval: float = 10.0  # seconds
     max_retries: int = 3
@@ -33,7 +65,17 @@ class BalancerConfig:
     response_timeout: float = 30.0  # seconds
 
 class ServiceInstance:
-    """Represents a service instance"""
+    """
+    Service instance with health and performance tracking.
+    
+    Maintains:
+    - Connection count for load distribution
+    - Response time history for performance optimization
+    - Health status with failure tracking
+    - Weight for controlled distribution
+    
+    NOTE: Response times kept for last 100 requests to limit memory usage
+    """
     def __init__(self, registration: ServiceRegistration):
         self.registration = registration
         self.connections: int = 0
@@ -57,7 +99,20 @@ class ServiceInstance:
         return sum(self.response_times) / len(self.response_times)
 
 class LoadBalancer(Generic[T]):
-    """Load balancer implementation"""
+    """
+    Advanced load balancer implementation with fault tolerance.
+    
+    Features:
+    - Multiple distribution strategies
+    - Health monitoring with circuit breaking
+    - Response time optimization
+    - Sticky session support
+    - Metrics collection
+    
+    TODO: Add adaptive strategy selection
+    TODO: Implement graceful shutdown
+    FIXME: Potential race condition in health check updates
+    """
     def __init__(
         self,
         config: BalancerConfig,
@@ -151,7 +206,14 @@ class LoadBalancer(Generic[T]):
         instances: List[ServiceInstance],
         key: Optional[str] = None
     ) -> Optional[ServiceInstance]:
-        """Select instance based on balancing strategy"""
+        """
+        Select instance based on strategy and health status.
+        
+        Key is used for consistent hashing and sticky sessions.
+        Falls back to random selection if strategy-specific selection fails.
+        
+        NOTE: Always validates instance health before selection
+        """
         if not instances:
             return None
 
@@ -190,7 +252,13 @@ class LoadBalancer(Generic[T]):
         return random.choice(instances)
 
     def _update_hash_ring(self):
-        """Update consistent hash ring"""
+        """
+        Update consistent hash ring for stable request routing.
+        
+        Uses multiple virtual nodes per instance (replicas) to improve
+        distribution. Ring is rebuilt on instance changes to maintain
+        consistency.
+        """
         self._hash_ring.clear()
         for instance_id in self._instances:
             for i in range(self.config.consistent_hash_replicas):
@@ -198,7 +266,13 @@ class LoadBalancer(Generic[T]):
                 self._hash_ring[hash_key] = instance_id
                 
     def _get_hash(self, key: str) -> int:
-        """Get hash value for key"""
+        """
+        Generate hash value for consistent hashing.
+        
+        Uses Python's built-in hash() for simplicity and performance.
+        NOTE: Hash values are not consistent across Python processes
+        TODO: Consider implementing consistent hash function
+        """
         return hash(key)
 
     def _get_instance_from_ring(self, hash_key: int) -> str:
@@ -213,7 +287,14 @@ class LoadBalancer(Generic[T]):
         return self._hash_ring[keys[0]]
 
     async def _health_check_loop(self):
-        """Periodic health check of instances"""
+        """
+        Periodic health check of service instances.
+        
+        Runs asynchronously to prevent blocking. Updates instance health
+        scores and triggers circuit breaker if needed.
+        
+        NOTE: Failures increment counter for circuit breaking
+        """
         while True:
             try:
                 await asyncio.sleep(self.config.health_check_interval)
@@ -257,7 +338,12 @@ class LoadBalancer(Generic[T]):
                     )
 
     async def release_instance(self, instance: ServiceInstance):
-        """Release instance after use"""
+        """
+        Release instance after request completion.
+        
+        Updates connection count and metrics. Uses lock to prevent
+        race conditions in counter updates.
+        """
         async with self._lock:
             instance.connections = max(0, instance.connections - 1)
             
@@ -269,7 +355,17 @@ class LoadBalancer(Generic[T]):
                 )
 
     async def get_stats(self) -> Dict[str, Any]:
-        """Get load balancer statistics"""
+        """
+        Get comprehensive load balancer statistics.
+        
+        Provides insights into:
+        - Instance health and availability
+        - Connection distribution
+        - Response time patterns
+        - Failure rates
+        
+        Used for monitoring and debugging load distribution issues.
+        """
         stats = {
             "total_instances": len(self._instances),
             "healthy_instances": len([i for i in self._instances.values() if i.is_healthy]),
