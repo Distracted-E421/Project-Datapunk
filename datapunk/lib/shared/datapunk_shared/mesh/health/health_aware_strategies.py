@@ -8,17 +8,61 @@ from .health_aware_metrics import HealthAwareMetrics
 
 logger = structlog.get_logger()
 
+"""
+Health-Aware Load Balancing Strategies for Datapunk Service Mesh
+
+This module provides load balancing algorithms that consider:
+- Instance health scores
+- Historical performance
+- Recovery patterns
+- Load distribution
+
+These strategies enable intelligent traffic distribution
+while maintaining service reliability and performance.
+
+TODO: Add machine learning-based strategy
+TODO: Implement predictive health scoring
+FIXME: Optimize strategy switching for large instance sets
+"""
+
 @dataclass
 class HealthStrategyConfig:
-    """Configuration for health-aware strategies."""
-    min_health_score: float = 0.5
-    health_weight: float = 0.7
-    load_weight: float = 0.3
-    recovery_threshold: float = 0.8
-    max_consecutive_failures: int = 3
+    """
+    Configuration for health-aware load balancing strategies.
+    
+    Balances between:
+    - Quick problem detection
+    - Stable routing decisions
+    - Load distribution
+    - Recovery speed
+    
+    NOTE: Weights should sum to 1.0
+    TODO: Add per-service configuration support
+    """
+    min_health_score: float = 0.5  # Minimum for routing
+    health_weight: float = 0.7     # Health score importance
+    load_weight: float = 0.3       # Load balance importance
+    recovery_threshold: float = 0.8 # Score for full recovery
+    max_consecutive_failures: int = 3  # Failures before exclusion
 
 class HealthWeightedRoundRobin(LoadBalancerStrategy):
-    """Round-robin weighted by health scores."""
+    """
+    Round-robin selection weighted by health scores.
+    
+    Benefits:
+    - Even load distribution
+    - Health consideration
+    - Simple implementation
+    - Predictable behavior
+    
+    Best for:
+    - Homogeneous services
+    - Stable environments
+    - Predictable loads
+    
+    NOTE: May not respond quickly to sudden changes
+    FIXME: Improve weight calculation for many instances
+    """
     
     def __init__(self, metrics: HealthAwareMetrics, config: HealthStrategyConfig):
         self.metrics = metrics
@@ -28,7 +72,17 @@ class HealthWeightedRoundRobin(LoadBalancerStrategy):
     def select_instance(self,
                        service: str,
                        instances: List[ServiceInstance]) -> Optional[ServiceInstance]:
-        """Select instance using health-weighted round-robin."""
+        """
+        Select instance using health-weighted round-robin.
+        
+        Selection process:
+        1. Filter by minimum health
+        2. Apply round-robin
+        3. Record metrics
+        
+        NOTE: Returns None if no healthy instances
+        TODO: Add support for priority instances
+        """
         if not instances:
             return None
         
@@ -64,7 +118,22 @@ class HealthWeightedRoundRobin(LoadBalancerStrategy):
             )
 
 class HealthAwareLeastConnections(LoadBalancerStrategy):
-    """Least connections weighted by health scores."""
+    """
+    Connection-based selection with health weighting.
+    
+    Combines:
+    - Connection counting
+    - Health scoring
+    - Load balancing
+    
+    Best for:
+    - Variable workloads
+    - Long-lived connections
+    - Resource-intensive services
+    
+    NOTE: Requires accurate connection tracking
+    TODO: Add connection age consideration
+    """
     
     def __init__(self, metrics: HealthAwareMetrics, config: HealthStrategyConfig):
         self.metrics = metrics
@@ -73,7 +142,18 @@ class HealthAwareLeastConnections(LoadBalancerStrategy):
     def select_instance(self,
                        service: str,
                        instances: List[ServiceInstance]) -> Optional[ServiceInstance]:
-        """Select instance using health-aware least connections."""
+        """
+        Select instance using health-aware least connections.
+        
+        Selection process:
+        1. Filter by minimum health
+        2. Calculate combined score
+        3. Select instance with best score
+        4. Record metrics
+        
+        NOTE: Returns None if no healthy instances
+        TODO: Add support for priority instances
+        """
         if not instances:
             return None
         
@@ -111,7 +191,23 @@ class HealthAwareLeastConnections(LoadBalancerStrategy):
             )
 
 class AdaptiveHealthAware(LoadBalancerStrategy):
-    """Adaptive strategy based on health trends."""
+    """
+    Dynamic strategy based on health trends.
+    
+    Features:
+    - Health trend analysis
+    - Failure pattern detection
+    - Recovery preference
+    - Adaptive selection
+    
+    Best for:
+    - Dynamic environments
+    - Critical services
+    - Complex failure patterns
+    
+    NOTE: More CPU intensive than other strategies
+    FIXME: Improve trend analysis performance
+    """
     
     def __init__(self, metrics: HealthAwareMetrics, config: HealthStrategyConfig):
         self.metrics = metrics
@@ -122,7 +218,18 @@ class AdaptiveHealthAware(LoadBalancerStrategy):
     def select_instance(self,
                        service: str,
                        instances: List[ServiceInstance]) -> Optional[ServiceInstance]:
-        """Select instance using adaptive health-aware strategy."""
+        """
+        Select instance using adaptive health-aware strategy.
+        
+        Selection phases:
+        1. Update health trends
+        2. Filter viable instances
+        3. Prefer recovering instances
+        4. Fall back to healthiest
+        
+        NOTE: Prioritizes stability over pure performance
+        TODO: Add machine learning-based prediction
+        """
         if not instances:
             return None
         
