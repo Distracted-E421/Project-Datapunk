@@ -8,26 +8,71 @@ from ..monitoring import MetricsCollector
 import json
 import hashlib
 
+"""
+Registry Synchronization Implementation for Datapunk Service Mesh
+
+This module provides eventual consistency across distributed registries:
+- State-based synchronization using hashes
+- Configurable conflict resolution
+- Compression for large datasets
+- Automatic retry handling
+- Metrics collection
+
+The sync mechanism ensures service information remains consistent
+across multiple registry instances while minimizing network overhead.
+
+TODO: Implement differential sync for large registries
+TODO: Add support for bidirectional conflict resolution
+FIXME: Improve peer failure detection and handling
+"""
+
 @dataclass
 class SyncConfig:
-    """Configuration for registry synchronization"""
-    sync_interval: float = 30.0  # seconds
-    sync_timeout: float = 10.0  # seconds
-    retry_delay: float = 5.0  # seconds
-    max_retries: int = 3
-    batch_size: int = 100
-    conflict_resolution: str = "timestamp"  # timestamp or version
-    enable_compression: bool = True
-    compression_threshold: int = 1024  # bytes
-    peers: List[str] = None  # List of peer sync endpoints
-    local_endpoint: Optional[str] = None
+    """
+    Configuration for registry synchronization behavior.
+    
+    Timeouts and intervals are tuned for:
+    - Network latency tolerance
+    - Resource usage optimization
+    - Quick convergence
+    
+    NOTE: sync_interval should be longer than sync_timeout
+    TODO: Add support for adaptive intervals based on network conditions
+    """
+    sync_interval: float = 30.0  # Time between sync attempts
+    sync_timeout: float = 10.0  # Individual sync operation timeout
+    retry_delay: float = 5.0  # Delay after failed sync
+    max_retries: int = 3  # Maximum retry attempts
+    batch_size: int = 100  # Services per sync batch
+    conflict_resolution: str = "timestamp"  # Conflict resolution strategy
+    enable_compression: bool = True  # Compress large payloads
+    compression_threshold: int = 1024  # Minimum size for compression
+    peers: List[str] = None  # Peer registry endpoints
+    local_endpoint: Optional[str] = None  # This registry's endpoint
 
 class SyncError(Exception):
     """Base class for sync errors"""
     pass
 
 class RegistrySync:
-    """Handles synchronization of service registries"""
+    """
+    Registry synchronization manager for distributed consistency.
+    
+    Core responsibilities:
+    - Maintain registry consistency across peers
+    - Detect and resolve conflicts
+    - Optimize network usage
+    - Track sync metrics
+    - Handle peer failures
+    
+    Uses a state-based sync approach to:
+    - Minimize unnecessary updates
+    - Handle network partitions
+    - Support eventual consistency
+    
+    NOTE: All sync operations are idempotent
+    FIXME: Improve memory usage during large syncs
+    """
     def __init__(
         self,
         config: SyncConfig,
@@ -62,7 +107,18 @@ class RegistrySync:
             await self._session.close()
 
     async def _sync_loop(self):
-        """Main sync loop"""
+        """
+        Main synchronization loop.
+        
+        Implements a pull-based sync pattern:
+        1. Check peer state hashes
+        2. Pull changes if needed
+        3. Merge updates
+        4. Track metrics
+        
+        NOTE: Continues running despite peer failures
+        TODO: Add support for push notifications
+        """
         while self._running:
             try:
                 await self._sync_with_peers()
@@ -103,7 +159,18 @@ class RegistrySync:
                     )
 
     async def _sync_with_peer(self, peer: str):
-        """Sync with a specific peer"""
+        """
+        Synchronize with a specific peer registry.
+        
+        Uses optimistic sync approach:
+        1. Compare state hashes
+        2. Pull full state only if different
+        3. Apply conflict resolution
+        4. Update sync state
+        
+        NOTE: Hash comparison prevents unnecessary transfers
+        FIXME: Add support for partial state sync
+        """
         # Get local state hash
         local_state = await self._get_state_hash()
         
@@ -162,7 +229,21 @@ class RegistrySync:
             ]
 
     async def _merge_services(self, peer_services: List[ServiceRegistration]):
-        """Merge peer services with local registry"""
+        """
+        Merge peer services with local registry state.
+        
+        Implements configurable conflict resolution:
+        timestamp: Latest update wins
+        version: Higher version wins
+        
+        Edge cases handled:
+        - Missing timestamps
+        - Version equality
+        - Partial updates
+        
+        NOTE: Conflict resolution is non-blocking
+        TODO: Add custom merge strategies support
+        """
         local_services = {
             s.id: s for s in await self.registry.get_services()
         }
@@ -212,7 +293,17 @@ class RegistrySync:
             await self._sync_with_peers()
 
     def _compress_data(self, data: bytes) -> bytes:
-        """Compress data if enabled and meets threshold"""
+        """
+        Compress sync data for network efficiency.
+        
+        Uses zlib compression when beneficial:
+        - Only compresses above threshold
+        - Maintains original data if compression ineffective
+        - Handles compression failures gracefully
+        
+        NOTE: Compression ratio varies with data content
+        TODO: Add support for alternative compression algorithms
+        """
         if (
             self.config.enable_compression and
             len(data) > self.config.compression_threshold
@@ -222,7 +313,17 @@ class RegistrySync:
         return data
 
     def _decompress_data(self, data: bytes) -> bytes:
-        """Decompress data if compressed"""
+        """
+        Decompress sync data with fallback handling.
+        
+        Safely handles:
+        - Uncompressed data
+        - Corrupted compressed data
+        - Compression format changes
+        
+        NOTE: Returns original data if decompression fails
+        FIXME: Add corruption detection
+        """
         try:
             import zlib
             return zlib.decompress(data)
