@@ -7,8 +7,41 @@ import statistics
 import json
 from collections import defaultdict
 
+"""
+Metrics Collection and Management System for Datapunk
+
+A comprehensive metrics system designed to collect, aggregate, and manage
+various types of metrics across the platform. Supports real-time monitoring
+and historical analysis with configurable retention and aggregation.
+
+Key Features:
+- Multiple metric types (Counter, Gauge, Histogram, Summary, Timer)
+- Configurable aggregation and retention
+- Tag-based metric organization
+- Persistence support
+- Statistical analysis capabilities
+
+Design Philosophy:
+- Prioritize low overhead collection
+- Support flexible aggregation strategies
+- Enable detailed performance analysis
+- Maintain data efficiency through pruning
+
+NOTE: This implementation is optimized for single-process usage
+TODO: Add support for distributed metrics collection
+"""
+
 class MetricType(Enum):
-    """Types of metrics"""
+    """
+    Supported metric types with different collection characteristics.
+    
+    Why These Types:
+    COUNTER: Track cumulative values (e.g., request counts)
+    GAUGE: Monitor point-in-time values (e.g., queue depth)
+    HISTOGRAM: Analyze value distributions (e.g., response times)
+    SUMMARY: Calculate statistical summaries (e.g., p95 latency)
+    TIMER: Measure duration-based metrics (e.g., processing time)
+    """
     COUNTER = "counter"    # Monotonically increasing value
     GAUGE = "gauge"        # Point-in-time value
     HISTOGRAM = "histogram"  # Distribution of values
@@ -17,7 +50,17 @@ class MetricType(Enum):
 
 @dataclass
 class MetricConfig:
-    """Configuration for metrics collection"""
+    """
+    Configuration for metrics collection behavior.
+    
+    Design Considerations:
+    - aggregation_interval balances precision vs overhead
+    - retention_period manages memory usage
+    - max_tags prevents unbounded cardinality
+    
+    WARNING: High max_metrics values may impact memory usage
+    TODO: Add validation for interdependent parameters
+    """
     enable_aggregation: bool = True
     aggregation_interval: int = 60  # seconds
     retention_period: int = 24 * 60 * 60  # 24 hours in seconds
@@ -29,14 +72,34 @@ class MetricConfig:
     percentiles: List[float] = None  # e.g., [0.5, 0.9, 0.95, 0.99]
 
 class MetricValue:
-    """Represents a metric value with timestamp"""
+    """
+    Container for metric values with timestamp and tags.
+    
+    Key Features:
+    - Automatic timestamp recording
+    - Tag support for metric segmentation
+    - Flexible value types
+    
+    NOTE: Tags are limited by max_tags configuration
+    """
     def __init__(self, value: float, timestamp: Optional[datetime] = None):
         self.value = value
         self.timestamp = timestamp or datetime.utcnow()
         self.tags: Dict[str, str] = {}
 
 class MetricsCollector:
-    """Collects and manages metrics"""
+    """
+    Manages metric collection, aggregation, and persistence.
+    
+    Key Capabilities:
+    - Multiple metric type support
+    - Automatic aggregation
+    - Data persistence
+    - Statistical analysis
+    - Memory management
+    
+    FIXME: Consider adding metric type validation
+    """
     def __init__(self, config: MetricConfig):
         self.config = config
         self._metrics: Dict[str, Dict[str, List[MetricValue]]] = defaultdict(lambda: defaultdict(list))
@@ -45,7 +108,16 @@ class MetricsCollector:
         self._lock = asyncio.Lock()
 
     async def start(self):
-        """Start metrics collector"""
+        """
+        Initializes metrics collection and maintenance tasks.
+        
+        Implementation Notes:
+        - Loads persisted state if enabled
+        - Starts aggregation if configured
+        - Initializes cleanup task
+        
+        WARNING: Ensure proper cleanup by calling stop()
+        """
         if self.config.enable_persistence:
             await self._load_state()
 
@@ -115,7 +187,17 @@ class MetricsCollector:
         value: float,
         tags: Optional[Dict[str, str]] = None
     ):
-        """Add metric value"""
+        """
+        Adds a metric value with proper locking and limits.
+        
+        Design Decisions:
+        - Uses lock for thread safety
+        - Implements tag limits
+        - Manages metric count limits
+        - Handles metric key creation
+        
+        NOTE: Oldest metrics are removed when limit is reached
+        """
         async with self._lock:
             # Validate tags
             if tags and len(tags) > self.config.max_tags:
@@ -174,7 +256,17 @@ class MetricsCollector:
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None
     ) -> Dict[str, Any]:
-        """Get statistical summary of metric"""
+        """
+        Calculates statistical summaries of metrics.
+        
+        Statistical Features:
+        - Basic statistics (min, max, mean, median)
+        - Standard deviation when applicable
+        - Configurable percentile calculations
+        - Time range filtering
+        
+        TODO: Add support for custom statistical functions
+        """
         values = await self.get_metric(name, metric_type, tags, start_time, end_time)
         if not values:
             return {}
