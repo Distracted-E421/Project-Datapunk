@@ -8,14 +8,56 @@ from ...utils.retry import with_retry, RetryConfig
 
 logger = structlog.get_logger(__name__)
 
+"""
+Health Check System for Datapunk Service Mesh
+
+This module implements a robust health checking system for microservices within
+the Datapunk mesh architecture. It provides real-time health monitoring,
+metric collection, and status management for distributed services.
+
+Key Features:
+- Configurable health check intervals and thresholds
+- Prometheus metric integration for monitoring
+- Automatic status degradation and recovery
+- Retry policies for transient failures
+- Service mesh integration points
+
+Integration Notes:
+- Requires Prometheus client for metric collection
+- Designed to work with the Datapunk service mesh discovery system
+- Supports both sync and async health check implementations
+"""
+
 class HealthStatus:
-    """Health status constants"""
-    HEALTHY = "healthy"
-    DEGRADED = "degraded"
-    UNHEALTHY = "unhealthy"
+    """
+    Health status constants defining the possible states of a service.
+    
+    States follow a degradation pattern:
+    HEALTHY -> DEGRADED -> UNHEALTHY
+    
+    Recovery requires meeting the healthy_threshold to transition back up.
+    """
+    HEALTHY = "healthy"     # Service is fully operational
+    DEGRADED = "degraded"   # Service is operational but experiencing issues
+    UNHEALTHY = "unhealthy" # Service is non-operational
 
 class HealthCheck:
-    """Health check implementation"""
+    """
+    Health check implementation for individual services within the mesh.
+    
+    Manages service health state transitions based on configured thresholds
+    and collects metrics for monitoring and alerting.
+    
+    Integration Points:
+    - Prometheus metrics for monitoring
+    - Service mesh for discovery
+    - Logging for audit trail
+    
+    Recovery Behavior:
+    - Service must pass healthy_threshold consecutive checks to recover
+    - Fails after unhealthy_threshold consecutive failures
+    - Degraded state serves as a warning before complete failure
+    """
     
     def __init__(
         self,
@@ -25,6 +67,16 @@ class HealthCheck:
         unhealthy_threshold: int = 3,
         healthy_threshold: int = 2
     ):
+        """
+        Initialize health check with configurable thresholds.
+        
+        Args:
+            name: Service identifier for metrics and logging
+            check_interval: Seconds between health checks
+            timeout: Maximum seconds to wait for check response
+            unhealthy_threshold: Failures before marking unhealthy
+            healthy_threshold: Successes before marking healthy
+        """
         self.name = name
         self.check_interval = check_interval
         self.timeout = timeout
@@ -59,7 +111,12 @@ class HealthCheck:
         self._update_metrics()
     
     def _update_metrics(self):
-        """Update Prometheus metrics"""
+        """
+        Update Prometheus metrics based on current health status.
+        
+        NOTE: Metric updates are atomic to prevent race conditions
+        during concurrent health checks.
+        """
         status_value = {
             HealthStatus.HEALTHY: 2,
             HealthStatus.DEGRADED: 1,
@@ -73,7 +130,21 @@ class HealthCheck:
         self.checks.append(check)
     
     async def run_checks(self) -> Dict[str, Any]:
-        """Run all health checks"""
+        """
+        Execute all registered health checks for the service.
+        
+        Recovery Logic:
+        1. All checks must pass for HEALTHY status
+        2. Timeout results in DEGRADED status
+        3. Any failure increments consecutive_failures
+        4. Meeting healthy_threshold resets failure count
+        
+        Returns:
+            Dict containing check results, status, and metrics
+        
+        FIXME: Add circuit breaker to prevent cascade failures
+        TODO: Implement check prioritization
+        """
         start_time = time.time()
         results = []
         overall_status = HealthStatus.HEALTHY
