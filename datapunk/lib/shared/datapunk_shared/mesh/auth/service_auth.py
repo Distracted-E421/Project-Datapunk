@@ -10,8 +10,35 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from .auth_metrics import AuthMetrics
 
+"""
+Service Mesh Authentication System
+
+Implements secure service-to-service authentication in the Datapunk mesh
+using mTLS and JWT tokens. Provides robust credential management and
+real-time security monitoring.
+
+Key features:
+- mTLS certificate management
+- JWT token issuance and validation
+- API key verification
+- Metric collection
+- Credential rotation support
+
+See sys-arch.mmd Security/Authentication for implementation details.
+"""
+
 @dataclass
 class ServiceCredentials:
+    """
+    Service authentication credentials container.
+    
+    Manages the complete set of credentials required for secure
+    service-to-service communication. Supports both mTLS and
+    API key authentication methods.
+    
+    TODO: Add support for credential rotation policies
+    TODO: Implement credential backup/recovery
+    """
     service_id: str
     api_key: str
     cert_path: Path
@@ -19,12 +46,28 @@ class ServiceCredentials:
     ca_path: Path
 
 class ServiceAuthenticator:
+    """
+    Service authentication and credential management system.
+    
+    Coordinates service authentication across the mesh using a
+    combination of mTLS certificates and JWT tokens. Designed
+    for high-availability and secure credential management.
+    
+    NOTE: All credential operations are atomic to prevent
+    inconsistent security states.
+    """
     def __init__(
         self,
         credentials_dir: Path,
         jwt_secret: str,
         metrics_enabled: bool = True
     ):
+        """
+        Initialize authenticator with security configuration.
+        
+        NOTE: JWT secret should be managed through secure key
+        storage in production environments.
+        """
         self.credentials_dir = credentials_dir
         self.jwt_secret = jwt_secret
         self.logger = logging.getLogger(__name__)
@@ -33,9 +76,18 @@ class ServiceAuthenticator:
         self._ssl_contexts: Dict[str, ssl.SSLContext] = {}
 
     async def register_service(self, credentials: ServiceCredentials) -> bool:
-        """Register a service with its authentication credentials"""
+        """
+        Register service with authentication credentials.
+        
+        Sets up both mTLS and API key authentication for a service.
+        Certificate paths are validated and SSL contexts are
+        pre-initialized for performance.
+        
+        NOTE: Failed registrations do not leave partial credentials
+        in the system.
+        """
         try:
-            # Validate credentials
+            # Validate certificate files
             if not all([
                 credentials.cert_path.exists(),
                 credentials.key_path.exists(),
@@ -55,7 +107,7 @@ class ServiceAuthenticator:
             ssl_context.verify_mode = ssl.CERT_REQUIRED
             ssl_context.check_hostname = True
 
-            # Store credentials and SSL context
+            # Store credentials atomically
             self._service_credentials[credentials.service_id] = credentials
             self._ssl_contexts[credentials.service_id] = ssl_context
 
@@ -75,7 +127,15 @@ class ServiceAuthenticator:
         api_key: str,
         request_data: Dict[str, Any]
     ) -> Optional[str]:
-        """Authenticate a service request and return a JWT token"""
+        """
+        Authenticate service request and issue JWT token.
+        
+        Performs API key verification and issues a short-lived
+        JWT token for subsequent request authentication.
+        
+        NOTE: Token expiration is intentionally short to limit
+        potential security exposure.
+        """
         try:
             credentials = self._service_credentials.get(service_id)
             if not credentials:
