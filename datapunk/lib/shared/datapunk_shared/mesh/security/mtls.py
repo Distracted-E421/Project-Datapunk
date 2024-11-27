@@ -11,9 +11,32 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from ..monitoring import MetricsCollector
 
+"""
+Mutual TLS implementation with certificate lifecycle management.
+
+Provides secure service-to-service authentication with:
+- Certificate validation and verification
+- Automatic certificate renewal
+- Secure SSL context configuration
+- Certificate lifecycle monitoring
+- Performance metrics collection
+
+NOTE: Requires proper CA infrastructure for certificate signing
+"""
+
 @dataclass
 class MTLSConfig:
-    """Configuration for mutual TLS"""
+    """
+    mTLS configuration with security parameters.
+    
+    Security choices:
+    - ECDHE ciphers prioritized for perfect forward secrecy
+    - 2048-bit RSA keys (industry standard)
+    - 30-day renewal threshold for safety margin
+    
+    NOTE: Cipher string follows OpenSSL format
+    TODO: Add support for custom certificate extensions
+    """
     ca_cert: str
     certificate: str
     private_key: str
@@ -36,7 +59,18 @@ class CertificateError(MTLSError):
     pass
 
 class MTLSManager:
-    """Manages mutual TLS certificates and configuration"""
+    """
+    Manages mTLS certificates and SSL contexts.
+    
+    Features:
+    - Automatic certificate validation
+    - Proactive renewal before expiration
+    - Secure context configuration
+    - Certificate chain verification
+    
+    FIXME: Certificate renewal requires manual CA signing
+    TODO: Add OCSP stapling support
+    """
     def __init__(
         self,
         config: MTLSConfig,
@@ -49,7 +83,16 @@ class MTLSManager:
         self._renewal_task: Optional[asyncio.Task] = None
 
     async def initialize(self):
-        """Initialize MTLS manager"""
+        """
+        Initialize mTLS system and start renewal monitoring.
+        
+        Performs:
+        - Certificate chain validation
+        - SSL context creation
+        - Renewal task scheduling
+        
+        NOTE: Fails fast if certificates are invalid
+        """
         try:
             # Load and validate certificates
             await self._load_certificates()
@@ -79,7 +122,17 @@ class MTLSManager:
                 pass
 
     def get_ssl_context(self) -> ssl.SSLContext:
-        """Get SSL context for MTLS"""
+        """
+        Create secure SSL context for mTLS.
+        
+        Security features:
+        - Mutual authentication required
+        - Strong cipher preferences
+        - Hostname verification
+        - Certificate validation
+        
+        NOTE: Context is cached for performance
+        """
         if not self._ssl_context:
             self._ssl_context = self._create_ssl_context()
         return self._ssl_context
@@ -109,7 +162,17 @@ class MTLSManager:
             raise MTLSError(f"Failed to create SSL context: {str(e)}")
 
     async def _load_certificates(self):
-        """Load and validate certificates"""
+        """
+        Load and validate certificate chain.
+        
+        Validates:
+        - Certificate dates
+        - Chain integrity
+        - Key usage
+        
+        WARNING: Does not check certificate revocation
+        TODO: Add CRL/OCSP checking
+        """
         try:
             # Load CA certificate
             with open(self.config.ca_cert, 'rb') as f:
@@ -160,7 +223,16 @@ class MTLSManager:
             )
 
     async def _certificate_renewal_loop(self):
-        """Periodic certificate renewal check"""
+        """
+        Monitor certificate expiration and trigger renewal.
+        
+        Uses daily checks to balance:
+        - Timely renewal
+        - System resources
+        - CA load
+        
+        NOTE: Continues running after renewal failures
+        """
         while True:
             try:
                 await asyncio.sleep(24 * 60 * 60)  # Check daily
@@ -193,7 +265,18 @@ class MTLSManager:
                 raise
 
     async def renew_certificate(self):
-        """Renew service certificate"""
+        """
+        Generate new certificate request and private key.
+        
+        Process:
+        1. Generate new key pair
+        2. Create CSR with current identity
+        3. Save private key securely
+        4. Request CA signing (manual step)
+        
+        WARNING: Private key not encrypted at rest
+        TODO: Add private key encryption
+        """
         try:
             # Generate new key pair
             private_key = rsa.generate_private_key(
@@ -231,7 +314,16 @@ class MTLSManager:
             raise CertificateError(f"Failed to renew certificate: {str(e)}")
 
     async def get_certificate_info(self) -> Dict[str, Any]:
-        """Get information about current certificates"""
+        """
+        Get certificate status and monitoring data.
+        
+        Provides:
+        - Validity periods
+        - Time until expiration
+        - Renewal status
+        
+        Used for monitoring and automation decisions.
+        """
         now = datetime.utcnow()
         return {
             **self._cert_info,
@@ -240,7 +332,18 @@ class MTLSManager:
         }
 
     def verify_peer_certificate(self, cert_der: bytes) -> bool:
-        """Verify peer certificate"""
+        """
+        Verify peer certificate for mutual authentication.
+        
+        Current checks:
+        - Valid dates
+        - Basic constraints
+        
+        TODO: Add full verification chain:
+        - Certificate chain validation
+        - Revocation checking
+        - Policy enforcement
+        """
         try:
             cert = x509.load_der_x509_certificate(cert_der)
             
