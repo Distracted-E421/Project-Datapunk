@@ -8,8 +8,37 @@ from ...monitoring import MetricsCollector
 
 T = TypeVar('T')
 
+"""
+Retry Pattern Implementation for Datapunk's Messaging System
+
+This module implements a flexible retry mechanism for handling transient failures 
+in distributed systems. It supports multiple retry strategies and integrates with 
+the platform's monitoring system for observability.
+
+Key Features:
+- Multiple retry strategies (fixed, exponential, linear, random, fibonacci)
+- Configurable delays, timeouts, and jitter
+- Integration with metrics collection
+- Support for status code-based retries
+- Generic type support for operation results
+
+Design Decisions:
+- Uses dataclasses for clean configuration management
+- Implements async/await pattern for non-blocking retries
+- Separates strategy logic from retry mechanics
+- Includes jitter to prevent thundering herd problems
+"""
+
 class RetryStrategy(Enum):
-    """Retry strategies"""
+    """
+    Retry strategies for different failure scenarios.
+    
+    FIXED: Best for known, consistent recovery times
+    EXPONENTIAL: Ideal for distributed systems with variable load
+    LINEAR: Suitable for gradual backoff needs
+    RANDOM: Helps prevent thundering herd in distributed systems
+    FIBONACCI: Balanced approach between linear and exponential
+    """
     FIXED = "fixed"           # Fixed delay between retries
     EXPONENTIAL = "exponential"  # Exponential backoff
     LINEAR = "linear"         # Linear backoff
@@ -18,7 +47,13 @@ class RetryStrategy(Enum):
 
 @dataclass
 class RetryConfig:
-    """Configuration for retry policy"""
+    """
+    Configuration for retry behavior and limits.
+    
+    NOTE: jitter should be between 0 and 1, representing percentage of delay
+    WARNING: Setting max_delay too high might impact system responsiveness
+    TODO: Add validation for jitter and delay relationships
+    """
     max_retries: int = 3
     initial_delay: float = 1.0  # seconds
     max_delay: float = 30.0  # seconds
@@ -42,7 +77,17 @@ class RetryExhaustedError(RetryError):
     pass
 
 class RetryPolicy(Generic[T]):
-    """Implements retry patterns with various strategies"""
+    """
+    Implements configurable retry patterns for operations that may fail transiently.
+    
+    The policy wraps operations with retry logic and handles:
+    - Multiple retry strategies
+    - Timeout management
+    - Error tracking and metrics
+    - Status code validation
+    
+    FIXME: Consider adding circuit breaker pattern integration
+    """
     def __init__(
         self,
         config: RetryConfig,
@@ -52,7 +97,16 @@ class RetryPolicy(Generic[T]):
         self.metrics = metrics_collector
 
     def wrap(self, operation: Callable[..., T]) -> Callable[..., T]:
-        """Wrap operation with retry logic"""
+        """
+        Wraps an operation with retry logic based on configuration.
+        
+        Design Notes:
+        - Maintains operation signature through Generic typing
+        - Tracks metrics for each attempt if collector is available
+        - Handles both exception and status code based retries
+        
+        WARNING: Ensure wrapped operations are idempotent
+        """
         async def wrapped(*args, **kwargs) -> T:
             start_time = datetime.utcnow()
             attempt = 0
@@ -127,7 +181,16 @@ class RetryPolicy(Generic[T]):
         return wrapped
 
     def _calculate_delay(self, attempt: int) -> float:
-        """Calculate delay based on retry strategy"""
+        """
+        Calculates delay between retry attempts based on strategy.
+        
+        Implementation Notes:
+        - Applies jitter to prevent synchronized retries
+        - Caps delay at max_delay to prevent excessive waits
+        - Each strategy optimized for specific failure scenarios
+        
+        TODO: Consider adding custom strategy support
+        """
         if self.config.strategy == RetryStrategy.FIXED:
             delay = self.config.initial_delay
 
@@ -161,7 +224,15 @@ class RetryPolicy(Generic[T]):
         return min(delay, self.config.max_delay)
 
     def _fibonacci_delay(self, attempt: int) -> float:
-        """Calculate Fibonacci sequence delay"""
+        """
+        Implements Fibonacci sequence based delay calculation.
+        
+        Why Fibonacci:
+        - Provides natural progression between linear and exponential
+        - Useful for scenarios requiring more nuanced backoff
+        
+        NOTE: Recursive implementation - may need optimization for large attempts
+        """
         def fib(n: int) -> int:
             if n <= 0:
                 return 0
