@@ -1,3 +1,26 @@
+"""
+Distributed Tracing Infrastructure for Datapunk Service Mesh
+
+Implements intelligent sampling and correlation for distributed tracing across
+the service mesh. Provides context propagation and baggage handling for
+end-to-end transaction tracking.
+
+Key features:
+- Adaptive sampling based on operation value
+- Correlation ID propagation
+- Error tracking with increased sampling
+- Debug mode support
+- Structured logging integration
+
+Performance considerations:
+- Uses context variables for thread safety
+- Implements efficient sampling decisions
+- Batches span exports for throughput
+
+NOTE: This is a critical observability component. Changes should consider
+impact on system-wide debugging capabilities and storage costs.
+"""
+
 from typing import Optional, Dict, Any, List
 import structlog
 from opentelemetry import trace, context
@@ -17,7 +40,17 @@ logger = structlog.get_logger()
 current_span = contextvars.ContextVar("current_span", default=None)
 
 class SamplingConfig:
-    """Configuration for trace sampling."""
+    """
+    Configuration for intelligent trace sampling.
+    
+    Implements different sampling rates based on operation characteristics:
+    - base_rate: Default sampling probability
+    - error_rate: Sampling rate for error cases
+    - high_value_rate: Rate for important operations
+    - debug_rate: Rate when debug mode is enabled
+    
+    NOTE: Rates should be tuned based on traffic volume and storage capacity.
+    """
     def __init__(self,
                  base_rate: float = 1.0,
                  error_rate: float = 1.0,
@@ -29,7 +62,18 @@ class SamplingConfig:
         self.debug_rate = debug_rate
 
 class CustomSampler(sampling.Sampler):
-    """Custom sampling strategy."""
+    """
+    Intelligent sampling strategy for trace collection.
+    
+    Implements adaptive sampling based on:
+    - Parent trace context
+    - Error conditions
+    - Operation value
+    - Debug status
+    
+    TODO: Add rate limiting for high-cardinality traces
+    FIXME: Improve sampling coordination across services
+    """
     
     def __init__(self, config: SamplingConfig):
         self.config = config
@@ -42,12 +86,21 @@ class CustomSampler(sampling.Sampler):
                      attributes: Dict = None,
                      links: List = None,
                      trace_state: Optional[Dict] = None) -> sampling.Decision:
-        """Determine if span should be sampled."""
-        # Always sample if parent is sampled
+        """
+        Determine if span should be sampled based on context and configuration.
+        
+        Sampling logic prioritizes:
+        1. Parent context (maintain trace continuity)
+        2. Error cases (capture failure scenarios)
+        3. High-value operations (business critical paths)
+        4. Debug mode (development support)
+        5. Base sampling rate (general visibility)
+        """
+        # Maintain trace continuity
         if parent_context and parent_context.trace_flags.sampled:
             return sampling.Decision.RECORD_AND_SAMPLE
             
-        # Always sample errors
+        # Prioritize error cases
         if attributes and attributes.get("error", False):
             if random.random() < self.config.error_rate:
                 return sampling.Decision.RECORD_AND_SAMPLE
@@ -57,12 +110,12 @@ class CustomSampler(sampling.Sampler):
             if random.random() < self.config.high_value_rate:
                 return sampling.Decision.RECORD_AND_SAMPLE
                 
-        # Sample debug mode
+        # Support debug mode
         if attributes and attributes.get("debug", False):
             if random.random() < self.config.debug_rate:
                 return sampling.Decision.RECORD_AND_SAMPLE
                 
-        # Base sampling rate
+        # Apply base sampling rate
         if random.random() < self.config.base_rate:
             return sampling.Decision.RECORD_AND_SAMPLE
             
