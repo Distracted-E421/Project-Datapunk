@@ -12,28 +12,89 @@ from dataclasses import dataclass
 
 logger = structlog.get_logger()
 
+"""
+Core Health Check Types for Datapunk Service Mesh
+
+This module defines the foundational types for health monitoring:
+- Health status definitions
+- Check result structures
+- Base check interfaces
+- Common check implementations
+
+These types provide a consistent framework for health
+monitoring across the service mesh.
+
+TODO: Add health score calculation
+TODO: Implement check aggregation
+FIXME: Improve error detail standardization
+"""
+
 class HealthStatus(Enum):
-    """Health status levels."""
-    HEALTHY = "healthy"
-    DEGRADED = "degraded"
-    UNHEALTHY = "unhealthy"
+    """
+    Service health status levels with routing implications.
+    
+    Status progression:
+    HEALTHY -> DEGRADED -> UNHEALTHY
+    
+    Used for:
+    - Load balancing decisions
+    - Alert triggering
+    - Metric categorization
+    
+    NOTE: Status changes affect service routing
+    """
+    HEALTHY = "healthy"    # Full service capability
+    DEGRADED = "degraded"  # Limited functionality
+    UNHEALTHY = "unhealthy"  # Service failure
 
 @dataclass
 class HealthCheckResult:
-    """Result of a health check."""
+    """
+    Standardized health check result structure.
+    
+    Provides:
+    - Consistent status reporting
+    - Detailed failure context
+    - Timing information
+    - Extended metrics
+    
+    NOTE: Details should be JSON-serializable
+    TODO: Add result validation
+    """
     status: HealthStatus
     message: str
     details: Optional[Dict] = None
     timestamp: datetime = datetime.utcnow()
 
 class BaseHealthCheck:
-    """Base class for health checks."""
+    """
+    Abstract base for all health checks.
+    
+    Defines contract for:
+    - Async execution
+    - Standard result format
+    - Error handling
+    - Timeout behavior
+    
+    NOTE: All checks must handle timeouts
+    FIXME: Add check cancellation support
+    """
     
     async def check(self) -> HealthCheckResult:
         raise NotImplementedError
 
 class DatabaseHealthCheck(BaseHealthCheck):
-    """Database connectivity health check."""
+    """
+    Database connectivity and operation verification.
+    
+    Checks:
+    - Connection status
+    - Basic query execution
+    - Timeout handling
+    
+    NOTE: Uses simple query to minimize impact
+    TODO: Add connection pool monitoring
+    """
     
     def __init__(self, db_client, timeout: float = 5.0):
         self.db = db_client
@@ -56,7 +117,22 @@ class DatabaseHealthCheck(BaseHealthCheck):
             )
 
 class MessageQueueHealthCheck(BaseHealthCheck):
-    """Message queue health check."""
+    """
+    Message queue health and performance monitoring.
+    
+    Monitors:
+    - Connection state
+    - Queue depth
+    - Processing backlog
+    
+    Status determination:
+    - HEALTHY: Normal operation
+    - DEGRADED: High queue depth
+    - UNHEALTHY: Connection failure
+    
+    NOTE: Queue depth threshold affects status
+    FIXME: Add consumer lag monitoring
+    """
     
     def __init__(self, mq_client, timeout: float = 5.0):
         self.mq = mq_client
@@ -89,7 +165,21 @@ class MessageQueueHealthCheck(BaseHealthCheck):
             )
 
 class ResourceHealthCheck(BaseHealthCheck):
-    """System resource health check."""
+    """
+    System resource utilization monitoring.
+    
+    Tracks:
+    - CPU usage
+    - Memory consumption
+    - Disk utilization
+    
+    Thresholds trigger status changes:
+    - Above 90%: DEGRADED
+    - Resource exhaustion: UNHEALTHY
+    
+    NOTE: Thresholds should match capacity planning
+    TODO: Add network resource monitoring
+    """
     
     def __init__(self,
                  cpu_threshold: float = 0.9,
@@ -135,7 +225,22 @@ class ResourceHealthCheck(BaseHealthCheck):
             )
 
 class DependencyHealthCheck(BaseHealthCheck):
-    """External dependency health check."""
+    """
+    External dependency availability monitoring.
+    
+    Status mapping:
+    - 2xx/3xx: HEALTHY
+    - 4xx: DEGRADED (service error)
+    - 5xx: UNHEALTHY (service unavailable)
+    
+    Features:
+    - Custom HTTP methods
+    - Header support
+    - Timeout handling
+    
+    NOTE: Consider security in header config
+    FIXME: Add retry support for flaky dependencies
+    """
     
     def __init__(self,
                  name: str,
