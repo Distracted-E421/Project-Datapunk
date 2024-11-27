@@ -9,29 +9,82 @@ import socket
 from ..discovery.registry import ServiceRegistration
 from ...monitoring import MetricsCollector
 
+"""
+Health Check Implementation for Datapunk Service Mesh
+
+This module provides comprehensive health monitoring with:
+- System resource monitoring (CPU, memory, disk)
+- Service dependency checking
+- Custom health check support
+- Threshold-based status determination
+- Metrics collection
+
+Health checks are critical for maintaining mesh reliability and
+enabling intelligent routing decisions.
+
+TODO: Add network health monitoring
+TODO: Implement predictive health analysis
+FIXME: Improve resource usage during intensive checks
+"""
+
 class HealthStatus(Enum):
-    """Health check status"""
-    HEALTHY = "healthy"
-    DEGRADED = "degraded"
-    UNHEALTHY = "unhealthy"
-    UNKNOWN = "unknown"
+    """
+    Service health states with routing implications.
+    
+    Status progression typically follows:
+    HEALTHY -> DEGRADED -> UNHEALTHY
+    
+    UNKNOWN is used for initialization and check failures.
+    NOTE: DEGRADED services remain in load balancing pools
+    """
+    HEALTHY = "healthy"     # Full service capability
+    DEGRADED = "degraded"   # Limited but functional
+    UNHEALTHY = "unhealthy" # Service failure
+    UNKNOWN = "unknown"     # Status undetermined
 
 @dataclass
 class HealthCheckConfig:
-    """Configuration for health checks"""
-    check_interval: float = 15.0  # seconds
-    timeout: float = 5.0  # seconds
-    failure_threshold: int = 3
-    success_threshold: int = 2
-    enable_system_checks: bool = True
-    cpu_threshold: float = 0.9  # 90% utilization
-    memory_threshold: float = 0.9  # 90% utilization
-    disk_threshold: float = 0.9  # 90% utilization
-    enable_dependency_checks: bool = True
-    dependency_timeout: float = 3.0  # seconds
+    """
+    Health check behavior configuration.
+    
+    Thresholds and intervals are tuned for:
+    - Quick problem detection
+    - Minimal false positives
+    - Resource efficiency
+    
+    NOTE: failure_threshold should be > success_threshold
+    TODO: Add support for check-specific thresholds
+    """
+    check_interval: float = 15.0  # Time between checks
+    timeout: float = 5.0  # Individual check timeout
+    failure_threshold: int = 3  # Failures before marking unhealthy
+    success_threshold: int = 2  # Successes before marking healthy
+    enable_system_checks: bool = True  # Monitor system resources
+    cpu_threshold: float = 0.9  # CPU utilization limit
+    memory_threshold: float = 0.9  # Memory utilization limit
+    disk_threshold: float = 0.9  # Disk utilization limit
+    enable_dependency_checks: bool = True  # Check dependencies
+    dependency_timeout: float = 3.0  # Dependency check timeout
 
 class HealthCheck:
-    """Health check implementation"""
+    """
+    Health monitoring manager for service mesh components.
+    
+    Core responsibilities:
+    - Execute health checks
+    - Track check history
+    - Maintain status thresholds
+    - Report metrics
+    - Monitor dependencies
+    
+    Uses a sliding window approach for status changes to:
+    - Prevent flapping
+    - Handle transient failures
+    - Provide status stability
+    
+    NOTE: All checks are executed asynchronously
+    FIXME: Improve check scheduling for large numbers of checks
+    """
     def __init__(
         self,
         config: HealthCheckConfig,
@@ -111,7 +164,18 @@ class HealthCheck:
         return await self.check_url_health(instance.health_check_url)
 
     async def _check_loop(self):
-        """Main health check loop"""
+        """
+        Main health check execution loop.
+        
+        Implements check scheduling with:
+        - Concurrent check execution
+        - Error isolation
+        - Metric recording
+        - Status updates
+        
+        NOTE: Continues despite individual check failures
+        TODO: Add check prioritization
+        """
         while self._running:
             try:
                 await self._run_all_checks()
@@ -126,7 +190,18 @@ class HealthCheck:
                     )
 
     async def _run_all_checks(self) -> Dict[str, Dict[str, Any]]:
-        """Run all registered health checks"""
+        """
+        Execute all registered health checks.
+        
+        Check execution strategy:
+        1. Run checks concurrently
+        2. Isolate check failures
+        3. Update check history
+        4. Record metrics
+        
+        NOTE: Failed checks don't stop other checks
+        FIXME: Add timeout for total check execution
+        """
         results = {}
         for name, check in self._checks.items():
             try:
@@ -158,7 +233,17 @@ class HealthCheck:
         return results
 
     def _update_check_status(self, name: str, result: Dict[str, Any]):
-        """Update check status based on thresholds"""
+        """
+        Update check status using threshold logic.
+        
+        Status changes require:
+        - Multiple consecutive successes/failures
+        - Threshold crossing
+        - Valid check results
+        
+        This prevents status flapping from transient issues.
+        NOTE: Thresholds can be tuned per environment
+        """
         if result["status"] == HealthStatus.HEALTHY:
             self._success_counts[name] += 1
             self._failure_counts[name] = 0
@@ -171,7 +256,17 @@ class HealthCheck:
                 result["status"] = HealthStatus.UNHEALTHY
 
     async def _check_cpu(self) -> Dict[str, Any]:
-        """Check CPU utilization"""
+        """
+        Monitor CPU utilization with degradation detection.
+        
+        Uses a three-state model:
+        1. HEALTHY: Below threshold
+        2. DEGRADED: Slightly above threshold
+        3. UNHEALTHY: Significantly above threshold
+        
+        NOTE: Requires psutil for accurate measurements
+        TODO: Add CPU steal time detection for cloud environments
+        """
         cpu_percent = psutil.cpu_percent(interval=1) / 100.0
         return {
             "status": (
@@ -221,7 +316,17 @@ class HealthCheck:
         }
 
     async def check_tcp_port(self, host: str, port: int) -> bool:
-        """Check if TCP port is accessible"""
+        """
+        Verify TCP port accessibility.
+        
+        Used for:
+        - Dependency checking
+        - Network connectivity verification
+        - Service availability monitoring
+        
+        NOTE: Quick check without full protocol handshake
+        TODO: Add protocol-specific health checks
+        """
         try:
             _, writer = await asyncio.open_connection(host, port)
             writer.close()
