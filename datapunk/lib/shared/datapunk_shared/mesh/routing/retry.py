@@ -8,8 +8,28 @@ from ..monitoring import MetricsCollector
 
 T = TypeVar('T')
 
+"""
+Advanced retry policy implementation with multiple backoff strategies.
+
+Provides configurable retry behavior with:
+- Multiple backoff strategies for different failure scenarios
+- Jitter to prevent thundering herd problems
+- Comprehensive metrics collection
+- Status code-based retry support
+
+NOTE: All time values are in seconds
+"""
+
 class RetryStrategy(Enum):
-    """Retry strategies"""
+    """
+    Available retry strategies optimized for different failure patterns:
+    
+    FIXED: Predictable intervals, good for quick transient failures
+    EXPONENTIAL: Increasing intervals, best for resource exhaustion
+    LINEAR: Gradual backoff, good for load-related failures
+    RANDOM: Unpredictable intervals, prevents thundering herd
+    FIBONACCI: Natural progression, balances retry attempts
+    """
     FIXED = "fixed"           # Fixed delay between retries
     EXPONENTIAL = "exponential"  # Exponential backoff
     LINEAR = "linear"         # Linear backoff
@@ -18,7 +38,17 @@ class RetryStrategy(Enum):
 
 @dataclass
 class RetryConfig:
-    """Configuration for retry policy"""
+    """
+    Retry policy configuration with tunable parameters.
+    
+    Key behaviors:
+    - jitter adds randomness to prevent synchronized retries
+    - backoff_factor controls how quickly delay increases
+    - timeout provides overall operation time limit
+    
+    NOTE: Default values tuned for microservice environments
+    TODO: Add per-operation configuration support
+    """
     max_retries: int = 3
     initial_delay: float = 1.0  # seconds
     max_delay: float = 30.0  # seconds
@@ -42,7 +72,18 @@ class RetryExhaustedError(RetryError):
     pass
 
 class RetryPolicy(Generic[T]):
-    """Implements retry patterns with various strategies"""
+    """
+    Implements retry patterns with configurable strategies and monitoring.
+    
+    Features:
+    - Multiple backoff strategies
+    - Jitter for thundering herd prevention
+    - Status code-based retry support
+    - Comprehensive metrics collection
+    
+    FIXME: Fibonacci sequence calculation is recursive
+    TODO: Add retry state persistence
+    """
     def __init__(
         self,
         config: RetryConfig,
@@ -52,7 +93,17 @@ class RetryPolicy(Generic[T]):
         self.metrics = metrics_collector
 
     def wrap(self, operation: Callable[..., T]) -> Callable[..., T]:
-        """Wrap operation with retry logic"""
+        """
+        Wrap operation with retry logic and monitoring.
+        
+        Handles:
+        - Multiple retry strategies
+        - Timeout enforcement
+        - Status code checking
+        - Metric collection
+        
+        NOTE: Wrapped operation must be async
+        """
         async def wrapped(*args, **kwargs) -> T:
             start_time = datetime.utcnow()
             attempt = 0
@@ -127,7 +178,16 @@ class RetryPolicy(Generic[T]):
         return wrapped
 
     def _calculate_delay(self, attempt: int) -> float:
-        """Calculate delay based on retry strategy"""
+        """
+        Calculate next retry delay based on strategy.
+        
+        Implements:
+        - Strategy-specific delay calculation
+        - Jitter for thundering herd prevention
+        - Maximum delay enforcement
+        
+        NOTE: Jitter is proportional to base delay
+        """
         if self.config.strategy == RetryStrategy.FIXED:
             delay = self.config.initial_delay
 
@@ -161,7 +221,14 @@ class RetryPolicy(Generic[T]):
         return min(delay, self.config.max_delay)
 
     def _fibonacci_delay(self, attempt: int) -> float:
-        """Calculate Fibonacci sequence delay"""
+        """
+        Calculate delay using Fibonacci sequence.
+        
+        WARNING: Recursive implementation may cause stack overflow
+        for large attempt numbers
+        
+        TODO: Replace with iterative implementation
+        """
         def fib(n: int) -> int:
             if n <= 0:
                 return 0
@@ -172,7 +239,18 @@ class RetryPolicy(Generic[T]):
         return self.config.initial_delay * fib(attempt)
 
     async def get_stats(self) -> Dict[str, Any]:
-        """Get retry statistics"""
+        """
+        Get comprehensive retry statistics.
+        
+        Provides insights into:
+        - Retry patterns and frequencies
+        - Success/failure ratios
+        - Timeout occurrences
+        
+        Used for monitoring retry behavior and tuning parameters.
+        
+        NOTE: Returns empty dict if metrics collection is disabled
+        """
         if not self.metrics:
             return {}
 
