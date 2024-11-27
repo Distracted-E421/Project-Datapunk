@@ -1,4 +1,30 @@
-"""Shared utilities for Datapunk services."""
+"""
+Datapunk Shared Service Library
+
+Core library providing shared functionality across the Datapunk service mesh.
+Implements critical infrastructure components for service reliability,
+security, and monitoring.
+
+Key components:
+- BaseServiceConfig: Service configuration management
+- HealthCheck: Service health monitoring
+- MetricsCollector: Telemetry and metrics
+- CacheManager: Distributed caching
+- ServiceMesh: Service discovery and communication
+
+Integration points:
+- Metrics pipeline
+- Distributed tracing
+- Service mesh topology
+- Security infrastructure
+
+NOTE: This library is a critical dependency for all Datapunk services.
+Version changes should be carefully coordinated across the mesh.
+
+TODO: Add automatic version compatibility checking
+TODO: Implement graceful version migration support
+FIXME: Add comprehensive component dependency tracking
+"""
 
 from .config import BaseServiceConfig
 from .health import HealthCheck
@@ -6,5 +32,14 @@ from .metrics import MetricsCollector
 from .cache import CacheManager
 from .mesh import ServiceMesh
 
+# Version tracking for compatibility checks
 __version__ = "0.1.0"
-__all__ = ["BaseServiceConfig", "HealthCheck", "MetricsCollector", "CacheManager", "ServiceMesh"] 
+
+# Expose core components for service integration
+__all__ = [
+    "BaseServiceConfig",  # Service configuration
+    "HealthCheck",        # Health monitoring
+    "MetricsCollector",   # Telemetry
+    "CacheManager",       # Caching
+    "ServiceMesh"         # Service communication
+] 
