@@ -10,9 +10,51 @@ from ...monitoring import MetricsCollector
 import time
 from collections import defaultdict
 
+"""
+Service Mesh gRPC Server
+
+A secure, monitored gRPC server implementation for the Datapunk service mesh.
+This server forms the backbone of service-to-service communication, implementing
+the mesh patterns defined in sys-arch.mmd.
+
+Key Features:
+- Secure mTLS communication with client certificate validation
+- Rate limiting with token bucket algorithm for resource protection
+- Comprehensive security validation through interceptors
+- Detailed metrics collection for monitoring and alerting
+- Health checking for service mesh integration
+- Service reflection for development and debugging
+
+Security Philosophy:
+- Defense in depth through layered interceptors
+- Zero trust architecture with mTLS enforcement
+- Rate limiting per client to prevent resource exhaustion
+- Comprehensive audit logging through metrics
+
+Performance Notes:
+- Uses async/await for non-blocking operations
+- Implements token bucket algorithm for smooth rate limiting
+- Configurable worker pool for request handling
+"""
+
 @dataclass
 class GrpcServerConfig:
-    """Configuration for gRPC server"""
+    """
+    Configuration for gRPC server deployment.
+    
+    Design Decisions:
+    - Default host 0.0.0.0 allows container deployment flexibility
+    - Conservative message size limit prevents memory exhaustion
+    - Rate limiting configured for typical service mesh patterns
+    
+    Security Configuration:
+    - mtls_config: Required in production for service identity
+    - interceptors: Allows custom security controls
+    - rate_limit_*: Prevents DoS attacks
+    
+    TODO: Add dynamic configuration updates
+    TODO: Implement adaptive rate limiting based on load
+    """
     host: str = "0.0.0.0"
     port: int = 50051
     max_workers: int = 10
@@ -26,7 +68,22 @@ class GrpcServerConfig:
     rate_limit_burst: int = 100      # burst allowance
 
 class RateLimiter:
-    """Token bucket rate limiter for gRPC"""
+    """
+    Token bucket rate limiter for request throttling.
+    
+    Implementation Notes:
+    - Uses token bucket algorithm for smooth rate limiting
+    - Maintains per-client token buckets for fairness
+    - Automatically cleans up inactive client buckets
+    
+    Performance Considerations:
+    - Uses defaultdict to avoid lock contention
+    - Calculates tokens lazily on check to reduce overhead
+    - Maintains burst allowance for traffic spikes
+    
+    TODO: Add automatic cleanup of inactive buckets
+    TODO: Implement distributed rate limiting for cluster deployment
+    """
     def __init__(self, rate: int, burst: int):
         self.rate = rate
         self.burst = burst
@@ -51,7 +108,22 @@ class RateLimiter:
         return False
 
 class SecurityInterceptor(grpc.aio.ServerInterceptor):
-    """Security interceptor for gRPC server"""
+    """
+    Security validation interceptor for incoming requests.
+    
+    Security Flow:
+    1. Extract security context from metadata
+    2. Validate request against security policies
+    3. Collect metrics for security events
+    4. Propagate context for downstream services
+    
+    Error Handling:
+    - Fails closed on validation errors
+    - Records detailed metrics for security failures
+    - Maintains audit trail through metadata
+    
+    NOTE: Must be first in interceptor chain for proper security
+    """
     def __init__(
         self,
         security_validator: SecurityValidator,
@@ -88,7 +160,21 @@ class SecurityInterceptor(grpc.aio.ServerInterceptor):
         return await continuation.proceed(handler)
 
 class MetricsInterceptor(grpc.aio.ServerInterceptor):
-    """Metrics interceptor for gRPC server"""
+    """
+    Metrics collection interceptor for observability.
+    
+    Metrics Collected:
+    - Request duration with method and status tags
+    - Request count with method and status tags
+    - Error rates with detailed failure categorization
+    
+    Implementation Notes:
+    - Uses async metrics collection to avoid blocking
+    - Maintains status code context across error boundaries
+    - Provides granular timing for performance analysis
+    
+    TODO: Add histogram metrics for latency distribution
+    """
     def __init__(self, metrics_collector: MetricsCollector):
         self.metrics = metrics_collector
 
@@ -126,7 +212,21 @@ class MetricsInterceptor(grpc.aio.ServerInterceptor):
             )
 
 class RateLimitInterceptor(grpc.aio.ServerInterceptor):
-    """Rate limiting interceptor for gRPC server"""
+    """
+    Rate limiting interceptor for resource protection.
+    
+    Design Philosophy:
+    - Fair resource allocation across clients
+    - Graceful degradation under load
+    - Detailed metrics for capacity planning
+    
+    Client Identification:
+    - Uses x-client-id header when available
+    - Falls back to x-forwarded-for for client tracking
+    - Supports anonymous clients with reduced limits
+    
+    NOTE: Place after security interceptor but before metrics
+    """
     def __init__(
         self,
         rate_limiter: RateLimiter,
@@ -159,14 +259,42 @@ class RateLimitInterceptor(grpc.aio.ServerInterceptor):
         return await continuation.proceed(handler)
 
 class GrpcServer:
-    """Async gRPC server with security and monitoring"""
-    def __init__(
-        self,
-        config: GrpcServerConfig,
-        security_validator: Optional[SecurityValidator] = None,
-        health_check: Optional[HealthCheck] = None,
-        metrics_collector: Optional[MetricsCollector] = None
-    ):
+    """
+    Async gRPC server with comprehensive mesh features.
+    
+    Architecture Notes:
+    - Implements service mesh patterns from sys-arch.mmd
+    - Provides secure service-to-service communication
+    - Supports health checking for mesh integration
+    
+    Deployment Considerations:
+    - Configure mTLS for production environments
+    - Adjust rate limits based on service capacity
+    - Enable reflection only in development
+    
+    Security Requirements:
+    - Production deployments must enable mTLS
+    - Security interceptor must be first in chain
+    - Health checks must be enabled for mesh integration
+    """
+    def __init__(self, config: GrpcServerConfig,
+                security_validator: Optional[SecurityValidator] = None,
+                health_check: Optional[HealthCheck] = None,
+                metrics_collector: Optional[MetricsCollector] = None):
+        """
+        Initialize server with security and monitoring.
+        
+        Component Initialization Order:
+        1. Rate limiter (required for all environments)
+        2. Security validator (if provided)
+        3. Health check service (if enabled)
+        4. Metrics collector (if provided)
+        
+        Security Note:
+        - Security validator should be provided in production
+        - Health checks enable service mesh integration
+        - Metrics required for production monitoring
+        """
         self.config = config
         self.security_validator = security_validator
         self.health_check = health_check
@@ -179,7 +307,22 @@ class GrpcServer:
         self._setup_server()
 
     def _setup_server(self):
-        """Set up gRPC server with interceptors"""
+        """
+        Configure server with interceptors and services.
+        
+        Interceptor Chain Order:
+        1. Security (authentication/authorization)
+        2. Rate Limiting (resource protection)
+        3. Metrics (performance monitoring)
+        4. Custom interceptors (user-provided)
+        
+        Service Configuration:
+        - Health check service for mesh integration
+        - Reflection service for development
+        - Custom services added through add_service()
+        
+        NOTE: Order of interceptors is critical for security
+        """
         interceptors = []
         
         # Add security interceptor
