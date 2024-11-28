@@ -1,21 +1,34 @@
+# Test Environment Configuration for Datapunk Services
+# Aligned with project_status.md testing requirements
+
+# Use slim image to minimize container size while maintaining Python functionality
 FROM python:3.11-slim
 
+# Set working directory for test execution
 WORKDIR /app
 
 # Install system dependencies
+# NOTE: curl is required for health checks and service mesh integration
 RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Install Python dependencies using Poetry
+# FIXME: Consider using multi-stage build to reduce final image size
 COPY pyproject.toml poetry.lock ./
 RUN pip install poetry && \
     poetry config virtualenvs.create false && \
     poetry install --no-dev
 
-# Copy test files
+# Copy test files and library code
+# NOTE: Only copying necessary directories to keep image lean
 COPY tests/ ./tests/
 COPY lib/ ./lib/
 
-# Run tests
+# Run tests with coverage reporting
+# TODO: Add the following test configurations:
+# - Integration tests for service mesh components
+# - Performance benchmarks
+# - Security testing
+# - API contract tests
 CMD ["pytest", "-v", "--cov=datapunk_shared", "tests/"] 
