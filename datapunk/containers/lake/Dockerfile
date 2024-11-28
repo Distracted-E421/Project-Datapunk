@@ -1,31 +1,48 @@
+# Lake Service Container
+# Part of Core Services layer (see sys-arch.mmd)
+# Handles data sovereignty and storage management
+
+# Build stage for optimized dependencies
+# NOTE: Using multi-stage build to minimize final image size
 FROM datapunk-base-python:dev as builder
 
 WORKDIR /app
 
+# Run as non-root user for security
+# NOTE: User 'app' is created in base image
 USER app
 
-# Copy service-specific files
+# Copy only necessary files for dependency installation
+# FIXME: Consider using .dockerignore for better control
 COPY --chown=app:datapunk pyproject.toml poetry.lock ./
 COPY --chown=app:datapunk src/ ./src/
 COPY --chown=app:datapunk scripts/ ./scripts/
 
-# Install dependencies
+# Install production dependencies only
+# TODO: Add dependency audit step
 RUN poetry install --no-dev
 
-# Development stage
+# Development stage with additional tools
+# NOTE: Separate from production for debugging capabilities
 FROM datapunk-base-python:dev as development
 
 WORKDIR /app
 
 USER app
 
-# Copy service-specific files
+# Copy service files
+# TODO: Add file integrity checks
 COPY --chown=app:datapunk pyproject.toml poetry.lock ./
 COPY --chown=app:datapunk src/ ./src/
 COPY --chown=app:datapunk scripts/ ./scripts/
 
-# Install all dependencies including dev dependencies
-RUN poetry install
+# Install all dependencies including development tools
+# TODO: Add development-specific health checks
+# TODO: Add debugging tools configuration
+# TODO: Add profiling tools setup
+# TODO: Add local development SSL certificates
+# TODO: Add development-specific logging
+# TODO: Add hot reload capability
 
 # Set up development environment
 ENV PYTHONPATH=/app/src
