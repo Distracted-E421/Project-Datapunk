@@ -7,17 +7,47 @@ import aio_pika
 from datapunk_shared.config import BaseServiceConfig
 from datapunk_shared.metrics import MetricsCollector
 
+"""Test Configuration and Fixtures
+
+Provides shared test configuration and fixtures for the Datapunk ecosystem:
+- Service configuration
+- Database connections
+- Cache management
+- Message queues
+- Metrics collection
+
+Integration Points:
+- PostgreSQL with extensions (vector, timeseries, spatial)
+- Redis cluster for caching
+- RabbitMQ for messaging
+- Prometheus for metrics
+
+NOTE: Ensure all services use these shared fixtures for consistency
+TODO: Add distributed tracing configuration
+FIXME: Improve connection pooling settings
+"""
+
 class TestConfig(BaseServiceConfig):
-    """Test configuration"""
+    """Test environment configuration
+    
+    Configures test infrastructure with isolated resources:
+    - Local service endpoints
+    - In-memory caching
+    - Test databases
+    - Monitoring hooks
+    
+    TODO: Add dynamic port allocation
+    TODO: Add mock external services
+    """
     SERVICE_NAME: str = "test-service"
     SERVICE_VERSION: str = "0.1.0"
     PORT: int = 8000
     
-    # Redis settings
+    # Redis settings for isolated test cache
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
     
-    # Database settings
+    # Test database with required extensions
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
     DB_USER: str = "test"
