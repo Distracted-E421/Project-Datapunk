@@ -1,3 +1,21 @@
+"""Data Flow Integration Test Suite
+
+Tests end-to-end data flows across the Datapunk ecosystem, validating:
+- Message queue to database persistence
+- Cache-database synchronization
+- Real-time message processing with cache updates
+
+Integration Points:
+- Message Queue (RabbitMQ)
+- Database (PostgreSQL)
+- Cache (Redis)
+- Metrics Collection
+
+NOTE: Tests require running infrastructure services
+TODO: Add data validation middleware tests
+FIXME: Improve message processing error handling
+"""
+
 import pytest
 from datetime import datetime
 import json
@@ -6,7 +24,16 @@ from typing import Dict, List
 
 @pytest.mark.asyncio
 async def test_message_to_database_flow(services):
-    """Test message processing and database storage flow"""
+    """Tests message queue to database persistence flow
+    
+    Validates:
+    - Message delivery and processing
+    - Database schema compliance
+    - Event persistence integrity
+    
+    TODO: Add dead letter queue handling
+    TODO: Add message retry logic
+    """
     received_messages: List[Dict] = []
     processed_count = 0
     
@@ -75,7 +102,17 @@ async def test_message_to_database_flow(services):
 
 @pytest.mark.asyncio
 async def test_cache_database_sync(services):
-    """Test cache and database synchronization"""
+    """Tests cache and database synchronization patterns
+    
+    Implements write-through caching with TTL to ensure:
+    - Cache hit optimization
+    - Data consistency
+    - Proper invalidation
+    
+    TODO: Add cache warming strategy
+    TODO: Add bulk operation support
+    FIXME: Handle race conditions in cache updates
+    """
     # Create test table
     await services["db"].execute("""
         CREATE TABLE IF NOT EXISTS test_users (
@@ -138,7 +175,16 @@ async def test_cache_database_sync(services):
 
 @pytest.mark.asyncio
 async def test_message_cache_flow(services):
-    """Test message processing with cache integration"""
+    """Tests real-time message processing with cache updates
+    
+    Validates system health monitoring flow:
+    - Component status updates
+    - Cache persistence
+    - Message ordering
+    
+    TODO: Add message batching support
+    TODO: Add cache invalidation patterns
+    """
     cache_updates: List[Dict] = []
     
     # Define message handler
