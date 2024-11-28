@@ -1,3 +1,20 @@
+"""Integration Test Configuration and Fixtures
+
+Provides test configuration and fixtures for integration testing across the 
+Datapunk ecosystem. Manages connections to core infrastructure services and
+ensures proper test isolation.
+
+Integration Points:
+- PostgreSQL with extensions (vector, timescale, etc.)
+- Redis for caching and message queues
+- RabbitMQ for event processing
+- Metrics collection (Prometheus)
+
+NOTE: Requires running infrastructure services
+TODO: Add container lifecycle management
+FIXME: Improve connection pooling for high concurrency tests
+"""
+
 import pytest
 import asyncio
 from typing import AsyncGenerator, Dict
@@ -11,7 +28,14 @@ from datapunk_shared.messaging import MessageQueue
 from datapunk_shared.database import DatabaseManager
 
 class IntegrationConfig(BaseServiceConfig):
-    """Integration test configuration"""
+    """Integration test configuration with isolated resources
+    
+    Provides test-specific endpoints and credentials to prevent
+    interference with development/production environments.
+    
+    TODO: Add dynamic port allocation
+    TODO: Add test-specific logging configuration
+    """
     SERVICE_NAME: str = "integration-test"
     SERVICE_VERSION: str = "0.1.0"
     PORT: int = 8000
