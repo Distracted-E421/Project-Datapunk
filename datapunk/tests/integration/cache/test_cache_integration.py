@@ -1,3 +1,20 @@
+"""Integration tests for distributed cache system
+Validates cache functionality across multiple Redis nodes as defined in sys-arch.mmd
+
+Key test areas:
+- Multi-node Redis cluster operations
+- Cache invalidation strategies
+- Data consistency across nodes
+- Failure recovery scenarios
+- Performance under load
+
+TODO: Add tests for:
+- Cache warm-up strategies
+- Memory pressure handling
+- Cross-datacenter replication
+- Custom eviction policies
+"""
+
 import pytest
 import asyncio
 import time
@@ -14,9 +31,13 @@ from datapunk_shared.cache.cache_features import CacheFeatureManager
 
 @pytest.fixture
 async def redis_nodes() -> List[aioredis.Redis]:
-    """Setup real Redis nodes for integration testing"""
+    """Setup Redis cluster for integration testing
+    
+    NOTE: Requires local Redis instances on specified ports
+    FIXME: Add container orchestration for test Redis instances
+    """
     nodes = []
-    ports = [6379, 6380, 6381]  # Assuming Redis instances on these ports
+    ports = [6379, 6380, 6381]  # Standard Redis cluster ports
     
     for port in ports:
         try:
