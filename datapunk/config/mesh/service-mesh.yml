@@ -1,60 +1,67 @@
 # Service Mesh Configuration
+# See: sys-arch.mmd ServiceMesh->Communication
 mesh:
   name: datapunk-mesh
   version: "1.0"
   
-  # Service Discovery
+  # Service Discovery Configuration
+  # Integrates with Consul for service registration and health monitoring
+  # TODO: Implement automated service registration
   discovery:
-    method: consul
+    method: consul  # Required for service mesh topology
     consul:
-      host: ${CONSUL_HOST:-consul}
-      port: ${CONSUL_PORT:-8500}
-      datacenter: ${CONSUL_DC:-dc1}
-      register_interval: 10s
-      deregister_critical_service_after: 30s
+      host: ${CONSUL_HOST:-consul}  # Default for local development
+      port: ${CONSUL_PORT:-8500}    # Standard Consul API port
+      datacenter: ${CONSUL_DC:-dc1} # FIXME: Make configurable per environment
+      register_interval: 10s        # Balances responsiveness vs. overhead
+      deregister_critical_service_after: 30s  # Prevents ghost services
 
-  # Circuit Breaking
+  # Circuit Breaking Configuration
+  # Prevents cascade failures across services
+  # NOTE: Thresholds based on load testing results
   circuit_breakers:
-    default:
-      max_connections: 1024
-      max_pending_requests: 1024
-      max_requests: 1024
-      max_retries: 3
-    custom:
-      lake_service:
+    default:  # Global defaults for all services
+      max_connections: 1024      # TCP connection limit
+      max_pending_requests: 1024 # Queue size for pending requests
+      max_requests: 1024        # Concurrent request limit
+      max_retries: 3           # Maximum retry attempts
+    custom:  # Service-specific overrides
+      lake_service:  # Data lake requires higher limits
         max_connections: 2048
         max_pending_requests: 2048
-      stream_service:
+      stream_service:  # Stream processing needs request headroom
         max_requests: 2048
 
-  # Load Balancing
+  # Load Balancing Configuration
+  # Uses least_request for optimal resource utilization
+  # TODO: Implement canary deployment support
   load_balancing:
-    policy: least_request
+    policy: least_request  # Favors less busy endpoints
     health_checks:
-      timeout: 5s
-      interval: 10s
-      unhealthy_threshold: 3
-      healthy_threshold: 2
+      timeout: 5s         # Maximum health check duration
+      interval: 10s       # Check frequency
+      unhealthy_threshold: 3  # Failures before marking unhealthy
+      healthy_threshold: 2    # Successes before marking healthy
 
-  # Service Policies
+  # Service Retry Policies
+  # Implements exponential backoff for resilience
+  # See: project_status.md ServiceMesh->Integration
   policies:
     retry:
-      attempts: 3
-      timeout: 2s
-      backoff:
+      attempts: 3  # Maximum retry attempts
+      timeout: 2s  # Per-attempt timeout
+      backoff:     # Exponential backoff settings
         base_interval: 100ms
         max_interval: 3s
         multiplier: 2
-      conditions:
-        - 5xx
-        - connect-failure
-        - refused-stream
+      conditions:  # Retry triggers
+        - 5xx            # Server errors
+        - connect-failure # Network issues
+        - refused-stream # Stream failures
     
-    timeout:
-      idle: 5m
-      connect: 5s
-      read: 30s
-      write: 30s
+    timeout:  # Service timeouts
+      idle: 5m    # Maximum idle connection time
+      connect: 5s # Connection establishment timeout
 
   # Observability
   telemetry:
