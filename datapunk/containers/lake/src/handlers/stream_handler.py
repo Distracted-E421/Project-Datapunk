@@ -1,3 +1,7 @@
+# Stream data processing handler for Lake service
+# Manages real-time data ingestion and storage with type-specific processing
+# Part of the Core Services layer (see sys-arch.mmd)
+
 from typing import Dict, Any
 from datetime import datetime
 import json
@@ -5,23 +9,36 @@ from ..processing.validator import DataValidator
 from ..storage.stores import TimeSeriesStore, SpatialStore
 
 class StreamHandler:
-    """Handles incoming stream data processing"""
+    """
+    Real-time stream data processor with specialized storage handlers
+    
+    Processes incoming data streams with type-specific handling:
+    - Location data → Spatial storage with GeoJSON formatting
+    - Activity data → Time series storage with metrics
+    
+    NOTE: Critical for real-time data sovereignty - enables immediate data control
+    FIXME: Add proper error recovery for failed stream processing
+    """
     
     def __init__(self, timeseries_store: TimeSeriesStore, spatial_store: SpatialStore):
+        # Initialize storage engines for different data types
         self.timeseries_store = timeseries_store
         self.spatial_store = spatial_store
         self.validator = DataValidator()
     
     async def process_stream_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Process incoming stream data"""
+        """
+        Routes incoming stream data to appropriate processor based on content type
+        Ensures data validation before processing
+        """
         try:
-            # Validate data
+            # Validate basic structure before processing
             if 'payload' not in data:
                 raise ValueError("Missing payload in stream data")
                 
             payload = data['payload']
             
-            # Process based on content type
+            # Route to specialized processors based on content type
             if payload['data']['content_type'] == 'location_history':
                 return await self._process_location_history(payload)
             elif payload['data']['content_type'] == 'activity_data':
