@@ -12,3 +12,4 @@ Reflect Maintainability: Ensure comments align with the current state of the cod
 Define Standards and Domain Knowledge: Where necessary, document any domain-specific concepts, standards, or compliance requirements the code adheres to.
 Be Clear and Concise: Use plain, unambiguous language. Avoid technical jargon or inside references unless absolutely necessary.
 Use Tags for Notes: Use clear markers such as TODO, FIXME, and NOTE to highlight important information, areas for improvement, or incomplete work.
+A special attention should be pait to trying to add relevent todos, especially for all teh services in the @containers folder.

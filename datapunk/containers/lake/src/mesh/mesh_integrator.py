@@ -1,3 +1,7 @@
+# Service mesh integration module for Lake service
+# Handles service discovery, health checks, and inter-service communication
+# Part of the Infrastructure Layer (see sys-arch.mmd)
+
 from typing import Dict, Any, Optional
 import aiohttp
 import asyncio
@@ -10,17 +14,34 @@ from datapunk_shared.utils.retry import with_retry, RetryConfig
 logger = get_logger(__name__)
 
 class MeshIntegrator:
-    """Handles service mesh integration and communication"""
+    """
+    Service mesh integration for Lake service communication
+    
+    Manages:
+    - Service discovery via Consul
+    - Health check reporting
+    - Inter-service communication
+    
+    NOTE: Critical component for Lake service's distributed operations
+    TODO: Implement circuit breaker pattern
+    FIXME: Add proper connection pooling
+    """
     
     def __init__(self, config: StorageConfig):
+        """
+        Initialize mesh integration with retry policies
+        
+        IMPORTANT: Retry configuration is critical for mesh stability
+        during network issues or service restarts
+        """
         self.config = config
         self.consul_client = None
-        self.service_cache = {}
+        self.service_cache = {}  # Cache for discovered services
         self.last_health_check = None
         self.retry_config = RetryConfig(
-            max_attempts=5,
-            base_delay=1.0,
-            max_delay=30.0
+            max_attempts=5,    # Aligned with project retry policies
+            base_delay=1.0,    # Start with 1s delay
+            max_delay=30.0     # Cap at 30s to prevent excessive waits
         )
         
     async def initialize(self):
