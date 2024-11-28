@@ -1,28 +1,49 @@
-global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
+# Prometheus Configuration for Datapunk Service Mesh
+# See: sys-arch.mmd Observability->Metrics
 
+# Global configuration affects all scrape jobs
+# NOTE: Intervals aligned with service mesh health check frequency
+global:
+  scrape_interval: 15s     # Match service mesh health check interval
+  evaluation_interval: 15s # Alert evaluation frequency
+
+# Scrape configurations define monitoring targets
 scrape_configs:
+  # Self-monitoring for Prometheus metrics
+  # Required for monitoring system health
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
 
+  # Consul service discovery integration
+  # TODO: Implement service-specific alert rules
   - job_name: 'consul'
     consul_sd_configs:
-      - server: 'consul:8500'
-        services: []
+      - server: 'consul:8500'  # Service mesh discovery endpoint
+        services: []           # Empty array discovers all services
+    # Relabeling to maintain consistent metric naming
     relabel_configs:
       - source_labels: [__meta_consul_service]
-        target_label: service
+        target_label: service  # Service identifier
       - source_labels: [__meta_consul_service_id]
-        target_label: service_id
+        target_label: service_id  # Unique instance ID
       - source_labels: [__meta_consul_dc]
-        target_label: dc
+        target_label: dc         # Datacenter location
       - source_labels: [__meta_consul_tags]
-        target_label: tags
+        target_label: tags       # Service categorization
 
+  # Datapunk core services monitoring
+  # FIXME: Add resource utilization thresholds
   - job_name: 'datapunk-services'
-    metrics_path: '/metrics'
+    metrics_path: '/metrics'    # Standard Prometheus endpoint
     consul_sd_configs:
       - server: 'consul:8500'
-        services: ['lake', 'stream', 'cortex', 'forge', 'nexus'] 
+        # Core services defined in sys-arch.mmd
+        services: ['lake', 'stream', 'cortex', 'forge', 'nexus']
+
+# TODO: Add the following configurations:
+# - Alert manager integration
+# - Custom recording rules
+# - Long-term storage configuration
+# - High availability setup
+# - Service-specific scrape configs
