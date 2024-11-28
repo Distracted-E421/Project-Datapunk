@@ -1,3 +1,20 @@
+"""Integration tests for service mesh security components
+Validates security features against infrastructure requirements defined in sys-arch.mmd
+
+Key test areas:
+- Service authentication and authorization
+- Rate limiting and threat detection
+- Access control policies
+- Security audit logging
+- Cross-service security coordination
+
+TODO: Add tests for:
+- Hardware security module integration
+- Token rotation mechanisms
+- Cross-cluster security policies
+- Distributed threat detection
+"""
+
 import pytest
 import asyncio
 import time
@@ -18,7 +35,11 @@ from datapunk_shared.mesh.auth.security_metrics import SecurityMetrics
 
 @pytest.fixture
 async def security_components():
-    """Setup security components for testing"""
+    """Creates isolated security testing environment
+    
+    FIXME: Improve cleanup of temporary credentials
+    NOTE: Test directory uses /tmp for compatibility with CI/CD
+    """
     # Create temporary paths for testing
     test_dir = Path("/tmp/datapunk_test")
     test_dir.mkdir(exist_ok=True)
