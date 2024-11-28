@@ -1,4 +1,15 @@
-# Python
+# Stream Service Docker Ignore Configuration
+# Optimizes container builds by excluding unnecessary files
+# See: sys-arch.mmd CoreServices->StreamService->Infrastructure
+
+# Development and Build Artifacts
+# NOTE: Ensures clean container builds
+# TODO: Add environment-specific exclusions
+# TODO: Add test coverage reports
+# TODO: Add profiling data
+# FIXME: Review IDE-specific excludes
+
+# Python Build and Cache
 __pycache__/
 *.py[cod]
 *$py.class
@@ -21,10 +32,20 @@ wheels/
 *.egg
 
 # Virtual Environment
+# NOTE: Local dev environments should never be containerized
 venv/
 env/
 ENV/
 .env
+
+# TODO: Add exclusions for:
+# - Development tools
+# - Local configurations
+# - Debug logs
+# - Performance profiles
+# - Test artifacts
+# - Documentation drafts
+# - Temporary files
 
 # IDE
 .idea/
