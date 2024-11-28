@@ -1,3 +1,6 @@
+# Unit tests for distributed cache cluster management
+# Aligned with cache layer requirements in sys-arch.mmd
+
 import pytest
 import asyncio
 from unittest.mock import AsyncMock, Mock, patch
@@ -9,6 +12,8 @@ from datapunk_shared.cache.cluster_rebalancer import (
 )
 from datapunk_shared.cache.cache_types import CacheConfig, InvalidationStrategy
 
+# Mock Redis client for testing cluster operations
+# NOTE: Simulates both single-node and cluster Redis behaviors
 @pytest.fixture
 def mock_redis():
     return AsyncMock(
@@ -21,24 +26,39 @@ def mock_redis():
         close=AsyncMock()
     )
 
+# Test cluster configuration with primary and replica nodes
+# TODO: Add tests for:
+# - Node priority assignment
+# - Failover scenarios
+# - Split-brain prevention
 @pytest.fixture
 def test_nodes():
     return [
-        ClusterNode("node1", "localhost", 6379, True),
-        ClusterNode("node2", "localhost", 6380),
-        ClusterNode("node3", "localhost", 6381)
+        ClusterNode("node1", "localhost", 6379, True),  # Primary node
+        ClusterNode("node2", "localhost", 6380),        # Replica 1
+        ClusterNode("node3", "localhost", 6381)         # Replica 2
     ]
 
+# Cache configuration for testing cluster behavior
+# NOTE: TTL-based invalidation used for predictable test outcomes
 @pytest.fixture
 def cache_config():
     return CacheConfig(
-        strategy="write_through",
+        strategy="write_through",  # Ensures data consistency
         invalidation_strategy=InvalidationStrategy.TTL,
-        ttl=300,
+        ttl=300,  # 5 minutes for test scenarios
         namespace="test"
     )
 
 class TestClusterManager:
+    """Tests for distributed cache cluster management and rebalancing"""
+    
+    # Additional test scenarios needed:
+    # TODO: Test network partition handling
+    # TODO: Test gradual node addition/removal
+    # TODO: Test cache warming strategies
+    # FIXME: Improve rebalancing performance under load
+
     @pytest.mark.asyncio
     async def test_cluster_initialization(self, test_nodes, cache_config, mock_redis):
         # Setup
