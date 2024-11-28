@@ -1,3 +1,6 @@
+# Unit tests for distributed cache system implementation
+# Aligned with cache layer requirements in sys-arch.mmd
+
 import pytest
 import asyncio
 from unittest.mock import Mock, AsyncMock
@@ -10,6 +13,8 @@ from datapunk_shared.cache.cache_types import (
 from datapunk_shared.cache.cache_manager import CacheManager
 from datapunk_shared.cache.invalidation_manager import InvalidationManager
 
+# Mock Redis client for testing cache operations
+# NOTE: Simulates both single-node and distributed cache behaviors
 @pytest.fixture
 def mock_redis():
     return AsyncMock(
@@ -21,6 +26,11 @@ def mock_redis():
         close=AsyncMock()
     )
 
+# Metrics collection for cache performance monitoring
+# TODO: Add metrics for:
+# - Cache hit/miss ratios
+# - Invalidation patterns
+# - Memory usage tracking
 @pytest.fixture
 def mock_metrics():
     return AsyncMock(
@@ -28,12 +38,14 @@ def mock_metrics():
         record_histogram=AsyncMock()
     )
 
+# Cache configuration for write-through strategy
+# FIXME: Consider adding support for write-behind with configurable batch sizes
 @pytest.fixture
 def cache_config():
     return CacheConfig(
         strategy=CacheStrategy.WRITE_THROUGH,
         invalidation_strategy=InvalidationStrategy.TTL,
-        ttl=300,
+        ttl=300,  # 5 minutes for test scenarios
         namespace="test"
     )
 
@@ -48,6 +60,15 @@ def invalidation_manager(mock_redis, mock_metrics, cache_config):
     return InvalidationManager(cache_config, mock_redis, mock_metrics)
 
 class TestCacheSystem:
+    """Tests for cache system with focus on data consistency and performance"""
+    
+    # Additional test scenarios needed:
+    # TODO: Test cache warming strategies
+    # TODO: Test memory pressure handling
+    # TODO: Test concurrent access patterns
+    # TODO: Test cache eviction policies
+    # FIXME: Improve write-behind performance under load
+
     @pytest.mark.asyncio
     async def test_cache_get_hit(self, cache_manager, mock_redis):
         # Setup
