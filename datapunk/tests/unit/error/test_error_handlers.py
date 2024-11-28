@@ -1,3 +1,6 @@
+# Unit tests for error handling in service mesh layer
+# Aligned with project_status.md error handling requirements
+
 import pytest
 import asyncio
 from typing import Dict, Any
@@ -10,6 +13,8 @@ from datapunk_shared.error.error_types import (
 from datapunk_shared.error.handlers import ErrorHandlers
 from datapunk_shared.error.recovery_strategies import RecoveryStrategies, RetryConfig
 
+# Mock fixtures for service dependencies
+# NOTE: These simulate various mesh service components
 @pytest.fixture
 def mock_logger():
     return Mock(
@@ -18,12 +23,22 @@ def mock_logger():
         warning=Mock()
     )
 
+# Circuit breaker mock for service mesh integration
+# TODO: Add tests for:
+# - Multiple failure thresholds
+# - Reset timeouts
+# - Half-open state transitions
 @pytest.fixture
 def mock_circuit_breaker():
     return Mock(
         is_allowed=Mock(return_value=True)
     )
 
+# Authentication service mock for token refresh scenarios
+# TODO: Add tests for:
+# - Token expiration handling
+# - Refresh token rotation
+# - Auth provider failover
 @pytest.fixture
 def mock_auth_service():
     return AsyncMock(
