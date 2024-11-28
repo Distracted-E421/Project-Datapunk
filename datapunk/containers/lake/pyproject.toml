@@ -1,30 +1,50 @@
+# Lake Service Dependencies
+# Core service for data sovereignty and storage management
+# See: sys-arch.mmd CoreServices->LakeService
+
 [tool.poetry]
 name = "datapunk-lake"
 version = "0.1.0"
 description = "Lake service for Datapunk - data storage and processing"
+# TODO: Update author information before release
 authors = ["Your Name <your.email@example.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.11"
-datapunk-shared = { path = "../../lib/shared" }
-fastapi = "^0.104.1"
-uvicorn = "^0.24.0"
-asyncpg = "^0.28.0"
-redis = "^5.0.1"
-numpy = "^1.26.2"
-scipy = "^1.11.4"
-scikit-learn = "^1.3.2"
-pandas = "^2.1.3"
-statsmodels = "^0.14.0"
-geopandas = "^0.14.1"
-shapely = "^2.0.2"
+# Core runtime dependencies
+python = "^3.11"  # Required for modern async features
+datapunk-shared = { path = "../../lib/shared" }  # Core shared utilities
+fastapi = "^0.104.1"  # API framework for performance
+uvicorn = "^0.24.0"  # ASGI server for FastAPI
+
+# Database and caching
+# NOTE: asyncpg used for performance-critical operations
+asyncpg = "^0.28.0"  # Async PostgreSQL driver
+redis = "^5.0.1"  # Caching and pub/sub
+
+# Data processing dependencies
+# TODO: Optimize numpy/pandas memory usage for large datasets
+numpy = "^1.26.2"  # Numerical processing
+scipy = "^1.11.4"  # Scientific computing
+scikit-learn = "^1.3.2"  # ML utilities
+pandas = "^2.1.3"  # Data manipulation
+statsmodels = "^0.14.0"  # Statistical analysis
+
+# Geospatial processing
+# FIXME: Consider lighter alternatives for basic geo operations
+geopandas = "^0.14.1"  # Geospatial data handling
+shapely = "^2.0.2"  # Geometric operations
 
 [tool.poetry.group.dev.dependencies]
+# Testing and development tools
 pytest = "^7.4.3"
 pytest-asyncio = "^0.21.1"
 black = "^23.11.0"
-mypy = "^1.7.1"
-pylint = "^3.0.2"
+
+# TODO: Add performance profiling tools
+# TODO: Add security scanning tools
+# TODO: Add documentation generation
+# TODO: Add API documentation tools
+# TODO: Add database migration tools
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
