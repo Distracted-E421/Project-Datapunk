@@ -1,3 +1,19 @@
+"""Benchmark configuration and utilities for performance testing
+Provides standardized performance measurement tools across the Datapunk ecosystem.
+
+Key metrics tracked:
+- Execution time (mean, median, p95, p99)
+- Memory utilization
+- CPU usage
+- Resource efficiency
+
+TODO: Add support for:
+- Network I/O metrics
+- Disk I/O patterns
+- Cache hit ratios
+- Thread contention metrics
+"""
+
 import pytest
 import asyncio
 import time
@@ -10,7 +26,14 @@ import psutil
 
 @dataclass
 class BenchmarkResult:
-    """Container for benchmark results"""
+    """Performance metrics container for system benchmarking
+    
+    Captures comprehensive performance data for analysis and monitoring.
+    Used by monitoring systems defined in sys-arch.mmd Infrastructure layer.
+    
+    NOTE: Memory usage is in MB, CPU usage in percentage
+    FIXME: Add GPU utilization tracking for AI workloads
+    """
     name: str
     operation: str
     iterations: int
