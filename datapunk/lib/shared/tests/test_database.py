@@ -2,17 +2,55 @@ import pytest
 from datetime import datetime
 from datapunk_shared.database import DatabaseManager, DatabaseError
 
+"""Database Manager Test Suite
+
+Tests the database management system that supports:
+- Connection pooling and lifecycle
+- Query execution and transaction handling
+- PostgreSQL extensions (vector, timeseries, spatial)
+- Metrics collection
+- Error handling
+
+Integration Points:
+- PostgreSQL with extensions
+- Metrics collection
+- Service mesh coordination
+- Data consistency validation
+
+NOTE: Tests assume PostgreSQL is running locally with required extensions
+TODO: Add tests for vector operations with pgvector
+FIXME: Improve transaction rollback coverage
+"""
+
 @pytest.fixture
 async def db_manager(config, metrics, pg_pool):
-    """Create database manager instance"""
+    """Create database manager instance
+    
+    Provides an isolated test database manager with:
+    - Connection pool
+    - Test metrics collector
+    - Required extensions
+    
+    TODO: Add mock pool for offline testing
+    """
     manager = DatabaseManager(config, metrics)
     manager.pool = pg_pool
     return manager
 
 @pytest.mark.asyncio
 async def test_execute(db_manager):
-    """Test basic query execution"""
-    # Create test table
+    """Test query execution and transaction handling
+    
+    Validates:
+    - Basic CRUD operations
+    - Transaction isolation
+    - Error propagation
+    - Connection management
+    
+    TODO: Add concurrent transaction tests
+    FIXME: Handle partial failures better
+    """
+    # Create test table with timestamp for data lifecycle
     await db_manager.execute("""
         CREATE TABLE IF NOT EXISTS test_table (
             id SERIAL PRIMARY KEY,
@@ -21,7 +59,7 @@ async def test_execute(db_manager):
         )
     """)
     
-    # Insert data
+    # Test data persistence and retrieval
     result = await db_manager.execute(
         "INSERT INTO test_table (name) VALUES ($1) RETURNING id",
         "test_record"
