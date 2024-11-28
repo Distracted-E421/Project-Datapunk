@@ -1,5 +1,8 @@
 # datapunk/containers/lake/src/storage/stores.py
 
+# Storage engines for Lake Service data persistence layer
+# Part of Core Services layer handling specialized data storage operations
+
 from typing import Any, Dict, List, Optional, Union
 import asyncpg
 from asyncpg import Pool
@@ -8,10 +11,21 @@ from datetime import datetime
 from .base import BaseStore
 
 class VectorStore(BaseStore):
-    """Handles vector storage operations"""
+    """Vector storage engine using pgvector extension
+    
+    Handles high-dimensional vector storage and similarity search operations.
+    Integrated with Cortex Service for AI model embeddings and vector operations.
+    
+    NOTE: Requires PostgreSQL with pgvector extension installed
+    TODO: Add vector index management for performance optimization
+    """
     
     async def insert_vector(self, vector: np.ndarray, metadata: Dict[str, Any]) -> str:
-        """Insert vector with metadata"""
+        """Store vector embedding with associated metadata
+        
+        FIXME: Add validation for vector dimensions
+        NOTE: Metadata should include source and context information
+        """
         query = """
         INSERT INTO vectors (embedding, metadata)
         VALUES ($1, $2)
@@ -21,7 +35,11 @@ class VectorStore(BaseStore):
             return await conn.fetchval(query, vector.tolist(), metadata)
     
     async def search_similar(self, vector: np.ndarray, limit: int = 10) -> List[Dict[str, Any]]:
-        """Search for similar vectors"""
+        """Perform similarity search using cosine distance
+        
+        TODO: Add support for different distance metrics (Euclidean, dot product)
+        TODO: Implement search filters based on metadata
+        """
         query = """
         SELECT id, metadata, embedding <-> $1 as distance
         FROM vectors
@@ -32,10 +50,21 @@ class VectorStore(BaseStore):
             return await conn.fetch(query, vector.tolist(), limit)
 
 class TimeSeriesStore(BaseStore):
-    """Handles time series data operations"""
+    """Time series storage engine using TimescaleDB extension
+    
+    Handles temporal data storage and aggregation operations.
+    Optimized for high-throughput metric ingestion and analysis.
+    
+    NOTE: Requires PostgreSQL with TimescaleDB extension installed
+    TODO: Implement automatic data retention policies
+    """
     
     async def insert_metrics(self, metrics: Dict[str, Any], timestamp: datetime) -> str:
-        """Insert time series metrics"""
+        """Store time series metrics with timestamp
+        
+        TODO: Add batch insert support for better performance
+        NOTE: Metrics should follow standardized schema
+        """
         query = """
         INSERT INTO metrics (timestamp, data)
         VALUES ($1, $2)
