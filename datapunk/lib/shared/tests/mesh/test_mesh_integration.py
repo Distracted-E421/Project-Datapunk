@@ -1,3 +1,23 @@
+"""Service Mesh Integration Test Suite
+
+Tests service mesh functionality across the Datapunk ecosystem:
+- Service discovery (Consul)
+- Load balancing (Round Robin)
+- Circuit breaking
+- Retry policies
+- Health checks
+
+Integration Points:
+- Redis for distributed caching
+- Consul for service registry
+- Load balancer for request distribution
+- Circuit breaker for fault tolerance
+
+NOTE: Tests require running infrastructure services
+TODO: Add distributed tracing tests
+FIXME: Improve cleanup after failed tests
+"""
+
 import pytest
 import asyncio
 from unittest.mock import Mock, patch
@@ -9,14 +29,34 @@ from datapunk_shared.mesh.retry import RetryConfig
 
 @pytest.fixture
 def mock_redis():
+    """Creates Redis mock for distributed caching tests
+    
+    Used for:
+    - Service state caching
+    - Configuration storage
+    - Health check data
+    
+    TODO: Add cluster mode simulation
+    """
     return Mock()
 
 @pytest.fixture
 def mock_consul():
+    """Creates Consul mock for service registry tests
+    
+    Simulates:
+    - Service registration
+    - Health checking
+    - Configuration management
+    
+    NOTE: Uses simplified service response format
+    TODO: Add KV store operations
+    FIXME: Handle deregistration edge cases
+    """
     with patch('consul.aio.Consul') as mock:
-        # Mock service registration
+        # Mock service registration for mesh connectivity
         mock.return_value.agent.service.register = Mock(return_value=True)
-        # Mock service discovery
+        # Mock service discovery with health status
         mock.return_value.health.service = Mock(return_value=(None, [
             {
                 "Service": {
@@ -31,6 +71,16 @@ def mock_consul():
 
 @pytest.fixture
 def mesh_config():
+    """Creates mesh configuration for integration testing
+    
+    Configures:
+    - Service discovery settings
+    - Load balancing strategy
+    - Circuit breaker thresholds
+    - Retry policies
+    
+    TODO: Add traffic routing rules
+    """
     return MeshConfig(
         consul_host="localhost",
         consul_port=8500,
