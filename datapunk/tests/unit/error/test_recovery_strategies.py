@@ -1,3 +1,6 @@
+# Unit tests for error recovery strategies in the service mesh layer
+# Aligned with project_status.md error handling requirements
+
 import pytest
 import asyncio
 from unittest.mock import Mock, AsyncMock
@@ -8,6 +11,8 @@ from datapunk_shared.error.error_types import (
 )
 from datapunk_shared.error.recovery_strategies import RecoveryStrategies, RetryConfig
 
+# Test fixtures for error handling scenarios
+# NOTE: These contexts simulate various service mesh failure modes
 @pytest.fixture
 def sample_error_context():
     return ErrorContext(
@@ -17,14 +22,19 @@ def sample_error_context():
         timestamp=datetime.now().timestamp()
     )
 
+# Recovery strategy configuration for testing
+# TODO: Add tests for:
+# - Circuit breaker integration
+# - Load balancer failover
+# - Service mesh retry policies
 @pytest.fixture
 def recovery_strategies():
     return RecoveryStrategies(
         RetryConfig(
-            initial_delay=0.1,
-            max_delay=1.0,
-            exponential_base=2,
-            jitter=False
+            initial_delay=0.1,  # Fast retries for testing
+            max_delay=1.0,      # Cap delay for test duration
+            exponential_base=2,  # Standard backoff multiplier
+            jitter=False        # Disabled for deterministic tests
         )
     )
 
