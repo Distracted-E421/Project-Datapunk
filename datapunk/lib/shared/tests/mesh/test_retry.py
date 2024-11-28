@@ -3,8 +3,37 @@ import asyncio
 from unittest.mock import Mock, patch
 from datapunk_shared.mesh.retry import RetryPolicy, RetryConfig, with_retry
 
+"""Retry Policy Test Suite
+
+Tests resilient service communication patterns:
+- Exponential backoff
+- Jitter implementation
+- Max attempts handling
+- Delay calculations
+
+Integration Points:
+- Service mesh retry policies
+- Circuit breaker coordination
+- Metrics collection
+- Error tracking
+
+NOTE: Tests validate mesh resilience patterns
+TODO: Add distributed tracing tests
+FIXME: Improve timeout handling
+"""
+
 @pytest.fixture
 def retry_policy():
+    """Creates retry policy for resilience testing
+    
+    Configures:
+    - Max attempts before failure
+    - Initial delay between retries
+    - Maximum delay cap
+    - Jitter for avoiding thundering herd
+    
+    TODO: Add dynamic backoff adjustment
+    """
     return RetryPolicy(RetryConfig(
         max_attempts=3,
         initial_delay=0.01,
@@ -15,7 +44,15 @@ def retry_policy():
 class TestRetryPolicy:
     @pytest.mark.asyncio
     async def test_successful_operation(self, retry_policy):
-        """Test successful operation without retries."""
+        """Tests immediate success scenario
+        
+        Validates:
+        - Single attempt completion
+        - No delay calculation
+        - Proper result handling
+        
+        TODO: Add latency tracking
+        """
         mock_operation = Mock(return_value=asyncio.Future())
         mock_operation.return_value.set_result("success")
         
@@ -30,7 +67,16 @@ class TestRetryPolicy:
 
     @pytest.mark.asyncio
     async def test_retry_with_eventual_success(self, retry_policy):
-        """Test operation that succeeds after retries."""
+        """Tests retry until success scenario
+        
+        Validates:
+        - Multiple attempt handling
+        - Backoff calculation
+        - Success after failure
+        
+        TODO: Add failure pattern analysis
+        FIXME: Handle partial success cases
+        """
         mock_operation = Mock(side_effect=[
             Exception("First failure"),
             Exception("Second failure"),
