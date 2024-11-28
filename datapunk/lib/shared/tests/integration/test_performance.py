@@ -4,13 +4,55 @@ import time
 from typing import List, Dict
 import json
 
+"""Performance Integration Test Suite
+
+Tests concurrent operations and system performance across the Datapunk ecosystem:
+- Cache operations (Redis)
+- Database operations (PostgreSQL)
+- Message queue operations (RabbitMQ)
+- Resource utilization monitoring
+
+Performance Targets:
+- Concurrent operations: 100/sec minimum
+- Operation latency: <100ms
+- Resource usage: <60% CPU, <2GB RAM
+
+NOTE: Tests require running infrastructure services
+TODO: Add distributed load testing
+FIXME: Improve resource cleanup
+"""
+
 @pytest.mark.asyncio
 async def test_concurrent_operations(services):
-    """Test concurrent operations across services"""
+    """Tests system performance under concurrent load
+    
+    Validates:
+    - Operation throughput
+    - Resource utilization
+    - System stability
+    
+    Performance Metrics:
+    - Cache write/read latency
+    - Database insert performance
+    - Message processing speed
+    
+    TODO: Add memory usage tracking
+    TODO: Add CPU utilization metrics
+    FIXME: Handle connection pool exhaustion
+    """
     start_time = time.time()
-    operation_count = 100
+    operation_count = 100  # Baseline concurrent operations
     
     async def single_operation(i: int):
+        """Individual operation unit for performance testing
+        
+        Combines:
+        - Cache operations
+        - Database writes
+        - Message processing
+        
+        NOTE: Keep operation atomic to measure true concurrency
+        """
         # Cache operation
         cache_key = f"test:concurrent:{i}"
         await services["cache"].set(cache_key, {"index": i})
