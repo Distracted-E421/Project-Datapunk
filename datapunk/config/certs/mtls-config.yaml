@@ -1,24 +1,41 @@
+# Mutual TLS Configuration for Service Mesh Security
+# See: sys-arch.mmd ServiceMesh->Security
+# NOTE: All certificates must be renewed before expiration
+# TODO: Implement automated certificate rotation
+# FIXME: Add certificate revocation list (CRL) configuration
+
+# Certificate Generation Parameters
 certificates:
-  validity_days: 365
-  key_size: 2048
-  organization: "Datapunk"
-  country: "US"
-  
+  validity_days: 365  # TODO: Make configurable per environment
+  key_size: 2048     # NOTE: Minimum for production use
+  organization: "Datapunk"  # Used in cert subject
+  country: "US"      # Required for cert validation
+
+# Certificate Storage Paths
+# NOTE: Paths must be accessible by service containers
 paths:
-  ca_cert: "/etc/datapunk/certs/ca.crt"
-  ca_key: "/etc/datapunk/certs/ca.key"
+  ca_cert: "/etc/datapunk/certs/ca.crt"  # Root CA certificate
+  ca_key: "/etc/datapunk/certs/ca.key"   # Protected root CA key
   
+# Service-specific Certificate Configuration
+# See: sys-arch.mmd CoreServices
 services:
+  # Data Storage Service
+  # TODO: Add certificate pinning
   lake:
     cert: "/etc/datapunk/certs/lake.crt"
     key: "/etc/datapunk/certs/lake.key"
-    common_name: "lake.service.datapunk"
+    common_name: "lake.service.datapunk"  # Internal DNS name
     
+  # Stream Processing Service
+  # TODO: Implement certificate transparency logging
   stream:
     cert: "/etc/datapunk/certs/stream.crt"
     key: "/etc/datapunk/certs/stream.key"
     common_name: "stream.service.datapunk"
     
+  # API Gateway Service
+  # TODO: Add OCSP stapling support
   nexus:
     cert: "/etc/datapunk/certs/nexus.crt"
     key: "/etc/datapunk/certs/nexus.key"
