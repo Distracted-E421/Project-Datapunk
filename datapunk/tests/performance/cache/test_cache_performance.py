@@ -1,3 +1,8 @@
+"""Performance testing suite for distributed cache system
+Validates cache performance metrics against infrastructure requirements
+defined in sys-arch.mmd and project_status.md
+"""
+
 import pytest
 import asyncio
 import time
@@ -14,14 +19,33 @@ from datapunk_shared.cache.cluster_manager import ClusterNode
 from datapunk_shared.cache.cache_features import CacheFeatureManager
 
 class PerformanceMetrics:
+    """Tracks and analyzes cache performance metrics
+    
+    Collects operation timings, error rates, and resource utilization
+    for performance analysis and optimization.
+    
+    TODO: Add metrics for:
+    - Memory pressure analysis
+    - Network latency impact
+    - Cluster rebalancing overhead
+    - Cache eviction performance
+    - Write-through vs write-behind comparison
+    
+    FIXME: Improve accuracy of timing measurements under load
+    NOTE: Consider implementing histogram metrics for better distribution analysis
+    """
+    
     def __init__(self):
-        self.operations: List[float] = []
-        self.errors: int = 0
-        self.start_time: float = 0
-        self.end_time: float = 0
+        self.operations: List[float] = []  # Operation timing history
+        self.errors: int = 0  # Error counter for reliability analysis
+        self.start_time: float = 0  # Test start timestamp
+        self.end_time: float = 0  # Test end timestamp
 
     @property
     def total_time(self) -> float:
+        """Total test duration in seconds
+        Used for throughput calculations and performance trending
+        """
         return self.end_time - self.start_time
 
     @property
