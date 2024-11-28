@@ -8,5 +8,12 @@
     "testing.automaticallyOpenPeekViewDuringAutoRun": true,
     "dotnetAcquisitionExtension.enablePreviewFeatures": true,
     "application.experimental.rendererProfiling": true,
-    "cursor.chat.smoothStreaming": true
+    "cursor.chat.smoothStreaming": true,
+    "cursor.cmdk.useThemedDiffBackground": true,
+    "cursor.composer.cmdPFilePicker2": true,
+    "cursor.composer.collapsePaneInputBoxPills": true,
+    "cursor.cpp.enablePartialAccepts": true,
+    "cursor.diffs.useCharacterLevelDiffs": true,
+    "cursor.general.gitGraphIndexing": "enabled",
+    "cursor.terminal.usePreviewBox": true
 }
