@@ -1,0 +1,98 @@
+graph TD
+    %% External Ports
+    Gateway[[Gateway Layer Port]]
+    Infrastructure[[Infrastructure Layer Port]]
+    ServiceMesh[[Service Mesh Port]]
+
+    subgraph "Core Services"
+        direction LR
+        subgraph "Lake Service"
+            LakeRouter[Lake Router]
+            
+            subgraph "Data Processing"
+                DataValidator[Data Validator]
+                SchemaManager[Schema Manager]
+                ETLPipeline[ETL Pipeline]
+            end
+            
+            subgraph "Storage"
+                VectorStore[Vector Storage]
+                TimeSeriesStore[TimeSeries Storage]
+                BlobStore[Blob Storage]
+                ArchiveStore[Archive Storage]
+            end
+        end
+
+        subgraph "Stream Service"
+            StreamRouter[Stream Router]
+            
+            subgraph "Event Processing"
+                EventProcessor[Event Processor]
+                PubSubManager[PubSub Manager]
+                StreamCache[Stream Cache]
+            end
+        end
+
+        subgraph "Cortex Service"
+            CortexRouter[Cortex Router]
+            
+            subgraph "Inference Pipeline"
+                LangGraph[LangGraph Controller]
+                HaystackOrch[Haystack Orchestrator]
+                
+                subgraph "Models"
+                    MixtralSvc[Mixtral Service]
+                    LlamaSvc[Llama Service]
+                    OpenAISvc[OpenAI Service]
+                    AnthropicSvc[Anthropic Service]
+                end
+            end
+            
+            subgraph "Vector Processing"
+                VectorProcessor[Vector Processor]
+                QueryEngine[Query Engine]
+            end
+        end
+
+        subgraph "Forge Service"
+            ForgeRouter[Forge Router]
+            
+            subgraph "Training Pipeline"
+                MLFlow[MLFlow Controller]
+                HFIntegration[HuggingFace Integration]
+                ModelRegistry[Model Registry]
+                
+                subgraph "Training"
+                    TFTrainer[TensorFlow Trainer]
+                    PyTorchTrainer[PyTorch Trainer]
+                end
+            end
+        end
+    end
+
+    %% External Connections
+    Gateway -->|Requests| LakeRouter
+    Gateway -->|Requests| StreamRouter
+    Gateway -->|Requests| CortexRouter
+    Gateway -->|Requests| ForgeRouter
+
+    LakeRouter -->|Storage Ops| Infrastructure
+    StreamRouter -->|Message Ops| Infrastructure
+    CortexRouter -->|Cache Ops| Infrastructure
+    ForgeRouter -->|Storage Ops| Infrastructure
+
+    LakeRouter -->|Service Discovery| ServiceMesh
+    StreamRouter -->|Service Discovery| ServiceMesh
+    CortexRouter -->|Service Discovery| ServiceMesh
+    ForgeRouter -->|Service Discovery| ServiceMesh
+
+    %% Style Definitions
+    classDef port fill:#f9f,stroke:#333,stroke-width:4px;
+    classDef service fill:#ebffeb,stroke:#006600,stroke-width:2px;
+    classDef router fill:#ebf5ff,stroke:#004d99,stroke-width:2px;
+    classDef pipeline fill:#fff2eb,stroke:#994d00,stroke-width:2px;
+
+    %% Apply styles
+    class Gateway,Infrastructure,ServiceMesh port;
+    class LakeRouter,StreamRouter,CortexRouter,ForgeRouter router;
+    class DataProcessing,EventProcessing,InferencePipeline,Training pipeline;

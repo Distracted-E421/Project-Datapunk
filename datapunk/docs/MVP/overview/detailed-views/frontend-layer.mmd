@@ -1,0 +1,116 @@
+graph TD
+    %% External Ports
+    Gateway[[Gateway Layer Port]]
+    External[[External Layer Port]]
+    Cache[[Cache Layer Port]]
+
+    subgraph "Frontend Layer"
+        direction LR
+        subgraph "Web Applications"
+            WebApp[Web Application]
+            AdminUI[Admin Dashboard]
+            AnalyticsUI[Analytics Dashboard]
+
+            %% Web App Internal Components
+            subgraph "Web App Components"
+                WebRouting[Routing]
+                WebState[State Management]
+                WebUI[UI Components]
+                WebAuth[Auth Handler]
+            end
+
+            %% Admin Components
+            subgraph "Admin Components"
+                AdminMetrics[Metrics Dashboard]
+                AdminControl[Control Panel]
+                AdminLogs[Log Viewer]
+                AdminConfig[Config Manager]
+            end
+
+            %% Analytics Components
+            subgraph "Analytics Components"
+                DataViz[Data Visualization]
+                Reports[Report Generator]
+                Insights[Insights Engine]
+                ExportTool[Export Tools]
+            end
+        end
+        
+        subgraph "Mobile Applications"
+            MobileApp[Mobile Application]
+            TabletApp[Tablet Application]
+
+            %% Mobile Components
+            subgraph "Mobile Components"
+                MobileSync[Sync Manager]
+                MobileCache[Local Cache]
+                MobileUI[UI Components]
+                OfflineMode[Offline Handler]
+            end
+        end
+
+        subgraph "Frontend Services"
+            StateManager[State Management]
+            UICache[UI Cache]
+            ErrorBoundary[Error Handling]
+
+            %% State Management Details
+            subgraph "State Components"
+                Store[State Store]
+                Actions[Action Handlers]
+                Reducers[State Reducers]
+                Middleware[State Middleware]
+            end
+
+            %% Cache Components
+            subgraph "Cache Components"
+                DataCache[Data Cache]
+                AssetCache[Asset Cache]
+                ConfigCache[Config Cache]
+            end
+
+            %% Error Handling
+            subgraph "Error Components"
+                ErrorLogger[Error Logger]
+                Fallback[Fallback UI]
+                Recovery[Recovery Handler]
+            end
+        end
+    end
+
+    %% External Connections
+    WebApp -->|"HTTP/WS"| Gateway
+    AdminUI -->|"HTTP/WS"| Gateway
+    AnalyticsUI -->|"HTTP/WS"| Gateway
+    MobileApp -->|"HTTP/WS"| Gateway
+    TabletApp -->|"HTTP/WS"| Gateway
+
+    %% External Auth Flow
+    WebAuth -->|"Auth"| External
+    MobileSync -->|"Auth"| External
+
+    %% Cache Operations
+    DataCache -->|"Cache Ops"| Cache
+    AssetCache -->|"Cache Ops"| Cache
+    ConfigCache -->|"Cache Ops"| Cache
+
+    %% Internal Connections
+    WebUI --> WebState
+    WebState --> Store
+    MobileUI --> MobileCache
+    AdminControl --> StateManager
+    DataViz --> UICache
+
+    %% Style Definitions
+    classDef port fill:#f9f,stroke:#333,stroke-width:4px;
+    classDef app fill:#f9f0ff,stroke:#9933cc,stroke-width:2px;
+    classDef service fill:#ebffeb,stroke:#006600,stroke-width:2px;
+    classDef component fill:#ebf5ff,stroke:#004d99,stroke-width:2px;
+    classDef cache fill:#fff2eb,stroke:#994d00,stroke-width:2px;
+
+    %% Apply styles
+    class Gateway,External,Cache port;
+    class WebApp,AdminUI,AnalyticsUI,MobileApp,TabletApp app;
+    class StateManager,UICache,ErrorBoundary service;
+    class WebRouting,WebState,WebUI,WebAuth,AdminMetrics,AdminControl,AdminLogs,AdminConfig component;
+    class DataCache,AssetCache,ConfigCache,MobileCache cache; 

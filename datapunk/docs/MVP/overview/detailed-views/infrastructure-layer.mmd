@@ -1,0 +1,120 @@
+graph TD
+    %% External Ports
+    Core[[Core Services Port]]
+    Gateway[[Gateway Layer Port]]
+    Mesh[[Service Mesh Port]]
+
+    subgraph "Infrastructure Layer"
+        direction LR
+        subgraph "Cache Layer"
+            CacheManager[Cache Manager]
+            
+            subgraph "Cache Patterns"
+                WriteThrough[Write Through]
+                ReadThrough[Read Through]
+                CacheInval[Cache Invalidation]
+            end
+
+            subgraph "Cache Services"
+                ModelCache[Model Cache]
+                VectorCache[Vector Cache]
+                ResultCache[Result Cache]
+                RedisCluster[Redis Cluster]
+            end
+        end
+
+        subgraph "Storage Layer"
+            StorageManager[Storage Manager]
+            
+            subgraph "Database Services"
+                PG[PostgreSQL]
+                TimescaleDB[Timescale DB]
+                MongoDB[MongoDB]
+            end
+
+            subgraph "PG Extensions"
+                PGVector[PG Vector]
+                TimescaleExt[Timescale Extension]
+                PostGIS[PostGIS]
+            end
+        end
+
+        subgraph "Message Layer"
+            MessageManager[Message Manager]
+            
+            subgraph "Queue Patterns"
+                PubSub[Pub/Sub]
+                WorkQueue[Work Queue]
+                DLQ[Dead Letter Queue]
+            end
+
+            subgraph "Message Services"
+                Kafka[Kafka]
+                RabbitMQ[RabbitMQ]
+                NATS[NATS]
+            end
+        end
+
+        subgraph "Observability"
+            ObservabilityManager[Observability Manager]
+            
+            subgraph "Metrics"
+                Prometheus[Prometheus]
+                StatsD[StatsD]
+                CustomMetrics[Custom Metrics]
+            end
+
+            subgraph "Logging"
+                Loki[Loki]
+                ElasticSearch[ElasticSearch]
+                LogProcessor[Log Processor]
+            end
+
+            subgraph "Tracing"
+                Jaeger[Jaeger]
+                OpenTelemetry[OpenTelemetry]
+                TraceCollector[Trace Collector]
+            end
+
+            subgraph "Alerting"
+                AlertManager[Alert Manager]
+                PagerDuty[PagerDuty]
+                Slack[Slack Alerts]
+            end
+
+            subgraph "Dashboards"
+                Grafana[Grafana]
+                Kibana[Kibana]
+                CustomDashboards[Custom Dashboards]
+            end
+        end
+    end
+
+    %% External Connections
+    Core -->|"Cache Operations"| CacheManager
+    Core -->|"Storage Operations"| StorageManager
+    Core -->|"Message Operations"| MessageManager
+    Core -->|"Telemetry"| ObservabilityManager
+
+    Gateway -->|"Metrics"| Prometheus
+    Gateway -->|"Logs"| Loki
+    Gateway -->|"Traces"| Jaeger
+
+    %% Service Discovery
+    Mesh -->|"Health Metrics"| Prometheus
+    Mesh -->|"Service Logs"| Loki
+
+    %% Style Definitions
+    classDef port fill:#f9f,stroke:#333,stroke-width:4px;
+    classDef cache fill:#fff2eb,stroke:#994d00,stroke-width:2px;
+    classDef storage fill:#ebfffd,stroke:#006666,stroke-width:2px;
+    classDef queue fill:#ebfff2,stroke:#004d1a,stroke-width:2px;
+    classDef monitor fill:#ebf7ff,stroke:#004d99,stroke-width:2px;
+    classDef manager fill:#f5ebff,stroke:#4d0099,stroke-width:2px;
+
+    %% Apply styles
+    class Core,Gateway,Mesh port;
+    class CacheManager,WriteThrough,ReadThrough,CacheInval,ModelCache,VectorCache,ResultCache cache;
+    class StorageManager,PG,TimescaleDB,MongoDB,PGVector,TimescaleExt,PostGIS storage;
+    class MessageManager,PubSub,WorkQueue,DLQ,Kafka,RabbitMQ,NATS queue;
+    class ObservabilityManager,Prometheus,Loki,Jaeger,AlertManager,Grafana monitor; 
