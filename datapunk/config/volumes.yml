@@ -1,13 +1,22 @@
+# Volume Configuration for Datapunk Services
+# See: sys-arch.mmd StorageLayer->Storage
+
+# Lake Service Storage Configuration
+# Primary data storage for vector, timeseries, and blob data
 lake:
   data:
     path: /data
-    backup_path: /backup/lake
-    permissions: "0755"
-    owner: "datapunk:datapunk"
+    backup_path: /backup/lake  # Separate backup location for disaster recovery
+    permissions: "0755"        # Restrictive permissions for security
+    owner: "datapunk:datapunk" # Service-specific user for isolation
+    # Performance optimizations for high I/O workload
     mount_options:
-      - noatime
-      - nodiratime
+      - noatime     # Reduce I/O overhead by skipping access time updates
+      - nodiratime  # Skip directory access time updates
 
+# Stream Service Storage Configuration
+# High-throughput event processing and real-time analytics storage
+# TODO: Add volume monitoring for capacity planning
 stream:
   data:
     path: /data
@@ -18,13 +27,23 @@ stream:
       - noatime
       - nodiratime
 
+# Nexus Service Cache Configuration
+# Fast access temporary storage for API gateway and auth services
+# FIXME: Implement auto-cleanup for stale cache entries
 nexus:
   cache:
     path: /cache
-    max_size: "10GB"
-    cleanup_interval: "1d"
+    max_size: "10GB"          # Prevent cache from consuming excess space
+    cleanup_interval: "1d"     # Daily cleanup of expired entries
     permissions: "0755"
     owner: "datapunk:datapunk"
+
+# TODO: Add the following configurations:
+# - Volume encryption settings
+# - Backup retention policies
+# - Volume expansion thresholds
+# - Performance monitoring hooks
+# - Health check endpoints
 
 model_cache:
   path: /models
