@@ -1,29 +1,38 @@
+# Test Infrastructure Configuration
+# Aligned with sys-arch.mmd Infrastructure Layer components
+
 services:
-  # Test infrastructure
+  # Service Discovery and Configuration
+  # NOTE: Required for service mesh integration testing
   test-consul:
     image: consul:1.15
     command: ["agent", "-dev", "-client", "0.0.0.0"]
     ports:
-      - "8500:8500"
+      - "8500:8500"  # Web UI and API endpoint
     networks:
       - test-network
 
+  # Caching Layer
+  # TODO: Add Redis Cluster configuration for distributed caching tests
   test-redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "6379:6379"  # Primary Redis port
     networks:
       - test-network
 
+  # Metrics Collection
+  # FIXME: Add volume mounts for custom Prometheus rules
   test-prometheus:
     image: prom/prometheus:v2.44.0
     volumes:
-      - ./config/prometheus:/etc/prometheus
+      - ./config/prometheus:/etc/prometheus  # Configuration directory
     ports:
-      - "9090:9090"
+      - "9090:9090"  # Prometheus web interface
     networks:
       - test-network
 
+  # Distributed Tracing
   test-jaeger:
     image: jaegertracing/all-in-one:1.45
     ports:
