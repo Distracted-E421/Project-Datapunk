@@ -1,3 +1,6 @@
+# Unit tests for cache feature implementations
+# Aligned with infrastructure layer requirements in sys-arch.mmd
+
 import pytest
 import json
 from unittest.mock import Mock
@@ -7,6 +10,9 @@ from datapunk_shared.cache.cache_features import (
     CacheFeatureManager
 )
 
+# Test data sized to validate compression effectiveness
+# NOTE: Size chosen to be large enough to show compression benefits
+# but small enough for quick test execution
 @pytest.fixture
 def test_data():
     return {
@@ -15,13 +21,29 @@ def test_data():
         'data': 'x' * 1000  # Large string to test compression
     }
 
+# Encryption key fixture for testing secure cache operations
+# SECURITY: In production, use proper key management system
 @pytest.fixture
 def encryption_key():
     return "test_encryption_key_123"
 
 class TestCompressionHandler:
+    """Tests for cache data compression features
+    
+    Validates compression effectiveness and performance impact
+    for different data types and sizes.
+    
+    TODO: Add tests for:
+    - Binary data compression
+    - Streaming compression
+    - Memory pressure scenarios
+    - Compression level optimization
+    
+    FIXME: Improve compression ratio for small datasets
+    """
+    
     def test_compression_reduces_size(self, test_data):
-        # Setup
+        # Setup with moderate compression for balance of speed/size
         handler = CompressionHandler(compression_level=6)
         original_data = json.dumps(test_data)
         
