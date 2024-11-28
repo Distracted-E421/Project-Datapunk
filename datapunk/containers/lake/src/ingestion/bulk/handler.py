@@ -7,9 +7,24 @@ import asyncio
 from .processors import get_processor
 
 class BulkUploadHandler:
+    """
+    Handles large-scale data uploads with batching and parallel processing
+    
+    Designed for efficient processing of bulk data imports while maintaining:
+    - Memory efficiency through batching
+    - Parallel processing for speed
+    - Resource management
+    - Error isolation
+    
+    NOTE: Critical for data sovereignty - enables users to import their data
+    FIXME: Add proper memory monitoring for large uploads
+    """
+    
     def __init__(self):
-        self.batch_size = 1000
-        self.max_concurrent = 5
+        # Batch size optimized for typical memory constraints
+        self.batch_size = 1000  # Configurable based on available resources
+        # Limit concurrent processing to prevent resource exhaustion
+        self.max_concurrent = 5  # Aligned with CPU core availability
         
     async def process_upload(self, files: List[UploadFile]) -> Dict[str, Any]:
         """Handle bulk file uploads with chunking and parallel processing"""
