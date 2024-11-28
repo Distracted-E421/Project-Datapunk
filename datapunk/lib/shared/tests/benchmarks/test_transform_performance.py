@@ -1,3 +1,20 @@
+"""Data Transformation Performance Test Suite
+Tests data transformation operations under various load conditions across the 
+Datapunk ecosystem, focusing on JSON/structured data processing.
+
+Integrates with:
+- Lake Service (Data Processing Pipeline)
+- Stream Service (Event Processing)
+- Monitoring system (Prometheus/Grafana)
+
+TODO: Add tests for:
+- Complex nested transformations
+- Large dataset handling
+- Schema validation performance
+- Memory usage optimization
+- Cross-format conversions
+"""
+
 import pytest
 from datetime import datetime, timezone
 import json
@@ -5,11 +22,22 @@ from .conftest import benchmark
 
 @pytest.mark.benchmark
 class TestTransformPerformance:
+    """Validates data transformation performance under various load patterns
+    
+    NOTE: Tests require sufficient memory allocation
+    FIXME: Add cleanup between large transformations
+    """
     
     @pytest.mark.asyncio
     @benchmark(iterations=1000)
     async def test_json_transform(self, services):
-        """Benchmark JSON transformation operations"""
+        """Benchmark JSON transformation operations
+        
+        Tests complex nested structure handling
+        Target latency: <5ms p99
+        
+        TODO: Add schema validation tests
+        """
         raw_data = {
             "user": {
                 "id": "test123",
