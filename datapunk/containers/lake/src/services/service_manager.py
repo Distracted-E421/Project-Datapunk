@@ -1,5 +1,9 @@
 # datapunk/containers/lake/src/services/service_manager.py
 
+# Core service manager for Lake Service component
+# Orchestrates storage engines, mesh integration, and resource management
+# Part of the Core Services layer in Datapunk architecture
+
 from typing import Dict, Any, Optional
 import grpc
 from datetime import datetime
@@ -13,14 +17,25 @@ from ..mesh.mesh_integrator import MeshIntegrator
 from datapunk_shared.utils.retry import with_retry, RetryConfig
 
 class ServiceManager:
+    """Lake Service orchestrator managing storage engines and service mesh integration
+    
+    Handles initialization and coordination of vector, time series, and spatial 
+    storage engines. Integrates with service mesh for discovery and health reporting.
+    
+    NOTE: Requires PostgreSQL with pgvector, TimescaleDB, and PostGIS extensions
+    TODO: Implement resource quotas and usage tracking
+    FIXME: Add circuit breaker for database connections
+    """
+    
     def __init__(self):
+        # Initialize with conservative retry policy for service mesh operations
         self.settings = get_settings()
         self.metrics = MetricsCollector()
         self.mesh_integrator = None
         self.retry_config = RetryConfig(
-            max_attempts=3,
-            base_delay=1.0,
-            max_delay=15.0
+            max_attempts=3,  # Start conservative, adjust based on monitoring
+            base_delay=1.0,  # Initial delay between retries
+            max_delay=15.0   # Cap maximum delay to maintain responsiveness
         )
         
     @with_retry(exceptions=(asyncpg.PostgresError, redis.RedisError))
