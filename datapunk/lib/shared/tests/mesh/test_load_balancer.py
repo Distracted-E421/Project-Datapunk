@@ -2,12 +2,44 @@ import pytest
 from datapunk.lib.shared.datapunk_shared.mesh.load_balancer.load_balancer import LoadBalancer, LoadBalancerStrategy, ServiceInstance
 from datapunk_shared.mesh.metrics import LoadBalancerMetrics
 
+"""Load Balancer Test Suite
+
+Tests load balancing strategies and service instance management:
+- Round Robin distribution
+- Least Connections routing
+- Weighted distribution
+- Health-based routing
+
+Integration Points:
+- Service Registry
+- Health Monitoring
+- Metrics Collection
+
+NOTE: Tests validate mesh routing patterns
+TODO: Add circuit breaker integration
+FIXME: Improve failover handling
+"""
+
 @pytest.fixture
 def load_balancer():
+    """Creates test load balancer with round-robin strategy
+    
+    NOTE: Default strategy for testing basic distribution
+    TODO: Add strategy factory for dynamic testing
+    """
     return LoadBalancer(strategy=LoadBalancerStrategy.ROUND_ROBIN)
 
 @pytest.fixture
 def service_instances():
+    """Creates test service instances with varied weights
+    
+    Simulates production-like service deployment:
+    - Mixed capacity instances
+    - Different connection states
+    - Varied health scores
+    
+    TODO: Add dynamic instance generation
+    """
     return [
         ServiceInstance(id="test1", address="localhost", port=8001, weight=1),
         ServiceInstance(id="test2", address="localhost", port=8002, weight=2),
@@ -16,7 +48,16 @@ def service_instances():
 
 class TestLoadBalancer:
     def test_round_robin_strategy(self, load_balancer, service_instances):
-        """Test round-robin load balancing strategy."""
+        """Tests basic round-robin distribution
+        
+        Validates:
+        - Even distribution
+        - Instance rotation
+        - Pattern consistency
+        
+        TODO: Add long-term distribution analysis
+        FIXME: Handle instance removal during rotation
+        """
         service_name = "test_service"
         
         # Register instances
@@ -34,7 +75,15 @@ class TestLoadBalancer:
         assert selected == expected_pattern
 
     def test_least_connections_strategy(self):
-        """Test least connections load balancing strategy."""
+        """Tests connection-aware load balancing
+        
+        Ensures proper routing based on:
+        - Active connection count
+        - Instance capacity
+        - Connection state
+        
+        TODO: Add connection timeout handling
+        """
         lb = LoadBalancer(strategy=LoadBalancerStrategy.LEAST_CONNECTIONS)
         service_name = "test_service"
         
@@ -53,7 +102,15 @@ class TestLoadBalancer:
         assert selected.id == "idle"
 
     def test_weighted_round_robin_strategy(self):
-        """Test weighted round-robin load balancing strategy."""
+        """Tests capacity-aware distribution
+        
+        Validates:
+        - Weight-based selection
+        - Proportional distribution
+        - Capacity respect
+        
+        TODO: Add dynamic weight adjustment
+        """
         lb = LoadBalancer(strategy=LoadBalancerStrategy.WEIGHTED_ROUND_ROBIN)
         service_name = "test_service"
         
@@ -77,7 +134,16 @@ class TestLoadBalancer:
         assert selected.count("light") == 1
 
     def test_connection_tracking(self, load_balancer):
-        """Test connection tracking functionality."""
+        """Tests connection state management
+        
+        Ensures accurate:
+        - Connection counting
+        - Resource tracking
+        - State transitions
+        
+        TODO: Add connection pooling tests
+        FIXME: Handle connection leaks
+        """
         service_name = "test_service"
         instance = ServiceInstance(id="test1", address="localhost", port=8001)
         load_balancer.register_instance(service_name, instance)
@@ -91,7 +157,15 @@ class TestLoadBalancer:
         assert instance.active_connections == 0
 
     def test_health_score_updates(self, load_balancer):
-        """Test health score updates."""
+        """Tests health-based routing decisions
+        
+        Validates:
+        - Health score calculation
+        - Score-based routing
+        - Health state transitions
+        
+        TODO: Add health check integration
+        """
         service_name = "test_service"
         instance = ServiceInstance(id="test1", address="localhost", port=8001)
         load_balancer.register_instance(service_name, instance)
