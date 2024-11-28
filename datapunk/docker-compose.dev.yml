@@ -1,23 +1,36 @@
+# Development Environment Configuration
+# Implements service mesh architecture (see: sys-arch.mmd)
+# NOTE: Requires Docker Engine 20.10+ for full feature support
+# TODO: Add health check implementations for all services
+# TODO: Implement resource limits for production readiness
+# FIXME: Add security scanning in pre-deployment
+
 services:
+  # Lake Service: Data Storage and Processing Layer
+  # See: sys-arch.mmd CoreServices->LakeService
   lake:
     build:
       context: .
       dockerfile: containers/lake/Dockerfile
-      target: development
+      target: development  # NOTE: Separate from production build
     volumes:
+      # Hot-reload enabled for development
       - ./containers/lake/src:/app/src
       - ./containers/lake/tests:/app/tests
-      - ./lib/shared:/usr/lib/shared
-      - lake-dev-data:/data
-      - lake-dev-cache:/cache
+      - ./lib/shared:/usr/lib/shared  # Shared utilities
+      # Persistent storage for development data
+      - lake-dev-data:/data  # TODO: Implement backup strategy
+      - lake-dev-cache:/cache  # NOTE: Cleared on container restart
     environment:
       - PYTHONPATH=/app/src:/usr/lib/shared
-      - DEBUG=1
+      - DEBUG=1  # TODO: Add detailed logging configuration
       - ENVIRONMENT=development
     ports:
-      - "8000:8000"
-      - "5678:5678"  # For debugger
+      - "8000:8000"  # API access
+      - "5678:5678"  # Remote debugger port
 
+  # Stream Service: Real-time Data Processing
+  # See: sys-arch.mmd CoreServices->StreamService
   stream:
     build:
       context: .
@@ -27,15 +40,6 @@ services:
       - ./containers/stream/src:/app/src
       - ./containers/stream/tests:/app/tests
       - ./lib/shared:/usr/lib/shared
-      - stream-dev-data:/data
-      - stream-dev-cache:/cache
-    environment:
-      - PYTHONPATH=/app/src:/usr/lib/shared
-      - DEBUG=1
-      - ENVIRONMENT=development
-    ports:
-      - "8001:8001"
-      - "5679:5679"  # For debugger
 
   nexus:
     build:
