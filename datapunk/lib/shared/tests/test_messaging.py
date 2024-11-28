@@ -3,9 +3,39 @@ from datetime import datetime
 import json
 from datapunk_shared.messaging import MessageQueue, MessageQueueError
 
+"""Message Queue Test Suite
+
+Tests the message queue system that supports:
+- Pub/sub patterns
+- Dead letter queues
+- Retry mechanisms
+- Batch processing
+- Message persistence
+- Error handling
+
+Integration Points:
+- RabbitMQ message broker
+- Metrics collection
+- Service mesh coordination
+- Error tracking
+
+NOTE: Tests assume RabbitMQ is available
+TODO: Add distributed queue tests
+FIXME: Improve message persistence testing
+"""
+
 @pytest.fixture
 async def message_queue(config, metrics, rabbitmq_connection):
-    """Create message queue instance"""
+    """Create message queue instance
+    
+    Provides an isolated test queue with:
+    - Connection pooling
+    - Metric collection
+    - Error handling
+    - Message persistence
+    
+    TODO: Add mock broker for offline testing
+    """
     queue = MessageQueue(config, metrics)
     queue.connection = rabbitmq_connection
     queue.channel = await rabbitmq_connection.channel()
@@ -13,13 +43,23 @@ async def message_queue(config, metrics, rabbitmq_connection):
 
 @pytest.mark.asyncio
 async def test_publish_subscribe(message_queue):
-    """Test message publishing and subscribing"""
+    """Test message routing and delivery
+    
+    Validates:
+    - Message publishing
+    - Subscription handling
+    - Message persistence
+    - Delivery confirmation
+    
+    TODO: Add message ordering tests
+    FIXME: Handle partial delivery failures
+    """
     exchange_name = "test_exchange"
     routing_key = "test.route"
     test_message = {"test": "data"}
     received_messages = []
     
-    # Create subscriber
+    # Create message handler for testing
     async def message_handler(message):
         received_messages.append(message)
     
