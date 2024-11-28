@@ -7,12 +7,31 @@ import asyncio
 import json
 
 class GoogleTakeoutParser:
+    """
+    Parser for Google Takeout data archives
+    
+    Processes user data exports from Google services, ensuring:
+    - Data sovereignty (local storage)
+    - Format standardization
+    - Efficient processing of large archives
+    - Data validation and integrity
+    
+    NOTE: Critical for data ownership and privacy goals
+    FIXME: Add proper memory management for large files
+    """
+    
     def __init__(self):
+        """
+        Initialize parser with supported data formats
+        
+        Format support is based on Google's export specifications
+        and our data processing capabilities
+        """
         self.supported_formats = {
-            "activity": ["json", "html"],
-            "location": ["json", "kml"],
-            "mail": ["mbox", "html"],
-            "photos": ["json", "metadata"]
+            "activity": ["json", "html"],  # User activity logs
+            "location": ["json", "kml"],   # Location history
+            "mail": ["mbox", "html"],      # Email archives
+            "photos": ["json", "metadata"] # Photo metadata
         }
         
     async def parse_archive(self, file: UploadFile) -> Dict[str, Any]:
