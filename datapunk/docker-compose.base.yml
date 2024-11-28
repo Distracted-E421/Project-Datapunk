@@ -1,61 +1,75 @@
+# Base Infrastructure Configuration
+# Implements core observability and service mesh components
+# See: sys-arch.mmd Infrastructure->Observability
+
+# Default logging configuration for all services
+# NOTE: Retention limited to prevent disk space issues
 x-logging: &default-logging
   driver: "json-file"
   options:
-    max-size: "10m"
-    max-file: "3"
+    max-size: "10m"  # TODO: Make configurable per environment
+    max-file: "3"    # FIXME: Implement log rotation strategy
 
+# Standard health check configuration
+# TODO: Implement custom health check endpoints for each service
 x-healthcheck: &default-healthcheck
-  interval: 30s
+  interval: 30s  # NOTE: Adjust based on service requirements
   timeout: 10s
   retries: 3
-  start_period: 40s
+  start_period: 40s  # Allows for slow-starting services
 
 services:
+  # Service Discovery and Configuration Management
+  # See: sys-arch.mmd ServiceMesh->Discovery
   consul:
     image: consul:1.15
     command: agent -server -bootstrap-expect=1 -ui -client=0.0.0.0
     volumes:
-      - consul-data:/consul/data
+      - consul-data:/consul/data  # Persistent service registry
     ports:
-      - "8500:8500"
+      - "8500:8500"  # UI and API access
     networks:
       - mesh-network
     healthcheck:
       test: ["CMD", "consul", "members"]
       <<: *default-healthcheck
 
+  # Metrics Collection and Storage
+  # See: sys-arch.mmd Infrastructure->Monitoring->Metrics
   prometheus:
     image: prom/prometheus:v2.45.0
     volumes:
-      - ./config/prometheus:/etc/prometheus
-      - prometheus-data:/prometheus
+      - ./config/prometheus:/etc/prometheus  # Service discovery configs
+      - prometheus-data:/prometheus          # Time series data
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
     ports:
-      - "9090:9090"
+      - "9090:9090"  # Metrics API and UI
     networks:
       - mesh-network
     healthcheck:
       test: ["CMD", "wget", "-q", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
       <<: *default-healthcheck
 
+  # Distributed Tracing System
+  # See: sys-arch.mmd Infrastructure->Observability->Tracing
   jaeger:
     image: jaegertracing/all-in-one:1.47
     environment:
-      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411  # Legacy protocol support
     ports:
-      - "5775:5775/udp"
-      - "6831:6831/udp"
-      - "6832:6832/udp"
-      - "5778:5778"
-      - "16686:16686"
-      - "14250:14250"
-      - "14268:14268"
-      - "14269:14269"
-      - "9411:9411"
+      - "5775:5775/udp"   # Agent UDP accept
+      - "6831:6831/udp"   # Agent UDP accept
+      - "6832:6832/udp"   # Agent UDP accept
+      - "5778:5778"       # Agent configs
+      - "16686:16686"     # Web UI
+      - "14250:14250"     # Collector gRPC
+      - "14268:14268"     # Collector HTTP
+      - "14269:14269"     # Admin HTTP
+      - "9411:9411"       # Zipkin compatible
     networks:
       - mesh-network
     healthcheck:
