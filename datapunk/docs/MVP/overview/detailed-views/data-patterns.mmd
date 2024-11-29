@@ -1,0 +1,94 @@
+graph TD
+    %% External Ports
+    Gateway[[Gateway Layer Port]]
+    Core[[Core Services Port]]
+    Storage[[Storage Layer Port]]
+
+    subgraph "Data Patterns"
+        direction LR
+        subgraph "Data Flow Patterns"
+            subgraph "Ingestion Patterns"
+                BatchIngestion[Batch Ingestion]
+                StreamIngestion[Stream Ingestion]
+                EventIngestion[Event Ingestion]
+                ChangeDataCapture[CDC]
+            end
+
+            subgraph "Processing Patterns"
+                ETL[ETL Pipeline]
+                ELT[ELT Pipeline]
+                Streaming[Stream Processing]
+                Lambda[Lambda Architecture]
+            end
+        end
+
+        subgraph "Data Storage Patterns"
+            subgraph "Storage Models"
+                OLTP[OLTP Storage]
+                OLAP[OLAP Storage]
+                Vector[Vector Storage]
+                TimeSeries[TimeSeries Storage]
+                Document[Document Storage]
+            end
+
+            subgraph "Access Patterns"
+                CQRS[CQRS Pattern]
+                EventSourcing[Event Sourcing]
+                MaterializedView[Materialized Views]
+                ReadReplica[Read Replicas]
+            end
+        end
+
+        subgraph "Data Consistency"
+            subgraph "Transaction Patterns"
+                ACID[ACID Transactions]
+                BASE[BASE Transactions]
+                Saga[Saga Pattern]
+                TwoPhase[2PC]
+            end
+
+            subgraph "Consistency Models"
+                Strong[Strong Consistency]
+                Eventual[Eventual Consistency]
+                Causal[Causal Consistency]
+                Session[Session Consistency]
+            end
+        end
+
+        subgraph "Data Evolution"
+            subgraph "Schema Management"
+                SchemaRegistry[Schema Registry]
+                VersionControl[Version Control]
+                Migration[Schema Migration]
+                Validation[Schema Validation]
+            end
+
+            subgraph "Data Lifecycle"
+                Archival[Data Archival]
+                Retention[Data Retention]
+                Purging[Data Purging]
+                Recovery[Data Recovery]
+            end
+        end
+    end
+
+    %% External Connections
+    Gateway -->|"Write Request"| CQRS
+    Gateway -->|"Read Request"| ReadReplica
+    Core -->|"Process"| ETL
+    Core -->|"Store"| OLTP
+    Storage -->|"Archive"| Archival
+
+    %% Style Definitions
+    classDef port fill:#f9f,stroke:#333,stroke-width:4px;
+    classDef flow fill:#ebf5ff,stroke:#004d99,stroke-width:2px;
+    classDef store fill:#ebffeb,stroke:#006600,stroke-width:2px;
+    classDef consist fill:#fff2eb,stroke:#994d00,stroke-width:2px;
+    classDef evolve fill:#f5ebff,stroke:#4d0099,stroke-width:2px;
+
+    %% Apply styles
+    class Gateway,Core,Storage port;
+    class BatchIngestion,StreamIngestion,EventIngestion,ChangeDataCapture,ETL,ELT,Streaming,Lambda flow;
+    class OLTP,OLAP,Vector,TimeSeries,Document,CQRS,EventSourcing,MaterializedView,ReadReplica store;
+    class ACID,BASE,Saga,TwoPhase,Strong,Eventual,Causal,Session consist;
+    class SchemaRegistry,VersionControl,Migration,Validation,Archival,Retention,Purging,Recovery evolve;
