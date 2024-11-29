@@ -1,0 +1,106 @@
+graph TD
+    %% External Ports
+    Frontend[[Frontend Layer Port]]
+    Gateway[[Gateway Layer Port]]
+    Core[[Core Services Port]]
+
+    subgraph "Error Handling Patterns"
+        direction LR
+        subgraph "Client-Side Patterns"
+            subgraph "UI Error Handling"
+                ErrorBoundary[Error Boundary]
+                FallbackUI[Fallback UI]
+                RetryButton[Retry Mechanism]
+                ErrorToast[Error Notifications]
+            end
+
+            subgraph "Network Error Handling"
+                NetworkRetry[Network Retry]
+                OfflineQueue[Offline Queue]
+                SyncManager[Sync Manager]
+                ConnectivityCheck[Connectivity Check]
+            end
+        end
+
+        subgraph "Gateway Patterns"
+            subgraph "Request Validation"
+                InputValidator[Input Validator]
+                SchemaCheck[Schema Validator]
+                RateCheck[Rate Limit Check]
+                AuthCheck[Auth Validator]
+            end
+
+            subgraph "Circuit Breaking"
+                CircuitBreaker[Circuit Breaker]
+                Fallback[Fallback Response]
+                ServiceHealth[Health Check]
+                FailureThreshold[Failure Threshold]
+            end
+        end
+
+        subgraph "Service Patterns"
+            subgraph "Resilience Patterns"
+                Retry[Retry Pattern]
+                Timeout[Timeout Pattern]
+                Bulkhead[Bulkhead Pattern]
+                BackoffStrategy[Backoff Strategy]
+            end
+
+            subgraph "Data Consistency"
+                Saga[Saga Pattern]
+                Compensation[Compensation Logic]
+                StateRecovery[State Recovery]
+                EventLog[Event Log]
+            end
+        end
+
+        subgraph "Infrastructure Patterns"
+            subgraph "Queue Error Handling"
+                DLQ[Dead Letter Queue]
+                RetryQueue[Retry Queue]
+                PoisonMsg[Poison Message Handler]
+                QueueMonitor[Queue Monitor]
+            end
+
+            subgraph "Storage Error Handling"
+                Replication[Replication Handler]
+                DataRecovery[Data Recovery]
+                ConsistencyCheck[Consistency Check]
+                BackupRestore[Backup Restore]
+            end
+        end
+    end
+
+    %% External Connections
+    Frontend -->|"UI Errors"| ErrorBoundary
+    Frontend -->|"Network Errors"| NetworkRetry
+    
+    Gateway -->|"Validation Errors"| InputValidator
+    Gateway -->|"Circuit Breaking"| CircuitBreaker
+    
+    Core -->|"Service Errors"| Retry
+    Core -->|"Data Errors"| Saga
+
+    %% Error Flows
+    ErrorBoundary -->|"Show"| FallbackUI
+    NetworkRetry -->|"Queue"| OfflineQueue
+    InputValidator -->|"Invalid"| Fallback
+    CircuitBreaker -->|"Tripped"| ServiceHealth
+    Retry -->|"Exhausted"| BackoffStrategy
+    Saga -->|"Failed"| Compensation
+    DLQ -->|"Process"| RetryQueue
+    Replication -->|"Recover"| DataRecovery
+
+    %% Style Definitions
+    classDef port fill:#f9f,stroke:#333,stroke-width:4px;
+    classDef client fill:#fff0f0,stroke:#cc3333,stroke-width:2px;
+    classDef gateway fill:#f0f0ff,stroke:#3333cc,stroke-width:2px;
+    classDef service fill:#f0fff0,stroke:#33cc33,stroke-width:2px;
+    classDef infra fill:#fff8f0,stroke:#cc6633,stroke-width:2px;
+
+    %% Apply styles
+    class Frontend,Gateway,Core port;
+    class ErrorBoundary,FallbackUI,RetryButton,ErrorToast,NetworkRetry,OfflineQueue,SyncManager,ConnectivityCheck client;
+    class InputValidator,SchemaCheck,RateCheck,AuthCheck,CircuitBreaker,Fallback,ServiceHealth,FailureThreshold gateway;
+    class Retry,Timeout,Bulkhead,BackoffStrategy,Saga,Compensation,StateRecovery,EventLog service;
+    class DLQ,RetryQueue,PoisonMsg,QueueMonitor,Replication,DataRecovery,ConsistencyCheck,BackupRestore infra;
