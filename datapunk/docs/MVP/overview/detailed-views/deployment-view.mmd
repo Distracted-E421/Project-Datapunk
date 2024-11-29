@@ -1,0 +1,97 @@
+graph TD
+    %% External Ports
+    Frontend[[Frontend Layer Port]]
+    Gateway[[Gateway Layer Port]]
+    Core[[Core Services Port]]
+
+    subgraph "Deployment Architecture"
+        direction LR
+        subgraph "Infrastructure Platform"
+            subgraph "Kubernetes Clusters"
+                ProdCluster[Production Cluster]
+                StagingCluster[Staging Cluster]
+                DevCluster[Development Cluster]
+                
+                subgraph "Cluster Components"
+                    KubeAPI[Kubernetes API]
+                    ETCD[etcd]
+                    CoreDNS[CoreDNS]
+                    KubeProxy[Kube Proxy]
+                end
+            end
+
+            subgraph "Service Mesh"
+                IstioControl[Istio Control Plane]
+                EnvoyProxy[Envoy Proxy]
+                ServiceDiscovery[Service Discovery]
+                LoadBalancer[Load Balancer]
+            end
+        end
+
+        subgraph "Application Deployment"
+            subgraph "Workload Types"
+                Deployment[Deployments]
+                StatefulSet[StatefulSets]
+                DaemonSet[DaemonSets]
+                CronJob[CronJobs]
+            end
+
+            subgraph "Configuration"
+                ConfigMap[ConfigMaps]
+                Secret[Secrets]
+                HPA[Horizontal Pod Autoscaler]
+                PDB[Pod Disruption Budget]
+            end
+        end
+
+        subgraph "Network Architecture"
+            subgraph "Network Policies"
+                Ingress[Ingress Rules]
+                Egress[Egress Rules]
+                NetworkPolicy[Network Policies]
+                ServiceMesh[Service Mesh Rules]
+            end
+
+            subgraph "Service Types"
+                ClusterIP[ClusterIP]
+                NodePort[NodePort]
+                LoadBalancerSvc[LoadBalancer]
+                ExternalName[ExternalName]
+            end
+        end
+
+        subgraph "Storage Architecture"
+            subgraph "Storage Classes"
+                BlockStorage[Block Storage]
+                FileStorage[File Storage]
+                ObjectStorage[Object Storage]
+                BackupStorage[Backup Storage]
+            end
+
+            subgraph "Volume Management"
+                PV[Persistent Volumes]
+                PVC[Volume Claims]
+                StorageClass[Storage Classes]
+                VolumeSnapshot[Volume Snapshots]
+            end
+        end
+    end
+
+    %% External Connections
+    Frontend -->|"Deploy"| Deployment
+    Gateway -->|"Configure"| ConfigMap
+    Core -->|"Store"| PV
+
+    %% Style Definitions
+    classDef port fill:#f9f,stroke:#333,stroke-width:4px;
+    classDef platform fill:#ebf5ff,stroke:#004d99,stroke-width:2px;
+    classDef app fill:#ebffeb,stroke:#006600,stroke-width:2px;
+    classDef network fill:#fff2eb,stroke:#994d00,stroke-width:2px;
+    classDef storage fill:#f5ebff,stroke:#4d0099,stroke-width:2px;
+
+    %% Apply styles
+    class Frontend,Gateway,Core port;
+    class ProdCluster,StagingCluster,DevCluster,KubeAPI,ETCD,CoreDNS,KubeProxy,IstioControl,EnvoyProxy,ServiceDiscovery,LoadBalancer platform;
+    class Deployment,StatefulSet,DaemonSet,CronJob,ConfigMap,Secret,HPA,PDB app;
+    class Ingress,Egress,NetworkPolicy,ServiceMesh,ClusterIP,NodePort,LoadBalancerSvc,ExternalName network;
+    class BlockStorage,FileStorage,ObjectStorage,BackupStorage,PV,PVC,StorageClass,VolumeSnapshot storage;
