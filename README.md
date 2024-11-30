@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Datapunk is a cutting-edge data processing and AI platform engineered to revolutionize the way complex data workflows are managed. It is designed to seamlessly integrate with diverse data sources and services, providing a robust infrastructure for data-driven applications. The platform supports real-time analytics and AI model management, empowering organizations to harness the full potential of their data.
+Datapunk is aiming to bea cutting-edge data processing and AI platform engineered to revolutionize the way complex data workflows are managed. It is designed to seamlessly integrate with diverse data sources and services, providing a robust infrastructure for data-driven applications. The platform supports real-time analytics and AI model management, empowering organizations to harness the full potential of their data.
 
 ### Short-term Goals
 

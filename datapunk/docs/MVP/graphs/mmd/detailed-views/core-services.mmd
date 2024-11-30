@@ -1,98 +1,164 @@
 graph TD
-    %% External Ports
-    Gateway[[Gateway Layer Port]]
-    Infrastructure[[Infrastructure Layer Port]]
-    ServiceMesh[[Service Mesh Port]]
+    %% Initialize with custom theme and settings
+    %%{
+        init: {
+            'theme': 'base',
+            'themeVariables': {
+                'primaryColor': '#003366',
+                'primaryTextColor': '#fff',
+                'primaryBorderColor': '#fff',
+                'lineColor': '#666666',
+                'secondaryColor': '#006699',
+                'tertiaryColor': '#fff',
+                'fontFamily': 'Arial',
+                'fontSize': '14px'
+            },
+            'flowchart': {
+                'nodeSpacing': 50,
+                'rankSpacing': 80,
+                'curve': 'basis',
+                'padding': 20
+            }
+        }
+    }%%
 
-    subgraph "Core Services"
+    %% External Ports with enhanced styling
+    Gateway([API Gateway])
+    Infrastructure([Infrastructure Layer])
+    ServiceMesh([Service Mesh])
+
+    subgraph "Core Services Layer"
         direction LR
+        
         subgraph "Lake Service"
-            LakeRouter[Lake Router]
+            direction TB
+            LakeRouter{Lake Router}
             
-            subgraph "Data Processing"
+            subgraph "Data Processing Pipeline"
                 DataValidator[Data Validator]
                 SchemaManager[Schema Manager]
                 ETLPipeline[ETL Pipeline]
+                DataQuality[Quality Control]
+                DataEnricher[Data Enrichment]
             end
             
-            subgraph "Storage"
-                VectorStore[Vector Storage]
-                TimeSeriesStore[TimeSeries Storage]
-                BlobStore[Blob Storage]
-                ArchiveStore[Archive Storage]
+            subgraph "Storage Engines"
+                VectorStore[(Vector Store)]
+                TimeSeriesStore[(TimeSeries Store)]
+                BlobStore[(Blob Store)]
+                ArchiveStore[(Archive Store)]
+                ColdStorage[(Cold Storage)]
+            end
+
+            subgraph "Lake Management"
+                DataCatalog[Data Catalog]
+                MetadataManager[Metadata Manager]
+                RetentionManager[Retention Manager]
             end
         end
 
         subgraph "Stream Service"
-            StreamRouter[Stream Router]
+            direction TB
+            StreamRouter{Stream Router}
             
-            subgraph "Event Processing"
+            subgraph "Event Processing Engine"
                 EventProcessor[Event Processor]
                 PubSubManager[PubSub Manager]
                 StreamCache[Stream Cache]
+                WindowManager[Window Manager]
+                StateManager[State Manager]
+            end
+
+            subgraph "Stream Analytics"
+                RealTimeAnalytics[Real-time Analytics]
+                PatternDetector[Pattern Detector]
+                AlertManager[Alert Manager]
             end
         end
 
         subgraph "Cortex Service"
-            CortexRouter[Cortex Router]
+            direction TB
+            CortexRouter{Cortex Router}
             
             subgraph "Inference Pipeline"
                 LangGraph[LangGraph Controller]
                 HaystackOrch[Haystack Orchestrator]
                 
-                subgraph "Models"
+                subgraph "Model Services"
                     MixtralSvc[Mixtral Service]
                     LlamaSvc[Llama Service]
                     OpenAISvc[OpenAI Service]
                     AnthropicSvc[Anthropic Service]
+                    CustomModels[Custom Models]
                 end
             end
             
             subgraph "Vector Processing"
                 VectorProcessor[Vector Processor]
                 QueryEngine[Query Engine]
+                EmbeddingService[Embedding Service]
+                IndexManager[Index Manager]
+            end
+
+            subgraph "Model Management"
+                ModelRegistry[Model Registry]
+                VersionControl[Version Control]
+                ModelMonitor[Model Monitor]
             end
         end
 
         subgraph "Forge Service"
-            ForgeRouter[Forge Router]
+            direction TB
+            ForgeRouter{Forge Router}
             
             subgraph "Training Pipeline"
                 MLFlow[MLFlow Controller]
                 HFIntegration[HuggingFace Integration]
                 ModelRegistry[Model Registry]
                 
-                subgraph "Training"
+                subgraph "Training Engine"
                     TFTrainer[TensorFlow Trainer]
                     PyTorchTrainer[PyTorch Trainer]
+                    DistributedTraining[Distributed Training]
                 end
+            end
+
+            subgraph "Experiment Tracking"
+                ExperimentManager[Experiment Manager]
+                MetricsCollector[Metrics Collector]
+                ArtifactStore[Artifact Store]
             end
         end
     end
 
-    %% External Connections
-    Gateway -->|Requests| LakeRouter
-    Gateway -->|Requests| StreamRouter
-    Gateway -->|Requests| CortexRouter
-    Gateway -->|Requests| ForgeRouter
+    %% External Connections with meaningful styles
+    Gateway -->|"API Requests"| LakeRouter & StreamRouter & CortexRouter & ForgeRouter
+    
+    LakeRouter -->|"Storage Operations"| Infrastructure
+    StreamRouter -->|"Message Operations"| Infrastructure
+    CortexRouter -->|"Cache Operations"| Infrastructure
+    ForgeRouter -->|"Training Operations"| Infrastructure
 
-    LakeRouter -->|Storage Ops| Infrastructure
-    StreamRouter -->|Message Ops| Infrastructure
-    CortexRouter -->|Cache Ops| Infrastructure
-    ForgeRouter -->|Storage Ops| Infrastructure
+    LakeRouter & StreamRouter & CortexRouter & ForgeRouter -->|"Service Discovery"| ServiceMesh
 
-    LakeRouter -->|Service Discovery| ServiceMesh
-    StreamRouter -->|Service Discovery| ServiceMesh
-    CortexRouter -->|Service Discovery| ServiceMesh
-    ForgeRouter -->|Service Discovery| ServiceMesh
+    %% Internal Service Connections
+    LakeRouter -->|"Vector Data"| VectorStore
+    StreamRouter -->|"Events"| EventProcessor
+    CortexRouter -->|"Inference"| LangGraph
+    ForgeRouter -->|"Training Jobs"| MLFlow
 
     %% Style Definitions
-    classDef port fill:#f9f,stroke:#333,stroke-width:4px;
-    classDef service fill:#ebffeb,stroke:#006600,stroke-width:2px;
-    classDef router fill:#ebf5ff,stroke:#004d99,stroke-width:2px;
-    classDef pipeline fill:#fff2eb,stroke:#994d00,stroke-width:2px;
+    classDef gateway fill:#4a90e2,stroke:#2171c7,stroke-width:2px,color:#fff
+    classDef router fill:#67b168,stroke:#4cae4c,stroke-width:2px,color:#fff
+    classDef store fill:#5bc0de,stroke:#46b8da,stroke-width:2px
+    classDef processor fill:#f0ad4e,stroke:#eea236,stroke-width:2px
+    classDef service fill:#5cb85c,stroke:#4cae4c,stroke-width:2px
+    classDef manager fill:#d9534f,stroke:#d43f3a,stroke-width:2px
 
     %% Apply styles
-    class Gateway,Infrastructure,ServiceMesh port;
-    class LakeRouter,StreamRouter,CortexRouter,ForgeRouter router;
-    class DataProcessing,EventProcessing,InferencePipeline,Training pipeline;
+    class Gateway,Infrastructure,ServiceMesh gateway
+    class LakeRouter,StreamRouter,CortexRouter,ForgeRouter router
+    class VectorStore,TimeSeriesStore,BlobStore,ArchiveStore,ColdStorage store
+    class DataValidator,EventProcessor,VectorProcessor,MLFlow processor
+    class MixtralSvc,LlamaSvc,OpenAISvc,AnthropicSvc,CustomModels service
+    class DataCatalog,MetadataManager,RetentionManager,StateManager,ModelRegistry manager
