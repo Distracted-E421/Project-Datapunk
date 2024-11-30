@@ -1,163 +1,163 @@
-> **OmniParser for Pure Vision Based GUI Agent**
+# OmniParser
 
 +-----------------------+-----------------------+-----------------------+
-| > arXiv:2408.00203v1  | > **Yadong Lu**1**,   |                       |
-| > \[cs.CV\] 1 Aug     | > Jianwei Yang**1**,  |                       |
-| > 2024                | > Yelong Shen**2**,   |                       |
-|                       | > Ahmed Awadallah**1  |                       |
-|                       | > 1Microsoft Research |                       |
-|                       | > 2 Microsoft Gen AI\ |                       |
-|                       | > {yadonglu,          |                       |
-|                       | > jianwei.yang,       |                       |
-|                       | > yeshe,              |                       |
-|                       | > ahmed.awa           |                       |
-|                       | dallah}@microsoft.com |                       |
-|                       |                       |                       |
-|                       | **Abstract**          |                       |
-|                       |                       |                       |
-|                       | > The recent success  |                       |
-|                       | > of large vision     |                       |
-|                       | > language models     |                       |
-|                       | > shows great         |                       |
-|                       | > potential in        |                       |
-|                       | > driv-ing the agent  |                       |
-|                       | > system operating on |                       |
-|                       | > user interfaces.    |                       |
-|                       | > However, we argue   |                       |
-|                       | > that the power      |                       |
-|                       | > multimodal models   |                       |
-|                       | > like GPT-4V as a    |                       |
-|                       | > general agent on    |                       |
-|                       | > multiple operating  |                       |
-|                       | > systems across      |                       |
-|                       | > different           |                       |
-|                       | > applications is     |                       |
-|                       | > largely             |                       |
-|                       | > underestimated due  |                       |
-|                       | > to the lack of a    |                       |
-|                       | > robust screen       |                       |
-|                       | > parsing technique   |                       |
-|                       | > capable of: 1)      |                       |
-|                       | > reliably            |                       |
-|                       | > identifying         |                       |
-|                       | > interactable icons  |                       |
-|                       | > within the user     |                       |
-|                       | > interface, and 2)   |                       |
-|                       | > understanding the   |                       |
-|                       | > semantics of        |                       |
-|                       | > various elements in |                       |
-|                       | > a screenshot and    |                       |
-|                       | > accurately          |                       |
-|                       | > associate the       |                       |
-|                       | > intended action     |                       |
-|                       | > with the            |                       |
-|                       | > corresponding       |                       |
-|                       | > region on the       |                       |
-|                       | > screen. To fill     |                       |
-|                       | > these gaps, we      |                       |
-|                       | > introduce           |                       |
-|                       | > OMNIPARSER, a       |                       |
-|                       | > comprehensive       |                       |
-|                       | > method for parsing  |                       |
-|                       | > user interface      |                       |
-|                       | > screenshots into    |                       |
-|                       | > structured          |                       |
-|                       | > elements, which     |                       |
-|                       | > significantly       |                       |
-|                       | > enhances the        |                       |
-|                       | > ability of GPT-4V   |                       |
-|                       | > to generate actions |                       |
-|                       | > that can be         |                       |
-|                       | > accurately grounded |                       |
-|                       | > in the              |                       |
-|                       | > corresponding       |                       |
-|                       | > regions of the      |                       |
-|                       | > interface. We first |                       |
-|                       | > curated an          |                       |
-|                       | > interactable icon   |                       |
-|                       | > detection dataset   |                       |
-|                       | > using popular       |                       |
-|                       | > webpages and an     |                       |
-|                       | > icon description    |                       |
-|                       | > dataset. These      |                       |
-|                       | > datasets were       |                       |
-|                       | > utilized to         |                       |
-|                       | > fine-tune           |                       |
-|                       | > specialized models: |                       |
-|                       | > a detection model   |                       |
-|                       | > to parse            |                       |
-|                       | > interactable        |                       |
-|                       | > regions on the      |                       |
-|                       | > screen and a        |                       |
-|                       | > caption model to    |                       |
-|                       | > extract the         |                       |
-|                       | > functional          |                       |
-|                       | > semantics of the    |                       |
-|                       | > detected elements.  |                       |
-|                       | > OMNIPARSER          |                       |
-|                       | > significantly       |                       |
-|                       | > improves GPT-4V's   |                       |
-|                       | > performance on      |                       |
-|                       | > ScreenSpot          |                       |
-|                       | > benchmark. And on   |                       |
-|                       | > Mind2Web and AITW   |                       |
-|                       | > benchmark,          |                       |
-|                       | > OMNIPARSER with     |                       |
-|                       | > screenshot only     |                       |
-|                       | > input outperforms   |                       |
-|                       | > the GPT-4V          |                       |
-|                       | > baselines requiring |                       |
-|                       | > additional          |                       |
-|                       | > information outside |                       |
-|                       | > of screenshot.      |                       |
+| > arXiv:2408.00203v1 | > **Yadong Lu**1**, | |
+| > \[cs.CV\] 1 Aug | > Jianwei Yang**1**, | |
+| > 2024 | > Yelong Shen**2**, | |
+| | > Ahmed Awadallah**1 | |
+| | > 1Microsoft Research | |
+| | > 2 Microsoft Gen AI\ | |
+| | > {yadonglu, | |
+| | > jianwei.yang, | |
+| | > yeshe, | |
+| | > ahmed.awa | |
+| | dallah}@microsoft.com | |
+| | | |
+| | **Abstract** | |
+| | | |
+| | > The recent success | |
+| | > of large vision | |
+| | > language models | |
+| | > shows great | |
+| | > potential in | |
+| | > driv-ing the agent | |
+| | > system operating on | |
+| | > user interfaces. | |
+| | > However, we argue | |
+| | > that the power | |
+| | > multimodal models | |
+| | > like GPT-4V as a | |
+| | > general agent on | |
+| | > multiple operating | |
+| | > systems across | |
+| | > different | |
+| | > applications is | |
+| | > largely | |
+| | > underestimated due | |
+| | > to the lack of a | |
+| | > robust screen | |
+| | > parsing technique | |
+| | > capable of: 1) | |
+| | > reliably | |
+| | > identifying | |
+| | > interactable icons | |
+| | > within the user | |
+| | > interface, and 2) | |
+| | > understanding the | |
+| | > semantics of | |
+| | > various elements in | |
+| | > a screenshot and | |
+| | > accurately | |
+| | > associate the | |
+| | > intended action | |
+| | > with the | |
+| | > corresponding | |
+| | > region on the | |
+| | > screen. To fill | |
+| | > these gaps, we | |
+| | > introduce | |
+| | > OMNIPARSER, a | |
+| | > comprehensive | |
+| | > method for parsing | |
+| | > user interface | |
+| | > screenshots into | |
+| | > structured | |
+| | > elements, which | |
+| | > significantly | |
+| | > enhances the | |
+| | > ability of GPT-4V | |
+| | > to generate actions | |
+| | > that can be | |
+| | > accurately grounded | |
+| | > in the | |
+| | > corresponding | |
+| | > regions of the | |
+| | > interface. We first | |
+| | > curated an | |
+| | > interactable icon | |
+| | > detection dataset | |
+| | > using popular | |
+| | > webpages and an | |
+| | > icon description | |
+| | > dataset. These | |
+| | > datasets were | |
+| | > utilized to | |
+| | > fine-tune | |
+| | > specialized models: | |
+| | > a detection model | |
+| | > to parse | |
+| | > interactable | |
+| | > regions on the | |
+| | > screen and a | |
+| | > caption model to | |
+| | > extract the | |
+| | > functional | |
+| | > semantics of the | |
+| | > detected elements. | |
+| | > OMNIPARSER | |
+| | > significantly | |
+| | > improves GPT-4V's | |
+| | > performance on | |
+| | > ScreenSpot | |
+| | > benchmark. And on | |
+| | > Mind2Web and AITW | |
+| | > benchmark, | |
+| | > OMNIPARSER with | |
+| | > screenshot only | |
+| | > input outperforms | |
+| | > the GPT-4V | |
+| | > baselines requiring | |
+| | > additional | |
+| | > information outside | |
+| | > of screenshot. | |
 +-----------------------+-----------------------+-----------------------+
-|                       | **1**                 | > **Introduction**    |
+| | **1** | > **Introduction** |
 +-----------------------+-----------------------+-----------------------+
-|                       | > Large language      |                       |
-|                       | > models have shown   |                       |
-|                       | > great success in    |                       |
-|                       | > their understanding |                       |
-|                       | > and reasoning       |                       |
-|                       | > capabilities. More  |                       |
-|                       | > recent works have   |                       |
-|                       | > explored the use of |                       |
-|                       | > large               |                       |
-|                       | > vision-language     |                       |
-|                       | > models (VLMs) as    |                       |
-|                       | > agents to perform   |                       |
-|                       | > complex tasks on    |                       |
-|                       | > the user interface  |                       |
-|                       | > (UI) with the aim   |                       |
-|                       | > of completing       |                       |
-|                       | > tedious tasks to    |                       |
-|                       | > replace human       |                       |
-|                       | > efforts \[YZL+23,   |                       |
-|                       | > YYZ+23, DGZ+23,     |                       |
-|                       | > ZGK+24, HWL+23,     |                       |
-|                       | > YZS+24, WXJ+24,     |                       |
-|                       | > GFH+24, CSC+24\].   |                       |
-|                       | > Despite the         |                       |
-|                       | > promising results,  |                       |
-|                       | > there remains a     |                       |
-|                       | > significant gap     |                       |
-|                       | > between current     |                       |
-|                       | > state-of-the-arts   |                       |
-|                       | > and creating widely |                       |
-|                       | > usable agents that  |                       |
-|                       | > can work across     |                       |
-|                       | > multiple platforms, |                       |
-|                       | > *e.g.*              |                       |
-|                       | > Windows/MacOS,      |                       |
-|                       | > IOS/Android and     |                       |
-|                       | > multiple            |                       |
-|                       | > applications (Web   |                       |
-|                       | > broswer Office365,  |                       |
-|                       | > PhotoShop, Adobe),  |                       |
-|                       | > with most previous  |                       |
-|                       | > work focusing on    |                       |
-|                       | > limiting            |                       |
-|                       | > applications or     |                       |
-|                       | > platforms.          |                       |
+| | > Large language | |
+| | > models have shown | |
+| | > great success in | |
+| | > their understanding | |
+| | > and reasoning | |
+| | > capabilities. More | |
+| | > recent works have | |
+| | > explored the use of | |
+| | > large | |
+| | > vision-language | |
+| | > models (VLMs) as | |
+| | > agents to perform | |
+| | > complex tasks on | |
+| | > the user interface | |
+| | > (UI) with the aim | |
+| | > of completing | |
+| | > tedious tasks to | |
+| | > replace human | |
+| | > efforts \[YZL+23, | |
+| | > YYZ+23, DGZ+23, | |
+| | > ZGK+24, HWL+23, | |
+| | > YZS+24, WXJ+24, | |
+| | > GFH+24, CSC+24\]. | |
+| | > Despite the | |
+| | > promising results, | |
+| | > there remains a | |
+| | > significant gap | |
+| | > between current | |
+| | > state-of-the-arts | |
+| | > and creating widely | |
+| | > usable agents that | |
+| | > can work across | |
+| | > multiple platforms, | |
+| | > _e.g._ | |
+| | > Windows/MacOS, | |
+| | > IOS/Android and | |
+| | > multiple | |
+| | > applications (Web | |
+| | > broswer Office365, | |
+| | > PhotoShop, Adobe), | |
+| | > with most previous | |
+| | > work focusing on | |
+| | > limiting | |
+| | > applications or | |
+| | > platforms. | |
 +-----------------------+-----------------------+-----------------------+
 
 > While large multimodal models like GPT-4V and other models trained on
@@ -419,17 +419,21 @@ height="1.6666666666666667in"}
 > semantics added in the text prompt, it makes it much easier for GPT-4V
 > to find the correct icon ID for the referred icon.
 
-  --------------------------------------------------------------------------
-  GPT-4V w.o.    Easy           Medium         Hard           Overall
-  local                                                       
-  semantics                                                   
-  -------------- -------------- -------------- -------------- --------------
+---
+
+GPT-4V w.o. Easy Medium Hard Overall
+local
+semantics
+
+---
+
                  0.913          0.692          0.620          0.705
 
-  GPT-4V w.      1.00           0.949          0.900          0.938
-  local                                                       
-  semantics                                                   
-  --------------------------------------------------------------------------
+GPT-4V w. 1.00 0.949 0.900 0.938
+local
+semantics
+
+---
 
 Table 1: Comparison of GPT-4V with and without local semantics
 
@@ -1009,70 +1013,70 @@ Mind2Web benchmark.
 > the best performing GPT-4V + history baseline.
 
 +-------+-------+-------+-------+-------+-------+-------+-------+-------+
-| > **  |       | **    | *     | *     | **Go  | **Sin | **Web | **    |
-| Metho |       | Modal | *Gene | *Inst | ogleA | gle** | Shopp | Overa |
-| ds**\ |       | ity** | ral** | all** | pps** | 9.4   | ing** | ll**\ |
-| > C   |       | Text  | 5.9   | 4.4   | 10.5  |       | 8.4   | 7.7   |
-| hatGP |       |       |       |       |       |       |       |       |
-| T-CoT |       |       |       |       |       |       |       |       |
+| > **| |** | _|_ | **Go | **Sin | **Web | ** |
+| Metho | | Modal | \_Gene | \_Inst | ogleA | gle\_\_ | Shopp | Overa |
+| ds**\ | | ity** | ral** | all**| pps** | 9.4 | ing**| ll**\ |
+| > C | | Text | 5.9 | 4.4 | 10.5 | | 8.4 | 7.7 |
+| hatGP | | | | | | | | |
+| T-CoT | | | | | | | | |
 +=======+=======+=======+=======+=======+=======+=======+=======+=======+
-| PaLM  |       | Text  | \-    | \-    | \-    | \-    | \-    | >     |
-| 2-CoT |       |       |       |       |       |       |       |  39.6 |
+| PaLM | | Text | \- | \- | \- | \- | \- | > |
+| 2-CoT | | | | | | | | 39.6 |
 +-------+-------+-------+-------+-------+-------+-------+-------+-------+
-| G     |       | Image | 41.7  | 42.6  | 49.8  | >     | 45.7  | >     |
-| PT-4V |       |       |       |       |       | 72.8\ |       |  50.5 |
-| image |       |       |       |       |       | >     |       |       |
-| -only |       |       |       |       |       |  **78 |       |       |
-|       |       |       |       |       |       | .3**\ |       |       |
-|       |       |       |       |       |       | >     |       |       |
-|       |       |       |       |       |       |  77.4 |       |       |
+| G | | Image | 41.7 | 42.6 | 49.8 | > | 45.7 | > |
+| PT-4V | | | | | | 72.8\ | | 50.5 |
+| image | | | | | | > | | |
+| -only | | | | | | **78 | | |
+| | | | | | | .3**\ | | |
+| | | | | | | > | | |
+| | | | | | | 77.4 | | |
 +-------+-------+-------+-------+-------+-------+-------+-------+-------+
-| GPT   |       | Image | 43.0  | 46.1  | 49.2  |       | 48.2  | >     |
-| -4V + |       |       |       |       |       |       |       |  53.0 |
-| hi    |       |       |       |       |       |       |       |       |
-| story |       |       |       |       |       |       |       |       |
+| GPT | | Image | 43.0 | 46.1 | 49.2 | | 48.2 | > |
+| -4V + | | | | | | | | 53.0 |
+| hi | | | | | | | | |
+| story | | | | | | | | |
 +-------+-------+-------+-------+-------+-------+-------+-------+-------+
-| OmniP |       | Image | **4   | **5   | **5   |       | **5   | > **5 |
-| arser |       |       | 8.3** | 7.8** | 1.6** |       | 2.9** | 7.7** |
-| (w.   |       |       |       |       |       |       |       |       |
-| LS +  |       |       |       |       |       |       |       |       |
-| ID)   |       |       |       |       |       |       |       |       |
+| OmniP | | Image | **4 | **5 | **5 | | **5 | > **5 |
+| arser | | | 8.3** | 7.8** | 1.6** | | 2.9** | 7.7** |
+| (w. | | | | | | | | |
+| LS + | | | | | | | | |
+| ID) | | | | | | | | |
 +-------+-------+-------+-------+-------+-------+-------+-------+-------+
-| >     |       |       |       |       |       |       |       |       |
-| Table |       |       |       |       |       |       |       |       |
-| > 4:  |       |       |       |       |       |       |       |       |
-| >     |       |       |       |       |       |       |       |       |
-| Compa |       |       |       |       |       |       |       |       |
-| rison |       |       |       |       |       |       |       |       |
-| > of  |       |       |       |       |       |       |       |       |
-| >     |       |       |       |       |       |       |       |       |
-|  diff |       |       |       |       |       |       |       |       |
-| erent |       |       |       |       |       |       |       |       |
-| > me  |       |       |       |       |       |       |       |       |
-| thods |       |       |       |       |       |       |       |       |
-| > a   |       |       |       |       |       |       |       |       |
-| cross |       |       |       |       |       |       |       |       |
-| > va  |       |       |       |       |       |       |       |       |
-| rious |       |       |       |       |       |       |       |       |
-| >     |       |       |       |       |       |       |       |       |
-| tasks |       |       |       |       |       |       |       |       |
-| > and |       |       |       |       |       |       |       |       |
-| > ov  |       |       |       |       |       |       |       |       |
-| erall |       |       |       |       |       |       |       |       |
-| > p   |       |       |       |       |       |       |       |       |
-| erfor |       |       |       |       |       |       |       |       |
-| mance |       |       |       |       |       |       |       |       |
-| > in  |       |       |       |       |       |       |       |       |
-| >     |       |       |       |       |       |       |       |       |
-|  AITW |       |       |       |       |       |       |       |       |
-| >     |       |       |       |       |       |       |       |       |
-| bench |       |       |       |       |       |       |       |       |
-| mark. |       |       |       |       |       |       |       |       |
+| > | | | | | | | | |
+| Table | | | | | | | | |
+| > 4: | | | | | | | | |
+| > | | | | | | | | |
+| Compa | | | | | | | | |
+| rison | | | | | | | | |
+| > of | | | | | | | | |
+| > | | | | | | | | |
+| diff | | | | | | | | |
+| erent | | | | | | | | |
+| > me | | | | | | | | |
+| thods | | | | | | | | |
+| > a | | | | | | | | |
+| cross | | | | | | | | |
+| > va | | | | | | | | |
+| rious | | | | | | | | |
+| > | | | | | | | | |
+| tasks | | | | | | | | |
+| > and | | | | | | | | |
+| > ov | | | | | | | | |
+| erall | | | | | | | | |
+| > p | | | | | | | | |
+| erfor | | | | | | | | |
+| mance | | | | | | | | |
+| > in | | | | | | | | |
+| > | | | | | | | | |
+| AITW | | | | | | | | |
+| > | | | | | | | | |
+| bench | | | | | | | | |
+| mark. | | | | | | | | |
 +-------+-------+-------+-------+-------+-------+-------+-------+-------+
-| **5** | >     |       |       |       |       |       |       |       |
-|       | **Dis |       |       |       |       |       |       |       |
-|       | cussi |       |       |       |       |       |       |       |
-|       | ons** |       |       |       |       |       |       |       |
+| **5** | > | | | | | | | |
+| | **Dis | | | | | | | |
+| | cussi | | | | | | | |
+| | ons\*\* | | | | | | | |
 +-------+-------+-------+-------+-------+-------+-------+-------+-------+
 
 > In this section, we discuss a couple of common failure cases of
@@ -1146,76 +1150,76 @@ Mind2Web benchmark.
 > **References**
 
 +-----------------------------------+-----------------------------------+
-| > \[BEH+23\] \[BZX+21\]           | > Rohan Bavishi, Erich Elsen,     |
-| >                                 | > Curtis Hawthorne, Maxwell Nye,  |
-| > \[CSC+24\] \[DGZ+23\]           | > Augustus Odena, Arushi Somani,  |
-| > \[DHF+17\]                      | > and Sa˘gnak Ta¸sırlar.          |
-|                                   | > Introducing our multimodal      |
-| \[FLN+24\]                        | > models, 2023.                   |
-|                                   | >                                 |
-| \[GFH+24\]                        | > Chongyang Bai, Xiaoxue Zang,    |
-|                                   | > Ying Xu, Srinivas Sunkara,      |
-| \[HSZ+21\]                        | > Abhinav Rastogi, Jindong Chen,  |
-|                                   | > and Blaise Aguera y Arcas.      |
-|                                   | > Uibert: Learning generic        |
-|                                   | > multimodal representations for  |
-|                                   | > ui understanding, 2021.         |
-|                                   |                                   |
-|                                   | Kanzhi Cheng, Qiushi Sun, Yougang |
-|                                   | Chu, Fangzhi Xu, Yantao Li,       |
-|                                   | Jianbing Zhang, and Zhiyong Wu.   |
-|                                   | Seeclick: Harnessing gui          |
-|                                   | grounding for advanced visual gui |
-|                                   | agents, 2024.                     |
-|                                   |                                   |
-|                                   | > Xiang Deng, Yu Gu, Boyuan       |
-|                                   | > Zheng, Shijie Chen, Samuel      |
-|                                   | > Stevens, Boshi Wang, Huan Sun,  |
-|                                   | > and Yu Su. Mind2web: Towards a  |
-|                                   | > generalist agent for the web,   |
-|                                   | > 2023.                           |
-|                                   | >                                 |
-|                                   | > Biplab Deka, Zifeng Huang, Chad |
-|                                   | > Franzen, Joshua Hibschman,      |
-|                                   | > Daniel Afergan, Yang Li,        |
-|                                   | > Jeffrey Nichols, and Ranjitha   |
-|                                   | > Kumar. Rico: A mobile app       |
-|                                   | > dataset for building            |
-|                                   | > data-driven design              |
-|                                   | > applications. In *Proceedings   |
-|                                   | > of the 30th Annual ACM          |
-|                                   | > Symposium on User Interface     |
-|                                   | > Software and Technology*, UIST  |
-|                                   | > '17, page 845--854, New York,   |
-|                                   | > NY, USA, 2017. Association for  |
-|                                   | > Computing Machinery.            |
-|                                   | >                                 |
-|                                   | > Hiroki Furuta, Kuang-Huei Lee,  |
-|                                   | > Ofir Nachum, Yutaka Matsuo,     |
-|                                   | > Aleksandra Faust, Shixiang      |
-|                                   | > Shane Gu, and Izzeddin Gur.     |
-|                                   | > Multimodal web navigation with  |
-|                                   | > instruction-finetuned           |
-|                                   | > foundation models, 2024.        |
-|                                   | >                                 |
-|                                   | > Izzeddin Gur, Hiroki Furuta,    |
-|                                   | > Austin Huang, Mustafa Safdari,  |
-|                                   | > Yutaka Matsuo, Dou-glas Eck,    |
-|                                   | > and Aleksandra Faust. A         |
-|                                   | > real-world webagent with        |
-|                                   | > planning, long context          |
-|                                   | > understanding, and program      |
-|                                   | > synthesis, 2024.                |
-|                                   | >                                 |
-|                                   | > Zecheng He, Srinivas Sunkara,   |
-|                                   | > Xiaoxue Zang, Ying Xu, Lijuan   |
-|                                   | > Liu, Nevan Wichers, Gabriel     |
-|                                   | > Schubiner, Ruby Lee, Jindong    |
-|                                   | > Chen, and Blaise Agüera y       |
-|                                   | > Arcas. Actionbert: Leveraging   |
-|                                   | > user actions for semantic       |
-|                                   | > understanding of user           |
-|                                   | > interfaces, 2021.               |
+| > \[BEH+23\] \[BZX+21\] | > Rohan Bavishi, Erich Elsen, |
+| > | > Curtis Hawthorne, Maxwell Nye, |
+| > \[CSC+24\] \[DGZ+23\] | > Augustus Odena, Arushi Somani, |
+| > \[DHF+17\] | > and Sa˘gnak Ta¸sırlar. |
+| | > Introducing our multimodal |
+| \[FLN+24\] | > models, 2023. |
+| | > |
+| \[GFH+24\] | > Chongyang Bai, Xiaoxue Zang, |
+| | > Ying Xu, Srinivas Sunkara, |
+| \[HSZ+21\] | > Abhinav Rastogi, Jindong Chen, |
+| | > and Blaise Aguera y Arcas. |
+| | > Uibert: Learning generic |
+| | > multimodal representations for |
+| | > ui understanding, 2021. |
+| | |
+| | Kanzhi Cheng, Qiushi Sun, Yougang |
+| | Chu, Fangzhi Xu, Yantao Li, |
+| | Jianbing Zhang, and Zhiyong Wu. |
+| | Seeclick: Harnessing gui |
+| | grounding for advanced visual gui |
+| | agents, 2024. |
+| | |
+| | > Xiang Deng, Yu Gu, Boyuan |
+| | > Zheng, Shijie Chen, Samuel |
+| | > Stevens, Boshi Wang, Huan Sun, |
+| | > and Yu Su. Mind2web: Towards a |
+| | > generalist agent for the web, |
+| | > 2023. |
+| | > |
+| | > Biplab Deka, Zifeng Huang, Chad |
+| | > Franzen, Joshua Hibschman, |
+| | > Daniel Afergan, Yang Li, |
+| | > Jeffrey Nichols, and Ranjitha |
+| | > Kumar. Rico: A mobile app |
+| | > dataset for building |
+| | > data-driven design |
+| | > applications. In _Proceedings |
+| | > of the 30th Annual ACM |
+| | > Symposium on User Interface |
+| | > Software and Technology_, UIST |
+| | > '17, page 845--854, New York, |
+| | > NY, USA, 2017. Association for |
+| | > Computing Machinery. |
+| | > |
+| | > Hiroki Furuta, Kuang-Huei Lee, |
+| | > Ofir Nachum, Yutaka Matsuo, |
+| | > Aleksandra Faust, Shixiang |
+| | > Shane Gu, and Izzeddin Gur. |
+| | > Multimodal web navigation with |
+| | > instruction-finetuned |
+| | > foundation models, 2024. |
+| | > |
+| | > Izzeddin Gur, Hiroki Furuta, |
+| | > Austin Huang, Mustafa Safdari, |
+| | > Yutaka Matsuo, Dou-glas Eck, |
+| | > and Aleksandra Faust. A |
+| | > real-world webagent with |
+| | > planning, long context |
+| | > understanding, and program |
+| | > synthesis, 2024. |
+| | > |
+| | > Zecheng He, Srinivas Sunkara, |
+| | > Xiaoxue Zang, Ying Xu, Lijuan |
+| | > Liu, Nevan Wichers, Gabriel |
+| | > Schubiner, Ruby Lee, Jindong |
+| | > Chen, and Blaise Agüera y |
+| | > Arcas. Actionbert: Leveraging |
+| | > user actions for semantic |
+| | > understanding of user |
+| | > interfaces, 2021. |
 +===================================+===================================+
 +-----------------------------------+-----------------------------------+
 
@@ -1225,88 +1229,88 @@ Mind2Web benchmark.
 > model for gui agents, 2023.
 
 +-----------------------------------+-----------------------------------+
-| \[KLJ+24\]                        | > Jing Yu Koh, Robert Lo,         |
-|                                   | > Lawrence Jang, Vikram Duvvur,   |
-| \[LGP+18\]                        | > Ming Chong Lim, Po-Yu Huang,    |
-|                                   | > Graham Neubig, Shuyan Zhou,     |
-| \[LHZ+20\]                        | > Ruslan Salakhutdinov, and       |
-|                                   | > Daniel Fried. Visualwebarena:   |
-| \[LLH+20\]                        | > Evaluating multimodal agents on |
-|                                   | > realistic visual web tasks.     |
-| \[LLSH23\]                        | > *arXiv preprint                 |
-|                                   | > arXiv:2401.13649*, 2024.        |
-|                                   | >                                 |
-|                                   | > Evan Zheran Liu, Kelvin Guu,    |
-|                                   | > Panupong Pasupat, Tianlin Shi,  |
-|                                   | > and Percy Liang. Rein-forcement |
-|                                   | > learning on web interfaces      |
-|                                   | > using workflow-guided           |
-|                                   | > exploration. In *Interna-tional |
-|                                   | > Conference on Learning          |
-|                                   | > Representations (ICLR)*, 2018.  |
-|                                   | >                                 |
-|                                   | > Yang Li, Jiacong He, Xin Zhou,  |
-|                                   | > Yuan Zhang, and Jason           |
-|                                   | > Baldridge. Mapping natural      |
-|                                   | > language instructions to mobile |
-|                                   | > UI action sequences. In Dan     |
-|                                   | > Jurafsky, Joyce Chai, Natalie   |
-|                                   | > Schluter, and Joel Tetreault,   |
-|                                   | > editors, *Proceedings of the    |
-|                                   | > 58th Annual Meeting of the      |
-|                                   | > Association for Computational   |
-|                                   | > Linguistics*, pages 8198--8210, |
-|                                   | > Online, July 2020. Association  |
-|                                   | > for Computational Linguistics.  |
-|                                   | >                                 |
-|                                   | > Yang Li, Gang Li, Luheng He,    |
-|                                   | > Jingjie Zheng, Hong Li, and     |
-|                                   | > Zhiwei Guan. Widget captioning: |
-|                                   | > Generating natural language     |
-|                                   | > description for mobile user     |
-|                                   | > interface elements, 2020.       |
-|                                   | >                                 |
-|                                   | > Junnan Li, Dongxu Li, Silvio    |
-|                                   | > Savarese, and Steven Hoi.       |
-|                                   | > Blip-2: Bootstrapping           |
-|                                   | > language-image pre-training     |
-|                                   | > with frozen image encoders and  |
-|                                   | > large language models, 2023.    |
+| \[KLJ+24\] | > Jing Yu Koh, Robert Lo, |
+| | > Lawrence Jang, Vikram Duvvur, |
+| \[LGP+18\] | > Ming Chong Lim, Po-Yu Huang, |
+| | > Graham Neubig, Shuyan Zhou, |
+| \[LHZ+20\] | > Ruslan Salakhutdinov, and |
+| | > Daniel Fried. Visualwebarena: |
+| \[LLH+20\] | > Evaluating multimodal agents on |
+| | > realistic visual web tasks. |
+| \[LLSH23\] | > _arXiv preprint |
+| | > arXiv:2401.13649_, 2024. |
+| | > |
+| | > Evan Zheran Liu, Kelvin Guu, |
+| | > Panupong Pasupat, Tianlin Shi, |
+| | > and Percy Liang. Rein-forcement |
+| | > learning on web interfaces |
+| | > using workflow-guided |
+| | > exploration. In _Interna-tional |
+| | > Conference on Learning |
+| | > Representations (ICLR)_, 2018. |
+| | > |
+| | > Yang Li, Jiacong He, Xin Zhou, |
+| | > Yuan Zhang, and Jason |
+| | > Baldridge. Mapping natural |
+| | > language instructions to mobile |
+| | > UI action sequences. In Dan |
+| | > Jurafsky, Joyce Chai, Natalie |
+| | > Schluter, and Joel Tetreault, |
+| | > editors, _Proceedings of the |
+| | > 58th Annual Meeting of the |
+| | > Association for Computational |
+| | > Linguistics_, pages 8198--8210, |
+| | > Online, July 2020. Association |
+| | > for Computational Linguistics. |
+| | > |
+| | > Yang Li, Gang Li, Luheng He, |
+| | > Jingjie Zheng, Hong Li, and |
+| | > Zhiwei Guan. Widget captioning: |
+| | > Generating natural language |
+| | > description for mobile user |
+| | > interface elements, 2020. |
+| | > |
+| | > Junnan Li, Dongxu Li, Silvio |
+| | > Savarese, and Steven Hoi. |
+| | > Blip-2: Bootstrapping |
+| | > language-image pre-training |
+| | > with frozen image encoders and |
+| | > large language models, 2023. |
 +===================================+===================================+
 +-----------------------------------+-----------------------------------+
 
 9
 
 +-----------------------------------+-----------------------------------+
-| > \[OXL+22\] \[RLR+23\]           | > Arnold Overwijk, Chenyan Xiong, |
-| > \[SJC+23\]                      | > Xiao Liu, Cameron VandenBerg,   |
-|                                   | > and Jamie Callan. Clueweb22: 10 |
-|                                   | > billion web documents with      |
-|                                   | > visual and semantic             |
-|                                   | > information, 2022.              |
-|                                   | >                                 |
-|                                   | > Christopher Rawles, Alice Li,   |
-|                                   | > Daniel Rodriguez, Oriana Riva,  |
-|                                   | > and Timothy Lillicrap. Android  |
-|                                   | > in the wild: A large-scale      |
-|                                   | > dataset for android device      |
-|                                   | > control, 2023.                  |
-|                                   | >                                 |
-|                                   | > Peter Shaw, Mandar Joshi, James |
-|                                   | > Cohan, Jonathan Berant,         |
-|                                   | > Panupong Pasupat, Hexiang Hu,   |
-|                                   | > Urvashi Khandelwal, Kenton Lee, |
-|                                   | > and Kristina Toutanova. From    |
-|                                   | > pixels to ui actions: Learning  |
-|                                   | > to follow instructions via      |
-|                                   | > graphical user interfaces,      |
-|                                   | > 2023.                           |
+| > \[OXL+22\] \[RLR+23\] | > Arnold Overwijk, Chenyan Xiong, |
+| > \[SJC+23\] | > Xiao Liu, Cameron VandenBerg, |
+| | > and Jamie Callan. Clueweb22: 10 |
+| | > billion web documents with |
+| | > visual and semantic |
+| | > information, 2022. |
+| | > |
+| | > Christopher Rawles, Alice Li, |
+| | > Daniel Rodriguez, Oriana Riva, |
+| | > and Timothy Lillicrap. Android |
+| | > in the wild: A large-scale |
+| | > dataset for android device |
+| | > control, 2023. |
+| | > |
+| | > Peter Shaw, Mandar Joshi, James |
+| | > Cohan, Jonathan Berant, |
+| | > Panupong Pasupat, Hexiang Hu, |
+| | > Urvashi Khandelwal, Kenton Lee, |
+| | > and Kristina Toutanova. From |
+| | > pixels to ui actions: Learning |
+| | > to follow instructions via |
+| | > graphical user interfaces, |
+| | > 2023. |
 +===================================+===================================+
 +-----------------------------------+-----------------------------------+
 
 > \[SWL+22\] Srinivas Sunkara, Maria Wang, Lijuan Liu, Gilles Baechler,
 > Yu-Chung Hsiao, Jindong Chen, Abhanshu Sharma, and James Stout.
-> Towards better semantic understanding of mobile interfaces. *CoRR*,
+> Towards better semantic understanding of mobile interfaces. _CoRR_,
 > abs/2210.02663, 2022.
 >
 > \[WLZ+21\] Bryan Wang, Gang Li, Xin Zhou, Zhourong Chen, Tovi
@@ -1314,15 +1318,15 @@ Mind2Web benchmark.
 > with multimodal learning, 2021.
 
 +-----------------------------------+-----------------------------------+
-| \[WXJ+24\]                        | > Junyang Wang, Haiyang Xu,       |
-|                                   | > Haitao Jia, Xi Zhang, Ming Yan, |
-|                                   | > Weizhou Shen, Ji Zhang, Fei     |
-|                                   | > Huang, and Jitao Sang.          |
-|                                   | > Mobile-agent-v2: Mobile device  |
-|                                   | > operation assistant with        |
-|                                   | > effective navigation via        |
-|                                   | > multi-agent collaboration,      |
-|                                   | > 2024.                           |
+| \[WXJ+24\] | > Junyang Wang, Haiyang Xu, |
+| | > Haitao Jia, Xi Zhang, Ming Yan, |
+| | > Weizhou Shen, Ji Zhang, Fei |
+| | > Huang, and Jitao Sang. |
+| | > Mobile-agent-v2: Mobile device |
+| | > operation assistant with |
+| | > effective navigation via |
+| | > multi-agent collaboration, |
+| | > 2024. |
 +===================================+===================================+
 +-----------------------------------+-----------------------------------+
 
@@ -1331,57 +1335,57 @@ Mind2Web benchmark.
 > multi-modal mobile device agent with visual perception, 2024.
 
 +-----------------------------------+-----------------------------------+
-| \[XZC+24\]                        | > Tianbao Xie, Danyang Zhang,     |
-|                                   | > Jixuan Chen, Xiaochuan Li,      |
-| \[YYZ+23\]                        | > Siheng Zhao, Ruisheng Cao, Toh  |
-|                                   | > Jing Hua, Zhoujun Cheng,        |
-| > \[YZL+23\] \[YZS+24\]           | > Dongchan Shin, Fangyu Lei,      |
-| >                                 | > Yitao Liu, Yiheng Xu, Shuyan    |
-| > \[ZGK+24\] \[ZXZ+24\]           | > Zhou, Silvio Savarese, Caiming  |
-|                                   | > Xiong, Victor Zhong, and Tao    |
-|                                   | > Yu. Osworld: Benchmarking       |
-|                                   | > multimodal agents for           |
-|                                   | > open-ended tasks in real        |
-|                                   | > computer environments, 2024.    |
-|                                   | >                                 |
-|                                   | > An Yan, Zhengyuan Yang, Wanrong |
-|                                   | > Zhu, Kevin Lin, Linjie Li,      |
-|                                   | > Jianfeng Wang, Jianwei Yang,    |
-|                                   | > Yiwu Zhong, Julian McAuley,     |
-|                                   | > Jianfeng Gao, Zicheng Liu, and  |
-|                                   | > Lijuan Wang. Gpt-4v in          |
-|                                   | > wonderland: Large multimodal    |
-|                                   | > models for zero-shot smartphone |
-|                                   | > gui navigation, 2023.           |
-|                                   | >                                 |
-|                                   | > Jianwei Yang, Hao Zhang, Feng   |
-|                                   | > Li, Xueyan Zou, Chunyuan Li,    |
-|                                   | > and Jianfeng Gao. Set-of-mark   |
-|                                   | > prompting unleashes             |
-|                                   | > extraordinary visual grounding  |
-|                                   | > in gpt-4v, 2023.                |
-|                                   | >                                 |
-|                                   | > Keen You, Haotian Zhang, Eldon  |
-|                                   | > Schoop, Floris Weers, Amanda    |
-|                                   | > Swearngin, Jeffrey Nichols,     |
-|                                   | > Yinfei Yang, and Zhe Gan.       |
-|                                   | > Ferret-ui: Grounded mobile ui   |
-|                                   | > understanding with multimodal   |
-|                                   | > llms, 2024.                     |
-|                                   | >                                 |
-|                                   | > Boyuan Zheng, Boyu Gou, Jihyung |
-|                                   | > Kil, Huan Sun, and Yu Su.       |
-|                                   | > Gpt-4v(ision) is a generalist   |
-|                                   | > web agent, if grounded, 2024.   |
-|                                   | >                                 |
-|                                   | > Shuyan Zhou, Frank F Xu, Hao    |
-|                                   | > Zhu, Xuhui Zhou, Robert Lo,     |
-|                                   | > Abishek Sridhar, Xi-anyi Cheng, |
-|                                   | > Yonatan Bisk, Daniel Fried, Uri |
-|                                   | > Alon, et al. Webarena: A        |
-|                                   | > realistic web environment for   |
-|                                   | > building autonomous agents.     |
-|                                   | > *ICLR*, 2024.                   |
+| \[XZC+24\] | > Tianbao Xie, Danyang Zhang, |
+| | > Jixuan Chen, Xiaochuan Li, |
+| \[YYZ+23\] | > Siheng Zhao, Ruisheng Cao, Toh |
+| | > Jing Hua, Zhoujun Cheng, |
+| > \[YZL+23\] \[YZS+24\] | > Dongchan Shin, Fangyu Lei, |
+| > | > Yitao Liu, Yiheng Xu, Shuyan |
+| > \[ZGK+24\] \[ZXZ+24\] | > Zhou, Silvio Savarese, Caiming |
+| | > Xiong, Victor Zhong, and Tao |
+| | > Yu. Osworld: Benchmarking |
+| | > multimodal agents for |
+| | > open-ended tasks in real |
+| | > computer environments, 2024. |
+| | > |
+| | > An Yan, Zhengyuan Yang, Wanrong |
+| | > Zhu, Kevin Lin, Linjie Li, |
+| | > Jianfeng Wang, Jianwei Yang, |
+| | > Yiwu Zhong, Julian McAuley, |
+| | > Jianfeng Gao, Zicheng Liu, and |
+| | > Lijuan Wang. Gpt-4v in |
+| | > wonderland: Large multimodal |
+| | > models for zero-shot smartphone |
+| | > gui navigation, 2023. |
+| | > |
+| | > Jianwei Yang, Hao Zhang, Feng |
+| | > Li, Xueyan Zou, Chunyuan Li, |
+| | > and Jianfeng Gao. Set-of-mark |
+| | > prompting unleashes |
+| | > extraordinary visual grounding |
+| | > in gpt-4v, 2023. |
+| | > |
+| | > Keen You, Haotian Zhang, Eldon |
+| | > Schoop, Floris Weers, Amanda |
+| | > Swearngin, Jeffrey Nichols, |
+| | > Yinfei Yang, and Zhe Gan. |
+| | > Ferret-ui: Grounded mobile ui |
+| | > understanding with multimodal |
+| | > llms, 2024. |
+| | > |
+| | > Boyuan Zheng, Boyu Gou, Jihyung |
+| | > Kil, Huan Sun, and Yu Su. |
+| | > Gpt-4v(ision) is a generalist |
+| | > web agent, if grounded, 2024. |
+| | > |
+| | > Shuyan Zhou, Frank F Xu, Hao |
+| | > Zhu, Xuhui Zhou, Robert Lo, |
+| | > Abishek Sridhar, Xi-anyi Cheng, |
+| | > Yonatan Bisk, Daniel Fried, Uri |
+| | > Alon, et al. Webarena: A |
+| | > realistic web environment for |
+| | > building autonomous agents. |
+| | > _ICLR_, 2024. |
 +===================================+===================================+
 +-----------------------------------+-----------------------------------+
 
@@ -1426,8 +1430,7 @@ height="2.2777777777777777in"}
 > region detection dataset. We collect in total of 66990 samples where
 > we split 95% (63641) for training, and 5% (3349) for validation. We
 > train for 20 epochs with batch size of 256, learning rate of 1*e−*3,
-> and the Adam optimizer on 4 GPUs. We show the training curve in figure
-> 5.
+> and the Adam optimizer on 4 GPUs. We show the training curve in figure 5.
 >
 > **7.3** **Details of SeeAssign Evaluation**
 >
