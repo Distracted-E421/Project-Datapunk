@@ -180,4 +180,5 @@ mongod.lock
 # Datapunk 
 venv/   
 class/
+Agentic Research/
 DatapunkManifesto.txt
