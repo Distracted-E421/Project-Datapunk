@@ -1,0 +1,28 @@
+{
+  "theme": "dark",
+  "themeVariables": {
+    "darkMode": true,
+    "background": "transparent",
+    "primaryColor": "#1c1c2420",
+    "secondaryColor": "#14141920",
+    "tertiaryColor": "#25252520",
+
+    "primaryTextColor": "#ffffff",
+    "secondaryTextColor": "#e0e0e0",
+    "tertiaryTextColor": "#cccccc",
+    "lineColor": "#ffffff",
+
+    "mainBkg": "transparent",
+    "nodeBorder": "#569cd6",
+    "clusterBkg": "rgba(10, 10, 15, 0.2)",
+    "clusterBorder": "#ffffff22",
+    "defaultLinkColor": "#569cd6",
+
+    "fontFamily": "PixelOperator, monospace",
+    "fontSize": "16px",
+
+    "labelBackground": "#1a1a1a80",
+    "edgeLabelBackground": "#1a1a1a80"
+  },
+  "themeCSS": "@import url('../mermaid-styles.css')"
+}

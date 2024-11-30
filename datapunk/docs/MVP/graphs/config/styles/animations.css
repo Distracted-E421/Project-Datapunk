@@ -1,0 +1,32 @@
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes glow {
+  0% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.5);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+
+/* Animated states */
+.node.active rect {
+  animation: pulse 2s infinite;
+}
+
+.node.glowing rect {
+  animation: glow 2s infinite;
+}

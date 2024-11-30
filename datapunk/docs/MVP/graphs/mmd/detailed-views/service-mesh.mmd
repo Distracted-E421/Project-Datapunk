@@ -10,53 +10,37 @@ graph TD
             gRPC[gRPC Services]
             RESTServices[REST Services]
             MessageQueue[Message Queue]
-
-            subgraph "Protocol Handlers"
-                ProtoSerializer[Protocol Serializer]
-                LoadBalancer[Load Balancer]
-                CircuitBreaker[Circuit Breaker]
-                Retry[Retry Handler]
-            end
+            ProtoSerializer[Protocol Serializer]
+            LoadBalancer[Load Balancer]
+            CircuitBreaker[Circuit Breaker]
+            Retry[Retry Handler]
         end
         
-        subgraph "Discovery"
+        subgraph "Service Management"
             Consul[Consul]
             ServiceRegistry[Service Registry]
             HealthCheck[Health Check]
-
-            subgraph "Service Management"
-                Registration[Service Registration]
-                Discovery[Service Discovery]
-                Resolution[Service Resolution]
-            end
+            Registration[Service Registration]
+            Discovery[Service Discovery]
+            Resolution[Service Resolution]
         end
 
         subgraph "Resilience"
-            subgraph "Fault Tolerance"
-                Failover[Failover Handler]
-                Timeout[Timeout Handler]
-                Bulkhead[Bulkhead Pattern]
-            end
-
-            subgraph "Traffic Management"
-                RouteRules[Routing Rules]
-                LoadBalancing[Load Balancing]
-                TrafficSplit[Traffic Splitting]
-            end
+            Failover[Failover Handler]
+            Timeout[Timeout Handler]
+            Bulkhead[Bulkhead Pattern]
+            RouteRules[Routing Rules]
+            LoadBalancing[Load Balancing]
+            TrafficSplit[Traffic Splitting]
         end
 
         subgraph "Observability"
-            subgraph "Telemetry"
-                MetricsCollector[Metrics Collector]
-                TracingCollector[Tracing Collector]
-                LogCollector[Log Collector]
-            end
-
-            subgraph "Health Monitoring"
-                HealthRegistry[Health Registry]
-                MetricsAggregator[Metrics Aggregator]
-                LogFormatter[Log Formatter]
-            end
+            MetricsCollector[Metrics Collector]
+            TracingCollector[Tracing Collector]
+            LogCollector[Log Collector]
+            HealthRegistry[Health Registry]
+            MetricsAggregator[Metrics Aggregator]
+            LogFormatter[Log Formatter]
         end
     end
 

@@ -1,0 +1,13 @@
+@font-face {
+  font-family: "PixelOperator";
+  src: url("./PixelOperator.ttf") format("ttf");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "PixelOperator";
+  src: url("./PixelOperator-Bold.ttf") format("ttf");
+  font-weight: bold;
+  font-style: normal;
+}

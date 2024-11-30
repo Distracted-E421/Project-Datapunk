@@ -1,0 +1,38 @@
+:root {
+  /* Text styling variables */
+  --text-light: #ffffff;
+  --text-dark: #1a1a1a;
+  --text-glow: 0 0 10px rgba(0, 0, 0, 0.5);
+  --text-shadow-light: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  --text-shadow-dark: 2px 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+.label {
+  font-family: "PixelOperator", monospace !important;
+  font-weight: bold !important;
+  text-shadow: var(--text-shadow-light) !important;
+  paint-order: stroke fill !important;
+  stroke: rgba(0, 0, 0, 0.8) !important;
+  stroke-width: 3px !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+.cluster .label {
+  font-size: 1.2em !important;
+  letter-spacing: 0.05em !important;
+}
+
+/* Dynamic text contrast */
+[style*="fill: #fff"] .label,
+[style*="fill: rgb(255"] .label {
+  color: var(--text-dark) !important;
+  text-shadow: var(--text-shadow-dark) !important;
+}
+
+/* Edge labels */
+.edgeLabel {
+  background-color: rgba(26, 26, 26, 0.7) !important;
+  border-radius: 4px;
+  padding: 2px 4px !important;
+}

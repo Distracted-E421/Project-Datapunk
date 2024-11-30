@@ -1,0 +1,41 @@
+/* Import fonts */
+@import url("../fonts/fonts.css");
+
+/* Core color palette */
+:root {
+  /* Base colors */
+  --frontend-color: #ff1b6b;
+  --gateway-color: #00ffff;
+  --service-color: #0fff4f;
+  --infra-color: #ffac06;
+  --auth-color: #9933cc;
+  --storage-color: #006666;
+  --cache-color: #994d00;
+  --queue-color: #004d1a;
+  --monitor-color: #004d99;
+  --analytics-color: #cc3366;
+  --security-color: #ff3333;
+  --network-color: #3366ff;
+
+  /* Depth variations */
+  --depth-0-bg: rgba(10, 10, 15, 0.2);
+  --depth-1-bg: rgba(20, 20, 25, 0.3);
+  --depth-2-bg: rgba(30, 30, 35, 0.35);
+  --depth-3-bg: rgba(40, 40, 45, 0.4);
+  --depth-4-bg: rgba(50, 50, 55, 0.45);
+  --depth-5-bg: rgba(60, 60, 65, 0.5);
+  --depth-6-bg: rgba(70, 70, 75, 0.55);
+  --depth-7-bg: rgba(80, 80, 85, 0.6);
+  --depth-8-bg: rgba(90, 90, 95, 0.65);
+
+  /* Stroke gradients */
+  --depth-0-stroke: rgba(255, 255, 255, 0.1);
+  --depth-1-stroke: rgba(255, 255, 255, 0.15);
+  --depth-2-stroke: rgba(255, 255, 255, 0.2);
+  --depth-3-stroke: rgba(255, 255, 255, 0.25);
+  --depth-4-stroke: rgba(255, 255, 255, 0.3);
+  --depth-5-stroke: rgba(255, 255, 255, 0.35);
+  --depth-6-stroke: rgba(255, 255, 255, 0.4);
+  --depth-7-stroke: rgba(255, 255, 255, 0.45);
+  --depth-8-stroke: rgba(255, 255, 255, 0.5);
+}

@@ -1,0 +1,15 @@
+:root {
+  /* Patterns and textures */
+  --pattern-grid: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20v20H0z' fill='none' stroke='rgba(255,255,255,0.05)' stroke-width='0.5'/%3E%3C/svg%3E");
+  --pattern-dots: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='10' cy='10' r='1' fill='rgba(255,255,255,0.05)'/%3E%3C/svg%3E");
+  --pattern-diagonal: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 20L20 0' stroke='rgba(255,255,255,0.05)' stroke-width='0.5' fill='none'/%3E%3C/svg%3E");
+}
+
+/* Pattern applications */
+.cluster rect {
+  background-image: var(--pattern-grid) !important;
+}
+
+.cluster .cluster rect {
+  background-image: var(--pattern-dots) !important;
+}

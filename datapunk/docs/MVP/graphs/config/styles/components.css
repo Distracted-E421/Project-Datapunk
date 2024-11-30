@@ -1,0 +1,39 @@
+/* Component Shapes */
+.node.diamond rect {
+  transform: rotate(45deg) scale(0.7);
+}
+
+.node.hexagon rect {
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+
+.node.cylinder rect {
+  border-radius: 50% / 20%;
+}
+
+.node.cloud rect {
+  border-radius: 50px;
+}
+
+/* Specialized Components */
+.load-balancer rect {
+  clip-path: polygon(20% 0%, 80% 0%, 100% 50%, 80% 100%, 20% 100%, 0% 50%);
+}
+
+.gateway rect {
+  clip-path: polygon(0% 0%, 100% 0%, 85% 100%, 15% 100%);
+}
+
+.database rect {
+  border-radius: 10px 10px 0 0;
+  height: calc(100% - 10px);
+  border-bottom: 10px solid rgba(255, 255, 255, 0.1);
+}
+
+.queue rect {
+  border-radius: 20px 0 0 20px / 50%;
+}
+
+.cache rect {
+  clip-path: polygon(10% 0%, 90% 0%, 100% 50%, 90% 100%, 10% 100%, 0% 50%);
+}

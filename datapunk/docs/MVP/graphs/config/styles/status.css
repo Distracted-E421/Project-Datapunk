@@ -1,0 +1,24 @@
+/* Status indicators */
+.status-dot {
+  height: 8px;
+  width: 8px;
+  border-radius: 50%;
+  position: absolute;
+  right: -4px;
+  top: -4px;
+}
+
+.status-dot.active {
+  background-color: var(--service-color);
+  box-shadow: 0 0 5px var(--service-color);
+}
+
+.status-dot.warning {
+  background-color: var(--edge-warning);
+  box-shadow: 0 0 5px var(--edge-warning);
+}
+
+.status-dot.error {
+  background-color: var(--edge-error);
+  box-shadow: 0 0 5px var(--edge-error);
+}
