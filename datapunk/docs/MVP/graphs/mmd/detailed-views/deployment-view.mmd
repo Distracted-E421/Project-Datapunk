@@ -1,11 +1,10 @@
-graph TD
+graph TB
     %% External Ports
     Frontend[[Frontend Layer Port]]
     Gateway[[Gateway Layer Port]]
     Core[[Core Services Port]]
 
     subgraph "Deployment Architecture"
-        direction LR
         subgraph "Infrastructure Platform"
             subgraph "Kubernetes Clusters"
                 ProdCluster[Production Cluster]

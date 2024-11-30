@@ -22,7 +22,20 @@
     "fontSize": "16px",
 
     "labelBackground": "#1a1a1a80",
-    "edgeLabelBackground": "#1a1a1a80"
+    "edgeLabelBackground": "#1a1a1a80",
+
+    "nodeSpacing": 50,
+    "rankSpacing": 80,
+    "layoutDirection": "TB",
+    "curve": "basis"
   },
-  "themeCSS": "@import url('../mermaid-styles.css')"
+  "flowchart": {
+    "htmlLabels": true,
+    "padding": 20,
+    "nodeSpacing": 50,
+    "rankSpacing": 80,
+    "curve": "basis",
+    "useMaxWidth": true
+  },
+  "themeCSS": "@import url('./styles/index.css')"
 }

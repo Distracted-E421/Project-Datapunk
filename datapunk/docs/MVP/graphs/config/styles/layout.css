@@ -1,0 +1,41 @@
+/* Core layout controls */
+:root {
+  --diagram-max-width: 1200px;
+  --node-min-spacing: 50px;
+  --rank-spacing: 80px;
+  --subgraph-padding: 20px;
+}
+
+/* Container constraints */
+.mermaid {
+  display: flex;
+  justify-content: center;
+  max-width: var(--diagram-max-width);
+  margin: 0 auto;
+}
+
+/* SVG constraints */
+.mermaid svg {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* Subgraph spacing */
+.mermaid .cluster {
+  padding: var(--subgraph-padding) !important;
+}
+
+/* Node spacing controls */
+.mermaid .node {
+  margin: var(--node-min-spacing) !important;
+}
+
+/* Edge routing */
+.mermaid .edgePath {
+  stroke-width: 2px;
+}
+
+/* Rank separation */
+.mermaid .rank {
+  margin-bottom: var(--rank-spacing) !important;
+}
