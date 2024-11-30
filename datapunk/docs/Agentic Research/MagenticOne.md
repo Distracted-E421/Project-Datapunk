@@ -16,43 +16,43 @@ Magentic-One: A Generalist Multi-Agent System
 
 for Solving Complex Tasks
 
-> *⋆*Adam Fourney, Gagan Bansal, Hussein Mozannar, Cheng Tan *⋆†*
+> *⋆*Adam Fourney, Gagan Bansal, Hussein Mozannar, Cheng Tan _⋆†_
 > Eduardo Salinas, Erkang (Eric) Zhu, Friederike Niedtner, Grace
 > Proebsting, Griffin Bassman, Jack Gerrits, Jacob Alber, Peter Chang,\
-> Ricky Loynd, Robert West, Victor Dibia *†*\
-> *⋄*Ahmed Awadallah, Ece Kamar, Rafah Hosn, Saleema Amershi *⋄*
+> Ricky Loynd, Robert West, Victor Dibia _†_\
+> *⋄*Ahmed Awadallah, Ece Kamar, Rafah Hosn, Saleema Amershi _⋄_
 
 **Microsoft Research AI Frontiers**
 
 3
 
 +-----------------+-----------------+-----------------+-----------------+
-| > Task          | > 1             | > 2             | > C             |
-|                 |                 |                 | omputerTerminal |
+| > Task | > 1 | > 2 | > C |
+| | | | omputerTerminal |
 +=================+=================+=================+=================+
-| > The attached  |                 |                 |                 |
-| > image         |                 |                 |                 |
+| > The attached | | | |
+| > image | | | |
 +-----------------+-----------------+-----------------+-----------------+
-|                 |                 | Coder           | > Execute code  |
+| | | Coder | > Execute code |
 +-----------------+-----------------+-----------------+-----------------+
-| > contains a    |                 |                 |                 |
-| > Python        |                 |                 |                 |
-| > script.       |                 |                 |                 |
+| > contains a | | | |
+| > Python | | | |
+| > script. | | | |
 +-----------------+-----------------+-----------------+-----------------+
-| > Run the       |                 | > Analyze       |                 |
-| > Python code   |                 | > Python code   |                 |
-|                 |                 | > from image    |                 |
+| > Run the | | > Analyze | |
+| > Python code | | > Python code | |
+| | | > from image | |
 +-----------------+-----------------+-----------------+-----------------+
-| > against an    | FileSurfer      |                 |                 |
-| > array of      |                 |                 |                 |
-| > strings,      |                 |                 |                 |
+| > against an | FileSurfer | | |
+| > array of | | | |
+| > strings, | | | |
 +-----------------+-----------------+-----------------+-----------------+
-| > listed below. | > Access Image, |                 |                 |
-| > Output of the | > extract code  |                 |                 |
+| > listed below. | > Access Image, | | |
+| > Output of the | > extract code | | |
 +-----------------+-----------------+-----------------+-----------------+
-| > script is a   |                 |                 |                 |
-| > URL           |                 |                 |                 |
-| > containing    |                 |                 |                 |
+| > script is a | | | |
+| > URL | | | |
+| > containing | | | |
 +-----------------+-----------------+-----------------+-----------------+
 
 > C++ source code, compile,\
@@ -61,14 +61,14 @@ for Solving Complex Tasks
 > the third and fifth integers ..
 
 +-----------------+-----------------+-----------------+-----------------+
-| > Orchestrator  | 4               | > 5             | 6               |
+| > Orchestrator | 4 | > 5 | 6 |
 +=================+=================+=================+=================+
-|                 | WebSurfer       | Coder           | C               |
-|                 |                 |                 | omputerTerminal |
+| | WebSurfer | Coder | C |
+| | | | omputerTerminal |
 +-----------------+-----------------+-----------------+-----------------+
-|                 | > Navigate to   | > Analyze C++   | Execute code    |
-|                 | > url, extract  | > code          |                 |
-|                 | > C++ code      |                 |                 |
+| | > Navigate to | > Analyze C++ | Execute code |
+| | > url, extract | > code | |
+| | > C++ code | | |
 +-----------------+-----------------+-----------------+-----------------+
 
 rosettacode.org
@@ -98,12 +98,12 @@ Task Complete!
 > agents must effectively plan, perform multi-step reasoning and
 > actions, respond to novel observations, and recover from errors, to
 > successfully complete complex tasks across a wide range of scenarios.
-> In this work, we introduce *Magentic-One*, a high-performing
+> In this work, we introduce _Magentic-One_, a high-performing
 > open-source agentic system for solving such tasks. Magentic-One uses a
-> multi-agent architecture where a lead agent, the *Orchestrator*,
+> multi-agent architecture where a lead agent, the _Orchestrator_,
 > plans, tracks progress,
 >
-> *⋆*: Research Leads, *†*: Core Contributors, *⋄*: Program Leads.
+> _⋆_: Research Leads, _†_: Core Contributors, _⋄_: Program Leads.
 > Contact:
 
 1
@@ -117,7 +117,7 @@ Task Complete!
 > GAIA, AssistantBench, and WebArena. No-tably, Magentic-One achieves
 > these results without modification to core agent capabilities or to
 > how they collaborate, demonstrating progress towards the vision of
-> *generalist agentic sys-tems*. Moreover, Magentic-One's modular design
+> _generalist agentic sys-tems_. Moreover, Magentic-One's modular design
 > allows agents to be added or removed from the team without additional
 > prompt tuning or training, easing development and making it extensible
 > to future scenarios. We provide an open-source implementation of
@@ -132,7 +132,7 @@ Task Complete!
 > **1** **Introduction**
 >
 > Recent advances in artificial intelligence and foundation models are
-> driving a renewed interest in *agentic systems* that can perceive,
+> driving a renewed interest in _agentic systems_ that can perceive,
 > reason, and act in the world to complete tasks on our behalf \[32,
 > 59\]. These systems promise to enhance our productivity by relieving
 > us from mundane and laborious tasks, and revolutionize our lives by
@@ -146,14 +146,14 @@ Realizing the vision of agentic systems to transform our lives requires
 these systems to not only achieve high performance in specific domains,
 but also to generalize to the diverse range of tasks people may
 encounter throughout their day-to-day work and personal lives. In this
-paper, we take steps towards creating such a *generalist agentic system*
-by introducing *Magentic-One*.1Magentic-One uses a team of agents, each
+paper, we take steps towards creating such a _generalist agentic system_
+by introducing _Magentic-One_.1Magentic-One uses a team of agents, each
 specializing in generally-useful skills, such as: operating a web
 browser, handling files, and executing code. The team is directed by an
 Orchestrator agent which guides progress towards a high-level goal by
 iteratively planning, maintaining working memory of progress, assigning
 tasks to other agents, and retrying upon The Orchestrator uses two
-*structured ledgers* to achieve this and also encountering errors.
+_structured ledgers_ to achieve this and also encountering errors.
 
 > to decide which agent should take the next action. Together,
 > Magentic-One's agents achieve strong performance on multiple
@@ -175,14 +175,14 @@ tasks to other agents, and retrying upon The Orchestrator uses two
 > constrained and inflexible workflows.
 >
 > To rigorously evaluate Magentic-One's performance, we introduce
-> *AutoGenBench*, an ex-tensible standalone tool for running agentic
+> _AutoGenBench_, an ex-tensible standalone tool for running agentic
 > benchmarks. AutoGenBench's design enables repe-tition, isolation, and
 > strong controls over initial conditions, so as to accommodate the
 > variance of stochastic LLM calls, and to isolate the side-effects of
 > agents taking actions. Using AutoGen-
 >
-> 1The name Magentic-One is a combination of the words ***m**ulti* and
-> ***agentic***. 2
+> 1The name Magentic-One is a combination of the words **\*m**ulti\* and
+> **_agentic_**. 2
 
 2
 
@@ -198,7 +198,7 @@ tasks to other agents, and retrying upon The Orchestrator uses two
 >
 > In summary, we contribute:
 >
-> 1\. *Magentic-One*, a generalist multi-agent team with an open-source
+> 1\. _Magentic-One_, a generalist multi-agent team with an open-source
 > implementation. The team consists of five agents: a Coder, Computer
 > Terminal, File Surfer, Web Surfer, and Orchestrator. Different agents
 > can operate relevant tools such as stateful Web and file browsers, as
@@ -208,7 +208,7 @@ tasks to other agents, and retrying upon The Orchestrator uses two
 > memory of progress, directs tasks to other agents, restarts and resets
 > upon stalling, and determines task completion.
 >
-> 2\. *AutoGenBench*, a standalone tool for evaluating systems on
+> 2\. _AutoGenBench_, a standalone tool for evaluating systems on
 > agentic benchmarks, also made available open-source.3AutoGenBench
 > handles configuring, running, and reporting performance of agentic
 > solutions while ensuring that all experiments start with well-known
@@ -296,8 +296,8 @@ contributing to work on debugging agentic systems \[20\].
 **3** **Problem Setup**
 
 **Complex Tasks.** In this work our goal is to build a generalist
-agentic system capable of solving *complex tasks* across a variety of
-domains. We define a task as *complex* if it requires, or significantly
+agentic system capable of solving _complex tasks_ across a variety of
+domains. We define a task as _complex_ if it requires, or significantly
 benefits from, a process involving planning, acting, observing, and
 reflecting, potentially multiple times. Acting refers to more than
 generating tokens, such as executing code, using tools, or interacting
@@ -312,20 +312,20 @@ in the attached PDF as correct or incorrect"*with a PDF file as an
 attachment. The desired output consists either of a textual answer
 (possibly representing a structured object), or a specific state of the
 environment to reach. In the fact-checking example, the output might be
-a string labeling each fact as correct or not, e.g., *"claim 1: correct,
-claim 2: incorrect, \..."*. Here, the evaluation function might simply
+a string labeling each fact as correct or not, e.g., _"claim 1: correct,
+claim 2: incorrect, \..."_. Here, the evaluation function might simply
 determine whether the desired output and the proposed answer match
 exactly.
 
-**Agentic Systems.** To complete a task, assume a *computer* which can
+**Agentic Systems.** To complete a task, assume a _computer_ which can
 be partially observed and operated to complete the task. The computer
-constitutes the *environment*. An agentic system can take as input the
+constitutes the _environment_. An agentic system can take as input the
 task description, and any related attachments that are present on the
 computer environment. The system is allowed to do arbitrary processing
 to complete the task, but must complete it within a time budget (e.g.,
 25 mins). For instance, on the computer, the autonomous system can
 execute Python code, navigate the web using a browser, download files
-locally, among other actions from its *action space*. The system's
+locally, among other actions from its _action space_. The system's
 ability to take action in,
 
 4
@@ -344,10 +344,10 @@ height="0.8958333333333334in"}![](vertopal_61fc855a80c64f8c8f289597edaf0f1b/medi
 height="5.375in"}
 
 +-----------------------+-----------------------+-----------------------+
-| > Task                | Report final answer   | > Task Complete!      |
-|                       | or                    |                       |
+| > Task | Report final answer | > Task Complete! |
+| | or | |
 +=======================+=======================+=======================+
-|                       | educated guess        |                       |
+| | educated guess | |
 +-----------------------+-----------------------+-----------------------+
 
 > Orchestrator
@@ -355,73 +355,73 @@ height="5.375in"}
 Yes
 
 +-------------+-------------+-------------+-------------+-------------+
-| > Task      | Progress    |             | No          | Task        |
-| > Ledger    | Ledger      |             |             |             |
+| > Task | Progress | | No | Task |
+| > Ledger | Ledger | | | |
 +=============+=============+=============+=============+=============+
-| > Create or | Update      |             |             |             |
-| > update    | progress    |             |             |             |
-| > ledger    | ledger      |             |             |             |
+| > Create or | Update | | | |
+| > update | progress | | | |
+| > ledger | ledger | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| > Given or  | Task        |             |             | > complete? |
-| > verified  | complete    |             |             |             |
-| > factz     |             |             |             |             |
+| > Given or | Task | | | > complete? |
+| > verified | complete | | | |
+| > factz | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| > Facts to  |             |             |             |             |
-| > look uv   |             |             |             |             |
+| > Facts to | | | | |
+| > look uv | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-|             | U           |             |             |             |
-|             | nproductive |             |             |             |
-|             | loops?      |             |             |             |
+| | U | | | |
+| | nproductive | | | |
+| | loops? | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| > Facts to  | Is progress |             |             | No          |
-| > derive    | being       |             |             |             |
+| > Facts to | Is progress | | | No |
+| > derive | being | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| > (         | made        |             |             |             |
-| computation |             |             |             |             |
-| > or logicl |             |             |             |             |
+| > ( | made | | | |
+| computation | | | | |
+| > or logicl | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-|             | What is the |             |             | Progress    |
-|             | next        |             |             |             |
+| | What is the | | | Progress |
+| | next | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| > Educated  |             |             |             |             |
-| > guesses   |             |             |             |             |
+| > Educated | | | | |
+| > guesses | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-|             | speaker?    |             |             |             |
+| | speaker? | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| > Task plan |             |             |             |             |
+| > Task plan | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-|             | Next        |             |             |             |
-|             | speaker     |             |             |             |
-|             | instruction |             |             |             |
+| | Next | | | |
+| | speaker | | | |
+| | instruction | | | |
 +-------------+-------------+-------------+-------------+-------------+
-|             | Yes         | > Stall     |             |             |
+| | Yes | > Stall | | |
 +-------------+-------------+-------------+-------------+-------------+
-|             | count \>    |             |             | being       |
+| | count \> | | | being |
 +-------------+-------------+-------------+-------------+-------------+
-|             | 2           |             |             | made?       |
+| | 2 | | | made? |
 +-------------+-------------+-------------+-------------+-------------+
-|             | No          |             |             | > Yes       |
+| | No | | | > Yes |
 +-------------+-------------+-------------+-------------+-------------+
 
 > Agents\
 > Observe and act based on Orchestrator instruction
 
 +-----------------+-----------------+-----------------+-----------------+
-| Coder           | C               | WebSurfer       | FileSurfer      |
-|                 | omputerTerminal |                 |                 |
+| Coder | C | WebSurfer | FileSurfer |
+| | omputerTerminal | | |
 +=================+=================+=================+=================+
-| > Write code    |                 | > Browse the    | > Navigate      |
-| > and reason    |                 | > internet      | > files (e.g.,  |
-|                 |                 | > (navigate     |                 |
+| > Write code | | > Browse the | > Navigate |
+| > and reason | | > internet | > files (e.g., |
+| | | > (navigate | |
 +-----------------+-----------------+-----------------+-----------------+
-|                 | Execute code    |                 |                 |
-|                 | written by the  |                 |                 |
+| | Execute code | | |
+| | written by the | | |
 +-----------------+-----------------+-----------------+-----------------+
-| > to solve      |                 | > pages, fill   |                 |
-| > tasks         |                 | > forms, etc)   |                 |
+| > to solve | | > pages, fill | |
+| > tasks | | > forms, etc) | |
 +-----------------+-----------------+-----------------+-----------------+
-|                 | coder agent     |                 | PDFs, pptx,     |
-|                 |                 |                 | WAV, etc)       |
+| | coder agent | | PDFs, pptx, |
+| | | | WAV, etc) |
 +-----------------+-----------------+-----------------+-----------------+
 
 Figure 2: Magentic-One features an Orchestrator agent that implements
@@ -432,7 +432,7 @@ arrows) manages the progress ledger (containing current progress, task
 assignment to agents).
 
 and potentially modify, both the local and web environments is why we
-refer to the system as *agentic*. After completing the task, the system
+refer to the system as _agentic_. After completing the task, the system
 returns a text answer, and a trace of its observations and steps along
 the way. The final state of the environment is also captured in
 sufficient detail to run the task evaluation. Note that this setting can
@@ -485,15 +485,15 @@ agent's design, capabilities, and action space.
 
 Figure 2 illustrates Magentic-One's workflow in more depth. At a high
 level, the workflow contains two loops, the outer loop maintains the
-*task ledger*, which contains the overall plan, while the inner loop
-maintains the *progress ledger*, which directs and evaluates the
+_task ledger_, which contains the overall plan, while the inner loop
+maintains the _progress ledger_, which directs and evaluates the
 individual steps that contain instructions to the specialized agents.
 
 +-----------------------+-----------------------+-----------------------+
-| **Outer Loop.**       | The outer loop is     | > In response, the    |
-|                       | triggered by an       |                       |
-|                       | initial prompt or     |                       |
-|                       | task.                 |                       |
+| **Outer Loop.** | The outer loop is | > In response, the |
+| | triggered by an | |
+| | initial prompt or | |
+| | task. | |
 +=======================+=======================+=======================+
 +-----------------------+-----------------------+-----------------------+
 
@@ -527,17 +527,17 @@ the plan is formed, the inner loop is initiated.
 **Inner Loop.** During each iteration of the inner loop, the
 Orchestrator answers five questions to create the progress ledger:
 
-> • *Is the request fully satisfied (i.e., task complete)?*
+> • _Is the request fully satisfied (i.e., task complete)?_
 >
-> • *Is the team looping or repeating itself?*
+> • _Is the team looping or repeating itself?_
 
 6
 
-> • *Is forward progress being made?*
+> • _Is forward progress being made?_
 >
-> • *Which agent should speak next?*
+> • _Which agent should speak next?_
 >
-> • *What instruction or question should be asked of this team member?*
+> • _What instruction or question should be asked of this team member?_
 
 When answering these questions, the Orchestrator considers both the task
 ledger (containing facts, guesses, and a plan), and the current agent
@@ -581,8 +581,8 @@ cases, agents may operate deterministically, and do not include LLMs
 calls at all. For example, the ComputerTerminal deterministically runs
 Python code, or shell commands, when asked.
 
-This decomposition of high-level capabilities *across* agents, and
-low-level actions *within* agents, creates a hierarchy over tool usage
+This decomposition of high-level capabilities _across_ agents, and
+low-level actions _within_ agents, creates a hierarchy over tool usage
 which may be easier for the LLMs to reason about. For example, rather
 than deciding between dozens of possible actions, the Orchestrator needs
 only to decide which agent to call to access a broad capability (e.g.,
@@ -622,7 +622,7 @@ page).
 > prompting \[67\] in a manner similar to Web Voyager\[14\]. This step
 > relies on an annotated screenshot of the page, and thus is inherently
 > multi-modal. We further extended the set-of-marks prompt to include
-> textual descriptions of content found *outside* the visible view port,
+> textual descriptions of content found _outside_ the visible view port,
 > so that the agent can determine what might be found by scrolling4, or
 > opening menus or drop-downs.
 >
@@ -698,7 +698,7 @@ page).
 > handling files, etc.) We consider three benchmarks in this work that
 > satisfy this criteria: GAIA, AssistantBench, and WebArena.
 >
-> *GAIA* \[29\] is a benchmark for general AI assistants with 465
+> _GAIA_ \[29\] is a benchmark for general AI assistants with 465
 > multi-modal question--answer pairs that are real-world and
 > challenging, requiring multiple steps and multiple tools to solve
 > (e.g., navigating the web, handling files, etc.). Despite the
@@ -721,8 +721,8 @@ page).
 > order. This requires web navigation, coding, and reasoning abilities,
 > illustrating the complexity of GAIA.
 >
-> The second benchmark we consider is *AssistantBench* \[71\]. Similar
-> in design to GAIA, *As-sistantBench* is a set of 214 question--answer
+> The second benchmark we consider is _AssistantBench_ \[71\]. Similar
+> in design to GAIA, _As-sistantBench_ is a set of 214 question--answer
 > pairs that are realistic, time-consuming (requiring a human several
 > minutes to perform), and automatically verifiable. They require
 > navigating real-world websites and multi-step reasoning. As with GAIA,
@@ -741,7 +741,7 @@ page).
 > found, to navigate to its website and check if it has ready-to-eat
 > salads under \$15.
 >
-> The final benchmark we consider is *WebArena* \[79\], which involves
+> The final benchmark we consider is _WebArena_ \[79\], which involves
 > performing complex tasks in a synthetic web environment. Each task
 > requires multi-step planning and acting, and targets one or more fully
 > functional synthetic websites. It contains 812 tasks across five major
@@ -787,14 +787,14 @@ page).
 > Finally, WebArena refers to the Postmill website as Reddit,9, causing
 > agents to complain that they were on the wrong website. To address
 > this, we included the following prompt text:\
-> "*\[This website is\] a Postmill forum populated with a large sample
+> "_\[This website is\] a Postmill forum populated with a large sample
 > of data crawled from Reddit. Postmill is similar to Reddit, but the UI
-> is distinct, and 'subreddits' begin with /f/ rather than /r/* "\
+> is distinct, and 'subreddits' begin with /f/ rather than /r/_ "\
 > We include similar prompts for the three other WebArena sites, and we
 > discuss this issue more in section 6.3.
 >
 > For Magentic-One, the default multimodal LLM we use for all agents
-> (except the Comput-erTerminal) is *gpt-4o-2024-05-13*. In a different
+> (except the Comput-erTerminal) is _gpt-4o-2024-05-13_. In a different
 > configuration of Magentic-One, we experiment with using OpenAI
 > o1-preview10for the outer loop of the Orchestrator and for the Coder,
 > while other agents continue to use GPT-4o. In this case, only a subset
@@ -826,9 +826,9 @@ baselines in the literature, for each benchmark, according to the
 leaderboards as of October 21,
 
 +-----------------------------------+-----------------------------------+
-| 7Leaderboard:                     | > https://docs                    |
-|                                   | .google.com/spreadsheets/d/1M801l |
-|                                   | EpBbKSNwP-vDBkC_pF7LdyGU1f_ufZb\_ |
+| 7Leaderboard: | > <https://docs> |
+| | .google.com/spreadsheets/d/1M801l |
+| | EpBbKSNwP-vDBkC_pF7LdyGU1f_ufZb\_ |
 +===================================+===================================+
 +-----------------------------------+-----------------------------------+
 
@@ -853,7 +853,7 @@ Finally, we also include human performance where available.
 We use statistical tests to compare the performance of Magentic-One to
 baselines and say that two methods are statistically comparable if the
 difference in their performance is not statistically significant
-(*α*=0.05); details about our statistical methodology can be found in
+(_α_=0.05); details about our statistical methodology can be found in
 Appendix A.
 
 Magentic-One (GPT-4o, o1-preview) achieves statistically comparable
@@ -929,157 +929,157 @@ for baselines are obtained from the corresponding benchmark leaderboard.
 We do not report results for Magentic-One (GPT-4o, o1) on WebArena since
 the o1 model refused to complete 26% of WebArena Gitlab tasks, and 12%
 of Shopping Administration tasks, making a fair comparison impossible.
-An example task refused by o1 is "*create a new group "webagent"with
-members pandey2000, sayakpaul, sayakpaul*". We include 95% error bars as
-*±* using the Wald interval method. We underline results that are
+An example task refused by o1 is "_create a new group "webagent"with
+members pandey2000, sayakpaul, sayakpaul_". We include 95% error bars as
+_±_ using the Wald interval method. We underline results that are
 statistically comparable to Magentic-One (GPT-4o, o1) according to a
-z-test with *α* = 0*.*05, and bold results that statistically exceed our
+z-test with _α_ = 0*.*05, and bold results that statistically exceed our
 performance (Appendix A).
 
 +-------------+-------------+-------------+-------------+-------------+
-| > Method    | > GAIA      | > Ass       | Ass         | > WebArena  |
-|             |             | istantBench | istantBench |             |
+| > Method | > GAIA | > Ass | Ass | > WebArena |
+| | | istantBench | istantBench | |
 +=============+=============+=============+=============+=============+
-|             | (EM)        |             | >           |             |
-|             |             |             |  (accuracy) |             |
+| | (EM) | | > | |
+| | | | (accuracy) | |
 +-------------+-------------+-------------+-------------+-------------+
-| > omne v0.1 | [40.53]{    | > --\       | > --        | > --        |
-| > (GPT-4o,  | .underline} | > --        |             |             |
-| > o1)       | *~~±~~*[5.6 |             |             |             |
-|             | 39.53]{.u   |             |             |             |
-|             | nderline}*~ |             |             |             |
-|             | ~±~~*[5.5]{ |             |             |             |
-|             | .underline} |             |             |             |
+| > omne v0.1 | [40.53]{ | > --\ | > -- | > -- |
+| > (GPT-4o, | .underline} | > -- | | |
+| > o1) | _~~±~~_[5.6 | | | |
+| | 39.53]{.u | | | |
+| | nderline}_~ | | | |
+| | ~±~~_[5.5]{ | | | |
+| | .underline} | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| Trase Agent |             |             | > --        | > --        |
-| v0.2        |             |             |             |             |
-| (GPT-4o,    |             |             |             |             |
-| o1,         |             |             |             |             |
+| Trase Agent | | | > -- | > -- |
+| v0.2 | | | | |
+| (GPT-4o, | | | | |
+| o1, | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| > Gemini)   |             |             |             |             |
+| > Gemini) | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| > Multi     | > [38.87]{  | > --\       | > --        | > --        |
-| > Agent     | .underline} | > --\       |             |             |
-| > (NA)      | *~~±~~*[5.5 | > --\       |             |             |
-|             | > 38.21]{   | > --\       |             |             |
-|             | .underline} | > --\       |             |             |
-|             | *~~±~~*[5.5 | > --\       |             |             |
-|             | > 34.55]{   | >           |             |             |
-|             | .underline} |  [13.8]{.un |             |             |
-|             | *~~±~~*[5.4 | derline}*~~ |             |             |
-|             | > 33.33]{.u | ±~~*[5.0]{. |             |             |
-|             | nderline}*~ | underline}\ |             |             |
-|             | ~±~~*[5.3]{ | >           |             |             |
-|             | .underline} |  9.9*±*4.3\ |             |             |
-|             | >           | >           |             |             |
-|             | 24.25*±*4.8 |  5.5*±*3.3\ |             |             |
-|             | > 14        | > --        |             |             |
-|             | .60*±*4.0-- |             |             |             |
-|             | >           |             |             |             |
-|             | > --        |             |             |             |
+| > Multi | > [38.87]{ | > --\ | > -- | > -- |
+| > Agent | .underline} | > --\ | | |
+| > (NA) | _~~±~~_[5.5 | > --\ | | |
+| | > 38.21]{ | > --\ | | |
+| | .underline} | > --\ | | |
+| | _~~±~~_[5.5 | > --\ | | |
+| | > 34.55]{ | > | | |
+| | .underline} | [13.8]{.un | | |
+| | _~~±~~_[5.4 | derline}*~~ | | |
+| | > 33.33]{.u | ±~~_[5.0]{. | | |
+| | nderline}_~ | underline}\ | | |
+| | ~±~~*[5.3]{ | > | | |
+| | .underline} | 9.9*±*4.3\ | | |
+| | > | > | | |
+| | 24.25*±*4.8 | 5.5*±*3.3\ | | |
+| | > 14 | > -- | | |
+| | .60*±*4.0-- | | | |
+| | > | | | |
+| | > -- | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| > das agent |             |             | > --        | > --        |
-| > v0.4      |             |             |             |             |
-| > (GPT-4o)  |             |             |             |             |
+| > das agent | | | > -- | > -- |
+| > v0.4 | | | | |
+| > (GPT-4o) | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| > Sibyl     |             |             | > --        | > --        |
-| > (GPT-4o)  |             |             |             |             |
-| > \[56\]    |             |             |             |             |
+| > Sibyl | | | > -- | > -- |
+| > (GPT-4o) | | | | |
+| > \[56\] | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| > HF Agents |             |             | > --        | > --        |
-| > (GPT-4o)  |             |             |             |             |
+| > HF Agents | | | > -- | > -- |
+| > (GPT-4o) | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| > FRIDAY    |             |             | > --        | > --        |
-| > (GPT-4T)  |             |             |             |             |
-| > \[61\]    |             |             |             |             |
+| > FRIDAY | | | > -- | > -- |
+| > (GPT-4T) | | | | |
+| > \[61\] | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| > GPT-4 +   |             |             | > --        | > --        |
-| > plugins   |             |             |             |             |
-| > \[29\]    |             |             |             |             |
+| > GPT-4 + | | | > -- | > -- |
+| > plugins | | | | |
+| > \[29\] | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| > SPA *→*CB |             |             | > [26.4]{.u | > --        |
-| > (Claude)  |             |             | nderline}*~ |             |
-| > \[71\]    |             |             | ~±~~*[6.4]{ |             |
-| > SPA *→*CB |             |             | .underline} |             |
-| > (GPT-4T)  |             |             | >           |             |
-| > \[71\]    |             |             |  25.2*±*6.3 |             |
+| > SPA *→*CB | | | > [26.4]{.u | > -- |
+| > (Claude) | | | nderline}*~ | |
+| > \[71\] | | | ~±~~*[6.4]{ | |
+| > SPA *→*CB | | | .underline} | |
+| > (GPT-4T) | | | > | |
+| > \[71\] | | | 25.2*±*6.3 | |
 +-------------+-------------+-------------+-------------+-------------+
-|             |             |             |             | > --        |
+| | | | | > -- |
 +-------------+-------------+-------------+-------------+-------------+
-| > Infogent  | > --\       |             | > 1         | > --        |
-| > (GPT-4o)  | > --        |             | 4.5*±*5.1-- |             |
+| > Infogent | > --\ | | > 1 | > -- |
+| > (GPT-4o) | > -- | | 4.5*±*5.1-- | |
 +-------------+-------------+-------------+-------------+-------------+
-| > Jace.AI   |             |             |             | > **57.1**  |
-| > (NA)      |             |             |             | *±***3.4**\ |
-|             |             |             |             | > **37.2**  |
-|             |             |             |             | *±***3.3**\ |
-|             |             |             |             | >           |
-|             |             |             |             |  [35.5]{.un |
-|             |             |             |             | derline}*~~ |
-|             |             |             |             | ±~~*[3.3]{. |
-|             |             |             |             | underline}\ |
-|             |             |             |             | >           |
-|             |             |             |             |  [33.5]{.un |
-|             |             |             |             | derline}*~~ |
-|             |             |             |             | ±~~*[3.2]{. |
-|             |             |             |             | underline}\ |
-|             |             |             |             | >           |
-|             |             |             |             | 23.5*±*2.9\ |
-|             |             |             |             | > 14.9*     |
-|             |             |             |             | ±*2.4\[79\] |
+| > Jace.AI | | | | > **57.1** |
+| > (NA) | | | | *±**\*3.4**\ |
+| | | | | > **37.2** |
+| | | | | \*±**\*3.3**\ |
+| | | | | > |
+| | | | | [35.5]{.un |
+| | | | | derline}\*~~ |
+| | | | | ±~~_[3.3]{. |
+| | | | | underline}\ |
+| | | | | > |
+| | | | | [33.5]{.un |
+| | | | | derline}_~~ |
+| | | | | ±~~*[3.2]{. |
+| | | | | underline}\ |
+| | | | | > |
+| | | | | 23.5*±*2.9\ |
+| | | | | > 14.9* |
+| | | | | ±*2.4\[79\] |
 +-------------+-------------+-------------+-------------+-------------+
-| > WebPilot  | > --        | > --        | > --        |             |
-| > (GPT-4o)  |             |             |             |             |
-| > \[75\]    |             |             |             |             |
+| > WebPilot | > -- | > -- | > -- | |
+| > (GPT-4o) | | | | |
+| > \[75\] | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| > AWM       | > --        | > --        | > --        |             |
-| > (GPT-4)   |             |             |             |             |
-| > \[57\]    |             |             |             |             |
+| > AWM | > -- | > -- | > -- | |
+| > (GPT-4) | | | | |
+| > \[57\] | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| > SteP      | > --        | > --        | > --        |             |
-| > (GPT-4)   |             |             |             |             |
-| > \[49\]    |             |             |             |             |
+| > SteP | > -- | > -- | > -- | |
+| > (GPT-4) | | | | |
+| > \[49\] | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| >           | > --        | > --        | > --        |             |
-|  BrowserGym |             |             |             |             |
-| > (GPT-4o)  |             |             |             |             |
-| > \[10\]    |             |             |             |             |
+| > | > -- | > -- | > -- | |
+| BrowserGym | | | | |
+| > (GPT-4o) | | | | |
+| > \[10\] | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| > GPT-4     | > 6.67*     |             | > 16.5      |             |
-|             | ±*2.8\[29\] |             | > *         |             |
-|             | > 6.1       |             | ±*5.4\[71\] |             |
-|             | > *         |             |             |             |
-|             | ±*3.5\[71\] |             |             |             |
+| > GPT-4 | > 6.67* | | > 16.5 | |
+| | ±*2.8\[29\] | | > * | |
+| | > 6.1 | | ±*5.4\[71\] | |
+| | > * | | | |
+| | ±*3.5\[71\] | | | |
 +-------------+-------------+-------------+-------------+-------------+
-| > Human     |             |             |             |             |
+| > Human | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-|             | 92.00*±*3.1 | > --        | > --        | >           |
-|             |             |             |             |  78.2*±*2.8 |
+| | 92.00*±*3.1 | > -- | > -- | > |
+| | | | | 78.2*±*2.8 |
 +-------------+-------------+-------------+-------------+-------------+
-| > **Mag     |             |             | > [25.3]{   |             |
-| entic-One** |             |             | .underline} |             |
-| > (GPT-4o)  |             |             | >           |             |
-|             |             |             | *~~±~~*[6.3 |             |
-|             |             |             | > 27.7]{    |             |
-|             |             |             | .underline} |             |
-|             |             |             | > *~        |             |
-|             |             |             | ~±~~*[6.5]{ |             |
-|             |             |             | .underline} |             |
+| > **Mag | | | > [25.3]{ | |
+| entic-One** | | | .underline} | |
+| > (GPT-4o) | | | > | |
+| | | | *~~±~~_[6.3 | |
+| | | | > 27.7]{ | |
+| | | | .underline} | |
+| | | | > _~ | |
+| | | | ~±~~*[6.5]{ | |
+| | | | .underline} | |
 +-------------+-------------+-------------+-------------+-------------+
-|             | 32.33*±*5.3 | > [11.0]{   |             | > [32.8]{.u |
-|             | [38.00]{.u  | .underline} |             | nderline}*~ |
-|             | nderline}*~ | >           |             | ~±~~*[3.2]{ |
-|             | ~±~~*[5.5]{ | *~~±~~*[4.6 |             | .underline} |
-|             | .underline} | > 13.3]{    |             | > \*        |
-|             |             | .underline} |             |             |
-|             |             | > *~        |             |             |
-|             |             | ~±~~*[4.9]{ |             |             |
-|             |             | .underline} |             |             |
+| | 32.33*±*5.3 | > [11.0]{ | | > [32.8]{.u |
+| | [38.00]{.u | .underline} | | nderline}*~ |
+| | nderline}_~ | > | | ~±~~_[3.2]{ |
+| | ~±~~_[5.5]{ | _~~±~~_[4.6 | | .underline} |
+| | .underline} | > 13.3]{ | | > \* |
+| | | .underline} | | |
+| | | > _~ | | |
+| | | ~±~~\*[4.9]{ | | |
+| | | .underline} | | |
 +-------------+-------------+-------------+-------------+-------------+
-| **Mag       |             |             |             |             |
-| entic-One** |             |             |             |             |
-| (GPT-4o,    |             |             |             |             |
-| o1)         |             |             |             |             |
+| **Mag | | | | |
+| entic-One** | | | | |
+| (GPT-4o, | | | | |
+| o1) | | | | |
 +-------------+-------------+-------------+-------------+-------------+
 
 the impact of Magentic-One's Orchestrator, we replace it with a simple
@@ -1092,7 +1092,7 @@ the Magentic-One team to measure the impact of those agents on overall
 task performance.
 
 For all ablations, we report on results broken down by difficulty level
-and *capabilities* re-quired. For the capabilities analysis, we mapped
+and _capabilities_ re-quired. For the capabilities analysis, we mapped
 the tools needed to complete tasks, as reported by human annotators of
 the GAIA dataset \[29\], to four categories: web browsing, coding, file
 handling, and none. These categories roughly correspond to the
@@ -1117,41 +1117,41 @@ tasks in WebArena as belonging to one of the 5 sites, and so the
 comparison with Magentic-One may differ.
 
 +-------------+-------------+-------------+-------------+-------------+
-| >           | > *         | **Mag       | **Mag       | > Best      |
-| **Dataset** | *Category** | entic-One** | entic-One** | > Baseline  |
-|             |             |             |             | > \[75,     |
+| > | > *| **Mag | **Mag | > Best |
+| **Dataset** | *Category** | entic-One** | entic-One** | > Baseline |
+| | | | | > \[75, |
 +=============+=============+=============+=============+=============+
-|             |             | > (GPT-4o)  | > (GPT-4o,  | > 71\]      |
-|             |             |             | > o1)       |             |
+| | | > (GPT-4o) | > (GPT-4o, | > 71\] |
+| | | | > o1) | |
 +-------------+-------------+-------------+-------------+-------------+
-| > GAIA      | > Level 1   | > 46.24     | > **54.84** | > 53.76     |
-| > \[29\]    |             |             |             |             |
+| > GAIA | > Level 1 | > 46.24 | > **54.84** | > 53.76 |
+| > \[29\] | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-|             | > Level 2   | > 28.3      | > 32.7      | > **37.11** |
+| | > Level 2 | > 28.3 | > 32.7 | > **37.11** |
 +-------------+-------------+-------------+-------------+-------------+
-|             | > Level 3   | > 18.75     | > 22.92     | > **26.53** |
+| | > Level 3 | > 18.75 | > 22.92 | > **26.53** |
 +-------------+-------------+-------------+-------------+-------------+
-| Ass         | > Easy      | > 69.9      | > 73.4      | > **81**    |
-| istantBench |             |             |             |             |
-| \[71\]      |             |             |             |             |
+| Ass | > Easy | > 69.9 | > 73.4 | > **81** |
+| istantBench | | | | |
+| \[71\] | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-|             | > Medium    | > 35.6      | > **47.1**  | > 44.6      |
+| | > Medium | > 35.6 | > **47.1** | > 44.6 |
 +-------------+-------------+-------------+-------------+-------------+
-|             | > Hard      | > **16.9**  | > 14.8      | > 13.3      |
+| | > Hard | > **16.9** | > 14.8 | > 13.3 |
 +-------------+-------------+-------------+-------------+-------------+
-| > WebArena  | > Reddit    | > 53.77     | > --        | > **65.1**  |
-| > \[79\]    |             |             |             |             |
+| > WebArena | > Reddit | > 53.77 | > -- | > **65.1** |
+| > \[79\] | | | | |
 +-------------+-------------+-------------+-------------+-------------+
-|             | > Shopping  | > 33.16     | > --        | > **36.**9  |
+| | > Shopping | > 33.16 | > -- | > **36.**9 |
 +-------------+-------------+-------------+-------------+-------------+
-|             | > CMS       | > **29.1**  | > --        | > 24.7      |
+| | > CMS | > **29.1** | > -- | > 24.7 |
 +-------------+-------------+-------------+-------------+-------------+
-|             | > Gitlab    | > 27.78     | > --        | > **39.4**  |
+| | > Gitlab | > 27.78 | > -- | > **39.4** |
 +-------------+-------------+-------------+-------------+-------------+
-|             | > Maps      | > **34.86** | > --        | > 33.9      |
+| | > Maps | > **34.86\*\* | > -- | > 33.9 |
 +-------------+-------------+-------------+-------------+-------------+
-|             | > Cross     | > 14.6      | > --        | > --        |
-|             | > Site      |             |             |             |
+| | > Cross | > 14.6 | > -- | > -- |
+| | > Site | | | |
 +-------------+-------------+-------------+-------------+-------------+
 
 ages multi-modal models, multi-modality is handled inherently by all
@@ -1190,29 +1190,29 @@ attempted to find an online pdf viewer to solve the task.
 13
 
 +--------+--------+--------+--------+--------+--------+--------+--------+
-| asks   | 60     |   --   |        |        |        |        |        |
-|        |        |  -- -- |        |        |        |        |        |
-|        |        |  -- -- |        |        |        |        |        |
-|        |        |  -- -- |        |        |        |        |        |
-|        |        |        |        |        |        |        |        |
-|        |        |   --   |        |        |        |        |        |
-|        |        |  -- -- |        |        |        |        |        |
-|        |        |  -- -- |        |        |        |        |        |
-|        |        |  -- -- |        |        |        |        |        |
+| asks | 60 | -- | | | | | |
+| | | -- -- | | | | | |
+| | | -- -- | | | | | |
+| | | -- -- | | | | | |
+| | | | | | | | |
+| | | -- | | | | | |
+| | | -- -- | | | | | |
+| | | -- -- | | | | | |
+| | | -- -- | | | | | |
 +========+========+========+========+========+========+========+========+
-|        |        |        |        |        |        |        |        |
+| | | | | | | | |
 +--------+--------+--------+--------+--------+--------+--------+--------+
-|        |        |        |        |        |        |        |        |
+| | | | | | | | |
 +--------+--------+--------+--------+--------+--------+--------+--------+
-|        |        |        |        |        |        |        |        |
+| | | | | | | | |
 +--------+--------+--------+--------+--------+--------+--------+--------+
-|        |        |        |        |        |        |        |        |
+| | | | | | | | |
 +--------+--------+--------+--------+--------+--------+--------+--------+
-|        |        |        |        |        |        |        |        |
+| | | | | | | | |
 +--------+--------+--------+--------+--------+--------+--------+--------+
-|        |        |        |        |        |        |        |        |
+| | | | | | | | |
 +--------+--------+--------+--------+--------+--------+--------+--------+
-|        |        |        |        |        |        |        |        |
+| | | | | | | | |
 +--------+--------+--------+--------+--------+--------+--------+--------+
 
 **Approach.** As Magentic-One works to solve tasks, it produces
@@ -1226,7 +1226,7 @@ these lengthy logs is slow and laborious, and scaling this manual labor
 to a large number of logs can become cost-prohibitive.
 
 To address this, we opted to automate log analysis using LLMs. The
-general problem here is to automate the process of *qualitative coding*,
+general problem here is to automate the process of _qualitative coding_,
 i.e., automatically discovering major themes in errors and
 inefficiencies observed in the logs. We implemented a multi-phase
 approach to ac-complish this. For each task, we use GPT-4o to distill
@@ -1367,35 +1367,35 @@ considerable theoretical and practical importance.
 16
 
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           | > per     |           |           |           |           |
-|           | sistent-i |  -- -- -- |           |           |           |
-|           | nefficien |  -- -- -- |           |           |           |
-|           | t-actions |  -- -- -- |           |           |           |
-|           |           |           |           |           |           |
-|           |           |           |           |           |           |
-|           |           |  -- -- -- |           |           |           |
-|           |           |  -- -- -- |           |           |           |
-|           |           |  -- -- -- |           |           |           |
+| | > per | | | | |
+| | sistent-i | -- -- -- | | | |
+| | nefficien | -- -- -- | | | |
+| | t-actions | -- -- -- | | | |
+| | | | | | |
+| | | | | | |
+| | | -- -- -- | | | |
+| | | -- -- -- | | | |
+| | | -- -- -- | | | |
 +===========+===========+===========+===========+===========+===========+
-|           |           |           |           |           |           |
+| | | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           |           |           |           |           |           |
+| | | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           |           |           |           |           |           |
+| | | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           |           |           |           |           |           |
+| | | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           |           |           |           |           |           |
+| | | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           |           |           |           |           |           |
+| | | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           |           |           |           |           |           |
+| | | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           |           |           |           |           |           |
+| | | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           |           |           |           |           |           |
+| | | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           |           |           |           |           |           |
+| | | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
 
 bilities (web browser, computer terminal, etc.), rather than role-based
@@ -1651,12 +1651,12 @@ principles in agentic systems, 2024.
 >
 > \[6\] Y. Cheng, C. Zhang, Z. Zhang, X. Meng, S. Hong, W. Li, Z. Wang,
 > Z. Wang, F. Yin, J. Zhao, et al. Exploring large language model based
-> intelligent agents: Definitions, meth-ods, and prospects. *arXiv
-> preprint arXiv:2401.03428*, 2024.
+> intelligent agents: Definitions, meth-ods, and prospects. _arXiv
+> preprint arXiv:2401.03428_, 2024.
 >
 > \[7\] M. D'Arcy, T. Hope, L. Birnbaum, and D. Downey. Marg:
-> Multi-agent review generation for scientific papers. *arXiv preprint
-> arXiv:2401.04259*, 2024.
+> Multi-agent review generation for scientific papers. _arXiv preprint
+> arXiv:2401.04259_, 2024.
 >
 > \[8\] X. Deng, Y. Gu, B. Zheng, S. Chen, S. Stevens, B. Wang, H. Sun,
 > and Y. Su. Mind2web: Towards a generalist agent for the web, 2023.
@@ -1664,8 +1664,8 @@ principles in agentic systems, 2024.
 > \[9\] V. Dibia, A. Fourney, G. Bansal, F. Poursabzi-Sangdeh, H. Liu,
 > and S. Amershi. Aligning offline metrics and human judgments of value
 > for code generation models. In A. Rogers, J. Boyd-Graber, and N.
-> Okazaki, editors, *Findings of the Association for Computational
-> Linguistics: ACL 2023*, pages 8516--8528, Toronto, Canada, July 2023.
+> Okazaki, editors, _Findings of the Association for Computational
+> Linguistics: ACL 2023_, pages 8516--8528, Toronto, Canada, July 2023.
 > Association for Computational Linguistics.
 
 \[10\] A. Drouin, M. Gasse, M. Caccia, I. H. Laradji, M. D. Verme, T.
@@ -1675,15 +1675,14 @@ knowledge work tasks?, 2024.
 
 \[11\] Y. Du, S. Li, A. Torralba, J. B. Tenenbaum, and I. Mordatch.
 Improving factuality and reasoning in language models through multiagent
-debate. *arXiv preprint arXiv:2305.14325*, 2023.
+debate. _arXiv preprint arXiv:2305.14325_, 2023.
 
 \[12\] B. J. Grosz and S. Kraus. The evolution of sharedplans. In
-*Proceedings of the International* *Conference on Multi-Agent Systems*,
-1999.
+_Proceedings of the International_ _Conference on Multi-Agent Systems_, 1999.
 
 \[13\] T. Guo, X. Chen, Y. Wang, R. Chang, S. Pei, N. V. Chawla, O.
 Wiest, and X. Zhang. Large language model based multi-agents: A survey
-of progress and challenges. *arXiv* *preprint arXiv:2402.01680*, 2024.
+of progress and challenges. _arXiv_ _preprint arXiv:2402.01680_, 2024.
 
 21
 
@@ -1693,12 +1692,11 @@ models, 2024.
 
 \[15\] S. Hong, X. Zheng, J. Chen, Y. Cheng, C. Zhang, Z. Wang, S. K. S.
 Yau, Z. Lin, L. Zhou, C. Ran, et al. Metagpt: Meta programming for
-multi-agent collaborative framework. *arXiv preprint arXiv:2308.00352*,
-2023.
+multi-agent collaborative framework. _arXiv preprint arXiv:2308.00352_, 2023.
 
 \[16\] N. R. Jennings and M. Wooldridge. Applications of intelligent
-agents. In *Proceedings of* *the International Conference on Autonomous
-Agents*, 1998.
+agents. In _Proceedings of_ _the International Conference on Autonomous
+Agents_, 1998.
 
 \[17\] C. E. Jimenez, J. Yang, A. Wettig, S. Yao, K. Pei, O. Press, and
 K. Narasimhan. Swe- bench: Can language models resolve real-world github
@@ -1711,14 +1709,14 @@ Ai agents that matter, 2024.
 search for language model agents, 2024.
 
 +-----------------------+-----------------------+-----------------------+
-| \[20\] E. Li and J.   | Websuite:             | > *arXiv*             |
-| Waldo.                | Systematically        |                       |
-|                       | evaluating why web    |                       |
-|                       | agents fail.          |                       |
+| \[20\] E. Li and J. | Websuite: | > _arXiv_ |
+| Waldo. | Systematically | |
+| | evaluating why web | |
+| | agents fail. | |
 +=======================+=======================+=======================+
 +-----------------------+-----------------------+-----------------------+
 
-> *preprint arXiv:2406.01623*, 2024.
+> _preprint arXiv:2406.01623_, 2024.
 
 \[21\] G. Li, H. A. A. K. Hammoud, H. Itani, D. Khizbullin, and B.
 Ghanem. Camel: Commu- nicative agents for "mind" exploration of large
@@ -1734,41 +1732,40 @@ understanding and grounding?, 2024.
 
 \[24\] N. Liu, L. Chen, X. Tian, W. Zou, K. Chen, and M. Cui. From llm
 to conversational agent: A memory enhanced architecture with fine-tuning
-of large language models. *arXiv e-prints*, pages arXiv--2401, 2024.
+of large language models. _arXiv e-prints_, pages arXiv--2401, 2024.
 
 \[25\] Y. Liu, S. K. Lo, Q. Lu, L. Zhu, D. Zhao, X. Xu, S. Harrer, and
 J. Whittle. Agent design pattern catalogue: A collection of
-architectural patterns for foundation model based agents. *arXiv
-preprint arXiv:2405.10467*, 2024.
+architectural patterns for foundation model based agents. _arXiv
+preprint arXiv:2405.10467_, 2024.
 
 \[26\] C. Lu, C. Lu, R. T. Lange, J. Foerster, J. Clune, and D. Ha. The
 ai scientist: Towards fully automated open-ended scientific discovery.
-*arXiv preprint arXiv:2408.06292*, 2024.
+_arXiv preprint arXiv:2408.06292_, 2024.
 
 \[27\] T. Masterman, S. Besen, M. Sawtell, and A. Chao. The landscape of
 emerging ai agent architectures for reasoning, planning, and tool
-calling: A survey. *arXiv preprint* *arXiv:2404.11584*, 2024.
+calling: A survey. _arXiv preprint_ _arXiv:2404.11584_, 2024.
 
-\[28\] B. Messing. An introduction to multiagent systems. *K¨unstliche
-Intell.*, 17:58--, 2002.
+\[28\] B. Messing. An introduction to multiagent systems. _K¨unstliche
+Intell._, 17:58--, 2002.
 
 \[29\] G. Mialon, C. Fourrier, C. Swift, T. Wolf, Y. LeCun, and T.
 Scialom. Gaia: a benchmark for general ai assistants, 2023.
 
 \[30\] G. Mialon, C. Fourrier, C. Swift, T. Wolf, Y. LeCun, and T.
-Scialom. Gaia: benchmark for general ai assistants. *arXiv preprint
-arXiv:2311.12983*, 2023.
+Scialom. Gaia: benchmark for general ai assistants. _arXiv preprint
+arXiv:2311.12983_, 2023.
 
 \[31\] R. Nakano, J. Hilton, S. Balaji, J. Wu, L. Ouyang, C. Kim, C.
 Hesse, S. Jain, V. Kosaraju, W. Saunders, et al. Webgpt:
-Browser-assisted question-answering with human feedback. *arXiv preprint
-arXiv:2112.09332*, 2021.
+Browser-assisted question-answering with human feedback. _arXiv preprint
+arXiv:2112.09332_, 2021.
 
 22
 
 \[32\] N. J. Nilsson. Stuart russell and peter norvig, artificial
-intelligence: A modern approach. *Artificial Intelligence*, 82:369--380,
-1996.
+intelligence: A modern approach. _Artificial Intelligence_, 82:369--380, 1996.
 
 \[33\] OpenAI. Gpt-4 technical report, 2023.
 
@@ -1781,8 +1778,7 @@ online environments, 2024.
 
 \[36\] B. Paranjape, S. Lundberg, S. Singh, H. Hajishirzi, L.
 Zettlemoyer, and M. T. Ribeiro. Art: Automatic multi-step reasoning and
-tool-use for large language models. *arXiv preprint arXiv:2303.09014*,
-2023.
+tool-use for large language models. _arXiv preprint arXiv:2303.09014_, 2023.
 
 \[37\] J. S. Park, J. C. O'Brien, C. J. Cai, M. R. Morris, P. Liang, and
 M. S. Bernstein. Generative agents: Interactive simulacra of human
@@ -1790,9 +1786,9 @@ behavior, 2023.
 
 \[38\] D. Paul, M. Ismayilzada, M. Peyrard, B. Borges, A. Bosselut, R.
 West, and B. Faltings. RE-FINER: Reasoning feedback on intermediate
-representations. In Y. Graham and M. Purver, editors, *Proceedings of
+representations. In Y. Graham and M. Purver, editors, _Proceedings of
 the 18th Conference of the European Chapter of the Association for
-Computational Linguistics (Volume 1: Long Papers)*, pages 1100--1126,
+Computational Linguistics (Volume 1: Long Papers)_, pages 1100--1126,
 St. Julian's, Malta, Mar. 2024. Association for Computational
 Linguistics.
 
@@ -1818,59 +1814,58 @@ master 16000+ real-world apis, 2023.
 G. Barth-Maron,
 
 +-----------------------+-----------------------+-----------------------+
-| > M. Gimenez, Y.      | A generalist agent.   | > *arXiv*             |
-| > Sulsky, J. Kay, J.  |                       |                       |
-| > T. Springenberg, et |                       |                       |
-| > al.                 |                       |                       |
+| > M. Gimenez, Y. | A generalist agent. | > _arXiv_ |
+| > Sulsky, J. Kay, J. | | |
+| > T. Springenberg, et | | |
+| > al. | | |
 +=======================+=======================+=======================+
 +-----------------------+-----------------------+-----------------------+
 
-> *preprint arXiv:2205.06175*, 2022.
+> _preprint arXiv:2205.06175_, 2022.
 
 \[44\] M. Russinovich, A. Salem, and R. Eldan. Great, now write an
 article about that: The crescendo multi-turn llm jailbreak attack.
-*arXiv preprint arXiv:2404.01833*, 2024.
+_arXiv preprint arXiv:2404.01833_, 2024.
 
 \[45\] P. Scerri, D. V. Pynadath, and M. Tambe. Adjustable autonomy in
-real-world multi-agent environments. In *International Conference on
-Autonomous Agents*, 2001.
+real-world multi-agent environments. In _International Conference on
+Autonomous Agents_, 2001.
 
 \[46\] T. Schick, J. Dwivedi-Yu, R. Dess\`ı, R. Raileanu, M. Lomeli, L.
 Zettlemoyer, N. Cancedda, and T. Scialom. Toolformer: Language models
 can teach themselves to use tools, 2023.
 
 \[47\] T. Shi, A. Karpathy, L. Fan, J. Hernandez, and P. Liang. World of
-bits: An open-domain platform for web-based agents. In *International
-Conference on Machine Learning*. PMLR, 2017.
+bits: An open-domain platform for web-based agents. In _International
+Conference on Machine Learning_. PMLR, 2017.
 
 23
 
 \[48\] N. Shinn, F. Cassano, A. Gopinath, K. Narasimhan, and S. Yao.
 Reflexion: Language
 
-> agents with verbal reinforcement learning. *Systems*, 36, 2024.
+> agents with verbal reinforcement learning. _Systems_, 36, 2024.
 
-*Advances in Neural Information Processing*
+_Advances in Neural Information Processing_
 
 \[49\] P. Sodhi, S. R. K. Branavan, Y. Artzi, and R. McDonald. Step:
 Stacked llm policies for web actions, 2024.
 
 \[50\] Y. Song, D. Yin, X. Yue, J. Huang, S. Li, and B. Y. Lin. Trial
-and error: Exploration-based trajectory optimization for llm agents,
-2024.
+and error: Exploration-based trajectory optimization for llm agents, 2024.
 
 \[51\] P. Stone and M. Veloso. Multiagent systems: A survey from a
-machine learning perspective. *Auton. Robots*, 8(3):345--383, June 2000.
+machine learning perspective. _Auton. Robots_, 8(3):345--383, June 2000.
 
 \[52\] Y. Talebirad and A. Nadiri. Multi-agent collaboration: Harnessing
 the power of intelligent llm agents, 2023.
 
 \[53\] M. Tambe. Implementing agent teams in dynamic multiagent
-environments. *Appl. Artif.* *Intell.*, 12:189--210, 1998.
+environments. _Appl. Artif._ _Intell._, 12:189--210, 1998.
 
 \[54\] L. Wang, C. Ma, X. Feng, Z. Zhang, H. Yang, J. Zhang, Z. Chen, J.
 Tang, X. Chen, Y. Lin, et al. A survey on large language model based
-autonomous agents. *arXiv preprint arXiv:2308.11432*, 2023.
+autonomous agents. _arXiv preprint arXiv:2308.11432_, 2023.
 
 \[55\] X. Wang, B. Li, Y. Song, F. F. Xu, X. Tang, M. Zhuge, J. Pan, Y.
 Song, B. Li, J. Singh, H. H. Tran, F. Li, R. Ma, M. Zheng, B. Qian, Y.
@@ -1886,15 +1881,15 @@ memory, 2024.
 
 \[58\] J. Wei, X. Wang, D. Schuurmans, M. Bosma, E. Chi, Q. Le, and D.
 Zhou. Chain of thought prompting elicits reasoning in large language
-models. *arXiv preprint arXiv:2201.11903*, 2022.
+models. _arXiv preprint arXiv:2201.11903_, 2022.
 
 \[59\] M. Wooldridge and N. R. Jennings. Intelligent agents: theory and
-practice. *The Knowledge* *Engineering Review*, 10:115 -- 152, 1995.
+practice. _The Knowledge_ _Engineering Review_, 10:115 -- 152, 1995.
 
 \[60\] Q. Wu, G. Bansal, J. Zhang, Y. Wu, B. Li, E. Zhu, L. Jiang, X.
 Zhang, S. Zhang, J. Liu, A. H. Awadallah, R. W. White, D. Burger, and C.
 Wang. Autogen: Enabling next-gen llm applications via multi-agent
-conversation framework. In *COLM*, 2024.
+conversation framework. In _COLM_, 2024.
 
 \[61\] Z. Wu, C. Han, Z. Ding, Z. Weng, Z. Liu, S. Yao, T. Yu, and L.
 Kong. Os-copilot: Towards generalist computer agents with
@@ -1907,8 +1902,8 @@ Zhang, W. Qin, Y. Zheng, X. Qiu, X. Huang, and T. Gui. The rise and
 potential of large language model based agents: A survey, 2023.
 
 \[63\] C. S. Xia, Y. Deng, S. Dunn, and L. Zhang. Agentless:
-Demystifying llm-based software engineering agents. *arXiv preprint
-arXiv:2407.01489*, 2024.
+Demystifying llm-based software engineering agents. _arXiv preprint
+arXiv:2407.01489_, 2024.
 
 \[64\] T. Xie, D. Zhang, J. Chen, X. Li, S. Zhao, R. Cao, T. J. Hua, Z.
 Cheng, D. Shin, F. Lei, Y. Liu, Y. Xu, S. Zhou, S. Savarese, C. Xiong,
@@ -1923,11 +1918,11 @@ open-ended tasks in real computer environments, 2024.
 
 \[66\] J. Yang, C. E. Jimenez, A. Wettig, K. Lieret, S. Yao, K.
 Narasimhan, and O. Press. Swe-agent: Agent-computer interfaces enable
-automated software engineering. *arXiv preprint arXiv:2405.15793*, 2024.
+automated software engineering. _arXiv preprint arXiv:2405.15793_, 2024.
 
 \[67\] J. Yang, H. Zhang, F. Li, X. Zou, C. Li, and J. Gao. Set-of-mark
-prompting unleashes extraordinary visual grounding in gpt-4v. *arXiv
-preprint arXiv:2310.11441*, 2023.
+prompting unleashes extraordinary visual grounding in gpt-4v. _arXiv
+preprint arXiv:2310.11441_, 2023.
 
 \[68\] S. Yao, H. Chen, J. Yang, and K. Narasimhan. Webshop: Towards
 scalable real-world web interaction with grounded language agents, 2023.
@@ -1938,7 +1933,7 @@ language models, 2023.
 
 \[70\] S. Yao, J. Zhao, D. Yu, N. Du, I. Shafran, K. Narasimhan, and Y.
 Cao. React: Syner-gizing reasoning and acting in language models. In
-*International Conference on Learning Representations (ICLR)*, 2023.
+_International Conference on Learning Representations (ICLR)_, 2023.
 
 \[71\] O. Yoran, S. J. Amouyal, C. Malaviya, B. Bogin, O. Press, and J.
 Berant. Assistantbench: Can web agents solve realistic and
@@ -1959,8 +1954,8 @@ versatile and autonomous multi-agent system for web task execution with
 strategic exploration, 2024.
 
 \[76\] Y. Zhang, H. Ruan, Z. Fan, and A. Roychoudhury. Autocoderover:
-Autonomous program improvement. In *Proceedings of the 33rd ACM SIGSOFT
-International Symposium on* *Software Testing and Analysis*, pages
+Autonomous program improvement. In _Proceedings of the 33rd ACM SIGSOFT
+International Symposium on_ _Software Testing and Analysis_, pages
 1592--1604, 2024.
 
 \[77\] Z. Zhang and A. Zhang. You only look at screens: Multimodal
@@ -1968,8 +1963,8 @@ chain-of-action agents, 2024.
 
 \[78\] Z. J. Zhang, E. Schoop, J. Nichols, A. Mahajan, and A. Swearngin.
 From interaction to impact: Towards safer ai agents through
-understanding and evaluating ui operation impacts. *arXiv preprint
-arXiv:2410.09006*, 2024.
+understanding and evaluating ui operation impacts. _arXiv preprint
+arXiv:2410.09006_, 2024.
 
 \[79\] S. Zhou, F. F. Xu, H. Zhu, X. Zhou, R. Lo, A. Sridhar, X. Cheng,
 T. Ou, Y. Bisk, D. Fried, U. Alon, and G. Neubig. Webarena: A realistic
@@ -2017,10 +2012,10 @@ agents:
 > archives
 
 +-----------------+-----------------+-----------------+-----------------+
-| > • **Coding:** | capabilities    | Examples:       | Coding, Python, |
-|                 | related to      |                 |                 |
-|                 | coding and      |                 |                 |
-|                 | execution.      |                 |                 |
+| > • **Coding:** | capabilities | Examples: | Coding, Python, |
+| | related to | | |
+| | coding and | | |
+| | execution. | | |
 +=================+=================+=================+=================+
 +-----------------+-----------------+-----------------+-----------------+
 
@@ -2047,60 +2042,60 @@ taken from. For each code, we include a definition and summaries of
 examples from the logs that were assigned that code.
 
 +-----------+-----------+-----------+-----------+-----------+-----------+
-| >         | > **Def   | > **E     |           |           |           |
-|  **Name** | inition** | xamples** |           |           |           |
+| > | > **Def | > **E | | | |
+| **Name** | inition** | xamples** | | | |
 +===========+===========+===========+===========+===========+===========+
-| > pe      | > Agents  | > •       |           |           |           |
-| rsistent- | > engaged | > Agents  |           |           |           |
-|           | > in      | > clicked |           |           |           |
-|           | >         | > the     |           |           |           |
-|           | unproduc- | > same    |           |           |           |
-|           |           | > web-    |           |           |           |
+| > pe | > Agents | > • | | | |
+| rsistent- | > engaged | > Agents | | | |
+| | > in | > clicked | | | |
+| | > | > the | | | |
+| | unproduc- | > same | | | |
+| | | > web- | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-| > i       | > tive    |           |           |           |           |
-| nefficien | >         |           |           |           |           |
-| t-actions |  patterns |           |           |           |           |
-|           | > without |           |           |           |           |
-|           | >         |           |           |           |           |
-|           |  adapting |           |           |           |           |
+| > i | > tive | | | | |
+| nefficien | > | | | | |
+| t-actions | patterns | | | | |
+| | > without | | | | |
+| | > | | | | |
+| | adapting | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           | > despite |           |           |           |           |
-|           | > facing  |           |           |           |           |
-|           | >         |           |           |           |           |
-|           | failures. |           |           |           |           |
-|           | >         |           |           |           |           |
-|           |  Ineffec- |           |           |           |           |
+| | > despite | | | | |
+| | > facing | | | | |
+| | > | | | | |
+| | failures. | | | | |
+| | > | | | | |
+| | Ineffec- | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           |           | page      | sections  | multiple  | times,    |
+| | | page | sections | multiple | times, |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           | > tive    |           |           |           |           |
-|           | > s       |           |           |           |           |
-|           | trategies |           |           |           |           |
-|           | > p       |           |           |           |           |
-|           | ersisted, |           |           |           |           |
-|           | > lead-   |           |           |           |           |
+| | > tive | | | | |
+| | > s | | | | |
+| | trategies | | | | |
+| | > p | | | | |
+| | ersisted, | | | | |
+| | > lead- | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           |           | >         |           |           |           |
-|           |           | achieving |           |           |           |
-|           |           | > no      |           |           |           |
-|           |           | > ad      |           |           |           |
-|           |           | vancement |           |           |           |
-|           |           | > in in-  |           |           |           |
+| | | > | | | |
+| | | achieving | | | |
+| | | > no | | | |
+| | | > ad | | | |
+| | | vancement | | | |
+| | | > in in- | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           | > ing to  |           |           |           |           |
-|           | > delays  |           |           |           |           |
-|           | > and     |           |           |           |           |
-|           | > ins     |           |           |           |           |
-|           | ufficient |           |           |           |           |
+| | > ing to | | | | |
+| | > delays | | | | |
+| | > and | | | | |
+| | > ins | | | | |
+| | ufficient | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           |           | >         |           |           |           |
-|           |           | formation |           |           |           |
-|           |           | > r       |           |           |           |
-|           |           | etrieval. |           |           |           |
+| | | > | | | |
+| | | formation | | | |
+| | | > r | | | |
+| | | etrieval. | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           | > task    |           |           |           |           |
-|           | >         |           |           |           |           |
-|           | outcomes. |           |           |           |           |
+| | > task | | | | |
+| | > | | | | |
+| | outcomes. | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
 
 > • Agents unnecessarily engaged in\
@@ -2108,18 +2103,20 @@ examples from the logs that were assigned that code.
 > focusing on specified database\
 > tools.
 
-  -----------------------------------------------------------------------
-  • WebSurfer             continued               failing
-  ----------------------- ----------------------- -----------------------
+---
 
-  -----------------------------------------------------------------------
+• WebSurfer continued failing
+
+---
+
+---
 
 > searches with no query modi-\
 > fication, ignoring unsuccessful\
 > outcomes.
 
 +-----------------------+-----------------------+-----------------------+
-| • The                 | orchestrator          | > commanded           |
+| • The | orchestrator | > commanded |
 +=======================+=======================+=======================+
 +-----------------------+-----------------------+-----------------------+
 
@@ -2235,58 +2232,58 @@ examples from the logs that were assigned that code.
 27
 
 +-----------+-----------+-----------+-----------+-----------+-----------+
-| > under   | Agents    |           | > •       |           |           |
-| utilized- | con       |           | > Agents  |           |           |
-|           | sistently |           | > failed  |           |           |
-|           | did not   |           | > to      |           |           |
-|           | uti-      |           | >         |           |           |
-|           |           |           | integrate |           |           |
-|           |           |           | > acces-  |           |           |
+| > under | Agents | | > • | | |
+| utilized- | con | | > Agents | | |
+| | sistently | | > failed | | |
+| | did not | | > to | | |
+| | uti- | | > | | |
+| | | | integrate | | |
+| | | | > acces- | | |
 +===========+===========+===========+===========+===========+===========+
-| > resourc | lize      |           |           |           |           |
-| e-options | available |           |           |           |           |
-|           | data,     |           |           |           |           |
-|           | tools, or |           |           |           |           |
-|           | re-       |           |           |           |           |
+| > resourc | lize | | | | |
+| e-options | available | | | | |
+| | data, | | | | |
+| | tools, or | | | | |
+| | re- | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           | > sources | > This    |           |           |           |
-|           | > eff     | > re-     |           |           |           |
-|           | ectively. |           |           |           |           |
+| | > sources | > This | | | |
+| | > eff | > re- | | | |
+| | ectively. | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           |           |           | > sible   |           |           |
-|           |           |           | > desc    |           |           |
-|           |           |           | riptions, |           |           |
-|           |           |           | > opting  |           |           |
-|           |           |           | > for re- |           |           |
+| | | | > sible | | |
+| | | | > desc | | |
+| | | | riptions, | | |
+| | | | > opting | | |
+| | | | > for re- | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           | sulted in |           |           |           |           |
-|           | in        |           |           |           |           |
-|           | efficient |           |           |           |           |
-|           | task      |           |           |           |           |
-|           | execu-    |           |           |           |           |
+| | sulted in | | | | |
+| | in | | | | |
+| | efficient | | | | |
+| | task | | | | |
+| | execu- | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           |           |           | > dundant |           |           |
-|           |           |           | > manual  |           |           |
-|           |           |           | > inputs  |           |           |
-|           |           |           | > despite |           |           |
+| | | | > dundant | | |
+| | | | > manual | | |
+| | | | > inputs | | |
+| | | | > despite | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           | tion and  |           |           |           |           |
-|           | repeated  |           |           |           |           |
-|           | manual    |           |           |           |           |
-|           | ac-       |           |           |           |           |
+| | tion and | | | | |
+| | repeated | | | | |
+| | manual | | | | |
+| | ac- | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           |           |           | >         |           |           |
-|           |           |           |  metadata |           |           |
-|           |           |           | > avai    |           |           |
-|           |           |           | lability. |           |           |
+| | | | > | | |
+| | | | metadata | | |
+| | | | > avai | | |
+| | | | lability. | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           | tions,    |           |           |           |           |
-|           | even when |           |           |           |           |
-|           | a         |           |           |           |           |
-|           | utomation |           |           |           |           |
+| | tions, | | | | |
+| | even when | | | | |
+| | a | | | | |
+| | utomation | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           | > was an  |           | > •       | downloads | persisted |
-|           | > option. |           | > Manual  |           |           |
+| | > was an | | > • | downloads | persisted |
+| | > option. | | > Manual | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
 
 > when FileSurfer was available\
@@ -2310,97 +2307,97 @@ examples from the logs that were assigned that code.
 > graphing tools.
 
 +-------+-------+-------+-------+-------+-------+-------+-------+-------+
-| > in  | > E   |       | • The | agent |       | mista |       | c     |
-| effic | rrors |       |       |       |       | kenly |       | ycled |
-| ient- | > occ |       |       |       |       |       |       |       |
-|       | urred |       |       |       |       |       |       |       |
-|       | > be  |       |       |       |       |       |       |       |
-|       | cause |       |       |       |       |       |       |       |
-|       | > of  |       |       |       |       |       |       |       |
-|       | > in- |       |       |       |       |       |       |       |
+| > in | > E | | • The | agent | | mista | | c |
+| effic | rrors | | | | | kenly | | ycled |
+| ient- | > occ | | | | | | | |
+| | urred | | | | | | | |
+| | > be | | | | | | | |
+| | cause | | | | | | | |
+| | > of | | | | | | | |
+| | > in- | | | | | | | |
 +=======+=======+=======+=======+=======+=======+=======+=======+=======+
-| navi  | > co  |       |       |       |       |       |       |       |
-| gatio | rrect |       |       |       |       |       |       |       |
-| n-att | > or  |       |       |       |       |       |       |       |
-| empts | > i   |       |       |       |       |       |       |       |
-|       | neffi |       |       |       |       |       |       |       |
-|       | cient |       |       |       |       |       |       |       |
-|       | > na  |       |       |       |       |       |       |       |
-|       | viga- |       |       |       |       |       |       |       |
+| navi | > co | | | | | | | |
+| gatio | rrect | | | | | | | |
+| n-att | > or | | | | | | | |
+| empts | > i | | | | | | | |
+| | neffi | | | | | | | |
+| | cient | | | | | | | |
+| | > na | | | | | | | |
+| | viga- | | | | | | | |
 +-------+-------+-------+-------+-------+-------+-------+-------+-------+
-|       | >     | > le  |       |       |       |       |       |       |
-|       | tion, | ading |       |       |       |       |       |       |
-|       |       | > to  |       |       |       |       |       |       |
-|       |       | > m   |       |       |       |       |       |       |
-|       |       | issed |       |       |       |       |       |       |
-|       |       | >     |       |       |       |       |       |       |
-|       |       |  tar- |       |       |       |       |       |       |
+| | > | > le | | | | | | |
+| | tion, | ading | | | | | | |
+| | | > to | | | | | | |
+| | | > m | | | | | | |
+| | | issed | | | | | | |
+| | | > | | | | | | |
+| | | tar- | | | | | | |
 +-------+-------+-------+-------+-------+-------+-------+-------+-------+
-|       |       |       | > th  |       |       |       |       |       |
-|       |       |       | rough |       |       |       |       |       |
-|       |       |       | > mul |       |       |       |       |       |
-|       |       |       | tiple |       |       |       |       |       |
-|       |       |       | >     |       |       |       |       |       |
-|       |       |       |  tabs |       |       |       |       |       |
-|       |       |       | > to  |       |       |       |       |       |
-|       |       |       | >     |       |       |       |       |       |
-|       |       |       |  find |       |       |       |       |       |
-|       |       |       | > the |       |       |       |       |       |
+| | | | > th | | | | | |
+| | | | rough | | | | | |
+| | | | > mul | | | | | |
+| | | | tiple | | | | | |
+| | | | > | | | | | |
+| | | | tabs | | | | | |
+| | | | > to | | | | | |
+| | | | > | | | | | |
+| | | | find | | | | | |
+| | | | > the | | | | | |
 +-------+-------+-------+-------+-------+-------+-------+-------+-------+
-|       | >     |       |       |       |       |       |       |       |
-|       |  gets |       |       |       |       |       |       |       |
-|       | > or  |       |       |       |       |       |       |       |
-|       | >     |       |       |       |       |       |       |       |
-|       |  prol |       |       |       |       |       |       |       |
-|       | onged |       |       |       |       |       |       |       |
-|       | >     |       |       |       |       |       |       |       |
-|       |  task |       |       |       |       |       |       |       |
-|       | > co  |       |       |       |       |       |       |       |
-|       | mple- |       |       |       |       |       |       |       |
+| | > | | | | | | | |
+| | gets | | | | | | | |
+| | > or | | | | | | | |
+| | > | | | | | | | |
+| | prol | | | | | | | |
+| | onged | | | | | | | |
+| | > | | | | | | | |
+| | task | | | | | | | |
+| | > co | | | | | | | |
+| | mple- | | | | | | | |
 +-------+-------+-------+-------+-------+-------+-------+-------+-------+
-|       |       |       | >     |       |       |       |       |       |
-|       |       |       | 'Sett |       |       |       |       |       |
-|       |       |       | ings' |       |       |       |       |       |
-|       |       |       | >     |       |       |       |       |       |
-|       |       |       | page, |       |       |       |       |       |
-|       |       |       | >     |       |       |       |       |       |
-|       |       |       |  resu |       |       |       |       |       |
-|       |       |       | lting |       |       |       |       |       |
-|       |       |       | > in  |       |       |       |       |       |
-|       |       |       | > de- |       |       |       |       |       |
+| | | | > | | | | | |
+| | | | 'Sett | | | | | |
+| | | | ings' | | | | | |
+| | | | > | | | | | |
+| | | | page, | | | | | |
+| | | | > | | | | | |
+| | | | resu | | | | | |
+| | | | lting | | | | | |
+| | | | > in | | | | | |
+| | | | > de- | | | | | |
 +-------+-------+-------+-------+-------+-------+-------+-------+-------+
-|       | >     |       |       |       |       |       |       |       |
-|       | tion. |       |       |       |       |       |       |       |
-|       | > A   |       |       |       |       |       |       |       |
-|       | gents |       |       |       |       |       |       |       |
-|       | >     |       |       |       |       |       |       |       |
-|       |  misi |       |       |       |       |       |       |       |
-|       | nterp |       |       |       |       |       |       |       |
-|       | reted |       |       |       |       |       |       |       |
-|       | > in- |       |       |       |       |       |       |       |
+| | > | | | | | | | |
+| | tion. | | | | | | | |
+| | > A | | | | | | | |
+| | gents | | | | | | | |
+| | > | | | | | | | |
+| | misi | | | | | | | |
+| | nterp | | | | | | | |
+| | reted | | | | | | | |
+| | > in- | | | | | | | |
 +-------+-------+-------+-------+-------+-------+-------+-------+-------+
-|       |       |       | >     |       |       |       |       |       |
-|       |       |       | layed |       |       |       |       |       |
-|       |       |       | >     |       |       |       |       |       |
-|       |       |       |  task |       |       |       |       |       |
-|       |       |       | >     |       |       |       |       |       |
-|       |       |       |  prog |       |       |       |       |       |
-|       |       |       | ress. |       |       |       |       |       |
+| | | | > | | | | | |
+| | | | layed | | | | | |
+| | | | > | | | | | |
+| | | | task | | | | | |
+| | | | > | | | | | |
+| | | | prog | | | | | |
+| | | | ress. | | | | | |
 +-------+-------+-------+-------+-------+-------+-------+-------+-------+
-|       | > te  |       |       |       |       |       |       |       |
-|       | rface |       |       |       |       |       |       |       |
-|       | > la  |       |       |       |       |       |       |       |
-|       | youts |       |       |       |       |       |       |       |
-|       | > and |       |       |       |       |       |       |       |
-|       | >     |       |       |       |       |       |       |       |
-|       |  took |       |       |       |       |       |       |       |
-|       | > in  |       |       |       |       |       |       |       |
-|       | effi- |       |       |       |       |       |       |       |
+| | > te | | | | | | | |
+| | rface | | | | | | | |
+| | > la | | | | | | | |
+| | youts | | | | | | | |
+| | > and | | | | | | | |
+| | > | | | | | | | |
+| | took | | | | | | | |
+| | > in | | | | | | | |
+| | effi- | | | | | | | |
 +-------+-------+-------+-------+-------+-------+-------+-------+-------+
-|       | >     |       | > •   |       | > cl  |       | navig |       |
-|       | cient |       | > I   |       | icked |       | ation |       |
-|       | > p   |       | ncorr |       |       |       |       |       |
-|       | aths. |       | ectly |       |       |       |       |       |
+| | > | | > • | | > cl | | navig | |
+| | cient | | > I | | icked | | ation | |
+| | > p | | ncorr | | | | | |
+| | aths. | | ectly | | | | | |
 +-------+-------+-------+-------+-------+-------+-------+-------+-------+
 
 > bars led to a user failing to\
@@ -2424,33 +2421,33 @@ examples from the logs that were assigned that code.
 28
 
 +-----------------------+-----------------------+-----------------------+
-| > ineffective-team-   | Agents did not        | > • Two agents        |
-|                       | communicate           | > simultaneously ac-  |
+| > ineffective-team- | Agents did not | > • Two agents |
+| | communicate | > simultaneously ac- |
 +=======================+=======================+=======================+
-| > communication       | information or        |                       |
-|                       | direction effec-      |                       |
+| > communication | information or | |
+| | direction effec- | |
 +-----------------------+-----------------------+-----------------------+
-|                       | tively, causing task  |                       |
-|                       | overlap and           |                       |
+| | tively, causing task | |
+| | overlap and | |
 +-----------------------+-----------------------+-----------------------+
-|                       |                       | > cessed order        |
-|                       |                       | > histories due to    |
-|                       |                       | > un-                 |
+| | | > cessed order |
+| | | > histories due to |
+| | | > un- |
 +-----------------------+-----------------------+-----------------------+
-|                       | confusion.            |                       |
-|                       | Miscommunications     |                       |
+| | confusion. | |
+| | Miscommunications | |
 +-----------------------+-----------------------+-----------------------+
-|                       |                       | > clear task          |
-|                       |                       | > division, resulting |
-|                       |                       | > in                  |
+| | | > clear task |
+| | | > division, resulting |
+| | | > in |
 +-----------------------+-----------------------+-----------------------+
-|                       | led to redundant work |                       |
-|                       | and un-               |                       |
+| | led to redundant work | |
+| | and un- | |
 +-----------------------+-----------------------+-----------------------+
-|                       |                       | > duplicated efforts. |
+| | | > duplicated efforts. |
 +-----------------------+-----------------------+-----------------------+
-|                       | > coordinated         |                       |
-|                       | > actions.            |                       |
+| | > coordinated | |
+| | > actions. | |
 +-----------------------+-----------------------+-----------------------+
 
 > • Agents struggled to understand\
@@ -2474,29 +2471,29 @@ examples from the logs that were assigned that code.
 > other's progress.
 
 +-----------------------+-----------------------+-----------------------+
-| > neglected-error-    | Agents ignored known  | > • Repeated          |
-|                       | errors                | > 'ValueError'        |
-|                       |                       | > messages            |
+| > neglected-error- | Agents ignored known | > • Repeated |
+| | errors | > 'ValueError' |
+| | | > messages |
 +=======================+=======================+=======================+
-| > notifications       | or warnings, allowing |                       |
-|                       | issues to             |                       |
+| > notifications | or warnings, allowing | |
+| | issues to | |
 +-----------------------+-----------------------+-----------------------+
-|                       | persist and recur.    |                       |
-|                       | This resulted         |                       |
+| | persist and recur. | |
+| | This resulted | |
 +-----------------------+-----------------------+-----------------------+
-|                       |                       | > were ignored,       |
-|                       |                       | > allowing the un-    |
+| | | > were ignored, |
+| | | > allowing the un- |
 +-----------------------+-----------------------+-----------------------+
-|                       | in repeated           |                       |
-|                       | inefficiencies and    |                       |
+| | in repeated | |
+| | inefficiencies and | |
 +-----------------------+-----------------------+-----------------------+
-|                       |                       | > derlying issue to   |
-|                       |                       | > continue unad-      |
+| | | > derlying issue to |
+| | | > continue unad- |
 +-----------------------+-----------------------+-----------------------+
-|                       | bottlenecks in task   |                       |
-|                       | execution.            |                       |
+| | bottlenecks in task | |
+| | execution. | |
 +-----------------------+-----------------------+-----------------------+
-|                       |                       | > dressed.            |
+| | | > dressed. |
 +-----------------------+-----------------------+-----------------------+
 
 > • Agents accessed 'hotel booking'\
@@ -2511,77 +2508,83 @@ examples from the logs that were assigned that code.
 
 • Unresolved input errors led to
 
-  -----------------------------------------------------------------------
-  repeated          submissions       of                the
-  ----------------- ----------------- ----------------- -----------------
+---
 
-  -----------------------------------------------------------------------
+repeated submissions of the
+
+---
+
+---
 
 > same query form without varia-\
 > tions.
 
-  -----------------------------------------------------------------------
-  • Despite               validation              warnings,
-  ----------------------- ----------------------- -----------------------
+---
 
-  -----------------------------------------------------------------------
+• Despite validation warnings,
+
+---
+
+---
 
 agents continued with depre-
 
-  -----------------------------------------------------------------------
-  cated             approaches,       leading           to
-  ----------------- ----------------- ----------------- -----------------
+---
 
-  -----------------------------------------------------------------------
+cated approaches, leading to
+
+---
+
+---
 
 unresolved problems.
 
 29
 
 +-----------+-----------+-----------+-----------+-----------+-----------+
-| >         | Tasks     | > •       |           |           |           |
-|  flawed-t | faced     | > Agents  |           |           |           |
-| echnical- | issues    | > en      |           |           |           |
-|           | due to    | countered |           |           |           |
-|           | in-       | > syntax  |           |           |           |
-|           |           | > er-     |           |           |           |
+| > | Tasks | > • | | | |
+| flawed-t | faced | > Agents | | | |
+| echnical- | issues | > en | | | |
+| | due to | countered | | | |
+| | in- | > syntax | | | |
+| | | > er- | | | |
 +===========+===========+===========+===========+===========+===========+
-| > implem  | correct   |           |           |           |           |
-| entations | ap        |           |           |           |           |
-|           | plication |           |           |           |           |
-|           | of        |           |           |           |           |
-|           | technical |           |           |           |           |
+| > implem | correct | | | | |
+| entations | ap | | | | |
+| | plication | | | | |
+| | of | | | | |
+| | technical | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           | logic or  |           |           |           |           |
-|           | p         |           |           |           |           |
-|           | rocesses. |           |           |           |           |
-|           | M         |           |           |           |           |
-|           | isapplied |           |           |           |           |
+| | logic or | | | | |
+| | p | | | | |
+| | rocesses. | | | | |
+| | M | | | | |
+| | isapplied | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           |           | > rors in |           |           |           |
-|           |           | > scripts |           |           |           |
-|           |           | > due to  |           |           |           |
-|           |           | > incor-  |           |           |           |
+| | | > rors in | | | |
+| | | > scripts | | | |
+| | | > due to | | | |
+| | | > incor- | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           | t         |           |           |           |           |
-|           | echniques |           |           |           |           |
-|           | led to    |           |           |           |           |
-|           | errors    |           |           |           |           |
-|           | and in-   |           |           |           |           |
+| | t | | | | |
+| | echniques | | | | |
+| | led to | | | | |
+| | errors | | | | |
+| | and in- | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           |           | > rect    |           | > halting |           |
-|           |           | > ind     |           | > task    |           |
-|           |           | entation, |           |           |           |
+| | | > rect | | > halting | |
+| | | > ind | | > task | |
+| | | entation, | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           | > effi    |           |           |           |           |
-|           | ciencies. |           |           |           |           |
+| | > effi | | | | |
+| | ciencies. | | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           |           | >         |           |           |           |
-|           |           | progress. |           |           |           |
+| | | > | | | |
+| | | progress. | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
-|           |           | > •       | > runtime | > errors  | oc-       |
-|           |           | >         |           |           |           |
-|           |           |  Repeated |           |           |           |
+| | | > • | > runtime | > errors | oc- |
+| | | > | | | |
+| | | Repeated | | | |
 +-----------+-----------+-----------+-----------+-----------+-----------+
 
 > curred as agents submitted mis-\
@@ -2600,66 +2603,68 @@ unresolved problems.
 
 • Agents faced challenges in align-
 
-  --------------------------------------------------------------------------
-  ing            sales          data,          resulting      in
-  -------------- -------------- -------------- -------------- --------------
+---
 
-  --------------------------------------------------------------------------
+ing sales data, resulting in
+
+---
+
+---
 
 flawed revenue projections.
 
 +---------+---------+---------+---------+---------+---------+---------+
-| access  | > Tasks |         | •       | p       | fields  | were    |
-| -and-se | > were  |         | Visible | assword |         |         |
-| curity- | > h     |         |         |         |         |         |
-|         | indered |         |         |         |         |         |
-|         | > due   |         |         |         |         |         |
-|         | > to    |         |         |         |         |         |
-|         | > se-   |         |         |         |         |         |
+| access | > Tasks | | • | p | fields | were |
+| -and-se | > were | | Visible | assword | | |
+| curity- | > h | | | | | |
+| | indered | | | | | |
+| | > due | | | | | |
+| | > to | | | | | |
+| | > se- | | | | | |
 +=========+=========+=========+=========+=========+=========+=========+
-| > b     | >       |         |         |         |         |         |
-| arriers |  curity |         |         |         |         |         |
-|         | > or    |         |         |         |         |         |
-|         | >       |         |         |         |         |         |
-|         |  access |         |         |         |         |         |
-|         | >       |         |         |         |         |         |
-|         |  restri |         |         |         |         |         |
-|         | ctions, |         |         |         |         |         |
-|         | > af-   |         |         |         |         |         |
+| > b | > | | | | | |
+| arriers | curity | | | | | |
+| | > or | | | | | |
+| | > | | | | | |
+| | access | | | | | |
+| | > | | | | | |
+| | restri | | | | | |
+| | ctions, | | | | | |
+| | > af- | | | | | |
 +---------+---------+---------+---------+---------+---------+---------+
-|         | >       | >       |         |         |         |         |
-|         | fecting |  Agents |         |         |         |         |
-|         | > data  |         |         |         |         |         |
-|         | > int   |         |         |         |         |         |
-|         | egrity. |         |         |         |         |         |
+| | > | > | | | | |
+| | fecting | Agents | | | | |
+| | > data | | | | | |
+| | > int | | | | | |
+| | egrity. | | | | | |
 +---------+---------+---------+---------+---------+---------+---------+
-|         |         |         | > used, |         |         |         |
-|         |         |         | >       |         |         |         |
-|         |         |         | risking |         |         |         |
-|         |         |         | > data  |         |         |         |
-|         |         |         | > e     |         |         |         |
-|         |         |         | xposure |         |         |         |
-|         |         |         | > to    |         |         |         |
+| | | | > used, | | | |
+| | | | > | | | |
+| | | | risking | | | |
+| | | | > data | | | |
+| | | | > e | | | |
+| | | | xposure | | | |
+| | | | > to | | | |
 +---------+---------+---------+---------+---------+---------+---------+
-|         | > st    |         |         |         |         |         |
-|         | ruggled |         |         |         |         |         |
-|         | > with  |         |         |         |         |         |
-|         | > a     |         |         |         |         |         |
-|         | uthenti |         |         |         |         |         |
-|         | cation, |         |         |         |         |         |
+| | > st | | | | | |
+| | ruggled | | | | | |
+| | > with | | | | | |
+| | > a | | | | | |
+| | uthenti | | | | | |
+| | cation, | | | | | |
 +---------+---------+---------+---------+---------+---------+---------+
-|         |         |         | > unaut |         |         |         |
-|         |         |         | horized |         |         |         |
-|         |         |         | > p     |         |         |         |
-|         |         |         | arties. |         |         |         |
+| | | | > unaut | | | |
+| | | | horized | | | |
+| | | | > p | | | |
+| | | | arties. | | | |
 +---------+---------+---------+---------+---------+---------+---------+
-|         | > a     |         |         |         |         |         |
-|         | llowing |         |         |         |         |         |
-|         | > unaut |         |         |         |         |         |
-|         | horized |         |         |         |         |         |
-|         | >       |         |         |         |         |         |
-|         |  access |         |         |         |         |         |
-|         | > or    |         |         |         |         |         |
+| | > a | | | | | |
+| | llowing | | | | | |
+| | > unaut | | | | | |
+| | horized | | | | | |
+| | > | | | | | |
+| | access | | | | | |
+| | > or | | | | | |
 +---------+---------+---------+---------+---------+---------+---------+
 
 limiting task completion.
@@ -2667,11 +2672,13 @@ limiting task completion.
 > • Repeated attempts to submit forms were met with unresolved errors
 > blocking access to data queries.
 
-  --------------------------------------------------------------------------
-  • Token        visibility     in             the            logs
-  -------------- -------------- -------------- -------------- --------------
+---
 
-  --------------------------------------------------------------------------
+• Token visibility in the logs
+
+---
+
+---
 
 > suggested possible unauthorized data access due to weak creden-tial
 > management.
@@ -2685,47 +2692,49 @@ limiting task completion.
 30
 
 +-----------------+-----------------+-----------------+-----------------+
-| > de            | There was a     |                 | > • After       |
-| layed-feedback- | delay in        |                 | > WebSurfer     |
-|                 | communi-        |                 | > confirmed a   |
+| > de | There was a | | > • After |
+| layed-feedback- | delay in | | > WebSurfer |
+| | communi- | | > confirmed a |
 +=================+=================+=================+=================+
-| > updates       | cating task     |                 |                 |
-|                 | progress or     |                 |                 |
-|                 | results,        |                 |                 |
+| > updates | cating task | | |
+| | progress or | | |
+| | results, | | |
 +-----------------+-----------------+-----------------+-----------------+
-|                 | causing         |                 |                 |
-|                 | confusion and   |                 |                 |
-|                 | hinder-         |                 |                 |
+| | causing | | |
+| | confusion and | | |
+| | hinder- | | |
 +-----------------+-----------------+-----------------+-----------------+
-|                 |                 |                 | > task, the     |
-|                 |                 |                 | > orchestrator  |
-|                 |                 |                 | > delayed       |
+| | | | > task, the |
+| | | | > orchestrator |
+| | | | > delayed |
 +-----------------+-----------------+-----------------+-----------------+
-|                 | > ing           | > Timeliness    |                 |
-|                 | > coordination. |                 |                 |
+| | > ing | > Timeliness | |
+| | > coordination. | | |
 +-----------------+-----------------+-----------------+-----------------+
-|                 |                 |                 | > updating the  |
-|                 |                 |                 | > user, leading |
-|                 |                 |                 | > to            |
+| | | | > updating the |
+| | | | > user, leading |
+| | | | > to |
 +-----------------+-----------------+-----------------+-----------------+
-|                 | in updates was  |                 |                 |
-|                 | lacking,        |                 |                 |
-|                 | leaving         |                 |                 |
+| | in updates was | | |
+| | lacking, | | |
+| | leaving | | |
 +-----------------+-----------------+-----------------+-----------------+
-|                 |                 |                 | > confusion.    |
+| | | | > confusion. |
 +-----------------+-----------------+-----------------+-----------------+
-|                 | > tasks in      |                 |                 |
-|                 | > ambiguity.    |                 |                 |
+| | > tasks in | | |
+| | > ambiguity. | | |
 +-----------------+-----------------+-----------------+-----------------+
 
 > • Notification of successful strat-\
 > egy analysis reached the user
 
-  -----------------------------------------------------------------------
-  well              after             execution,        causing
-  ----------------- ----------------- ----------------- -----------------
+---
 
-  -----------------------------------------------------------------------
+well after execution, causing
+
+---
+
+---
 
 temporary uncertainty.
 
@@ -2745,54 +2754,54 @@ temporary uncertainty.
 > than average.
 
 +-------------+-------------+-------------+-------------+-------------+
-| > succe     | > Tasks     |             |             | > • During  |
-| ssful-task- | > were      |             |             | > the data  |
-|             | > completed |             |             | > migration |
-|             | > smoothly  |             |             | > task,     |
+| > succe | > Tasks | | | > • During |
+| ssful-task- | > were | | | > the data |
+| | > completed | | | > migration |
+| | > smoothly | | | > task, |
 +=============+=============+=============+=============+=============+
-| >           | > with no   | > meeting   |             |             |
-| completions | > errors,   | > all       |             |             |
+| > | > with no | > meeting | | |
+| completions | > errors, | > all | | |
 +-------------+-------------+-------------+-------------+-------------+
-|             | >           |             | > Agents    |             |
-|             |  objectives |             |             |             |
-|             | > e         |             |             |             |
-|             | fficiently. |             |             |             |
+| | > | | > Agents | |
+| | objectives | | | |
+| | > e | | | |
+| | fficiently. | | | |
 +-------------+-------------+-------------+-------------+-------------+
-|             |             |             |             | > all user  |
-|             |             |             |             | > details   |
-|             |             |             |             | > were      |
-|             |             |             |             | >           |
-|             |             |             |             |  accurately |
+| | | | | > all user |
+| | | | | > details |
+| | | | | > were |
+| | | | | > |
+| | | | | accurately |
 +-------------+-------------+-------------+-------------+-------------+
-|             | > achieved  |             |             |             |
-|             | > success   |             |             |             |
-|             | > through   |             |             |             |
-|             | > coor-     |             |             |             |
+| | > achieved | | | |
+| | > success | | | |
+| | > through | | | |
+| | > coor- | | | |
 +-------------+-------------+-------------+-------------+-------------+
-|             |             |             |             | > uploaded  |
-|             |             |             |             | > and       |
-|             |             |             |             | > verified  |
-|             |             |             |             | > without   |
-|             |             |             |             | > is-       |
+| | | | | > uploaded |
+| | | | | > and |
+| | | | | > verified |
+| | | | | > without |
+| | | | | > is- |
 +-------------+-------------+-------------+-------------+-------------+
-|             | > dinated   |             |             |             |
-|             | > efforts,  |             |             |             |
-|             | > correct   |             |             |             |
-|             | > usage of  |             |             |             |
+| | > dinated | | | |
+| | > efforts, | | | |
+| | > correct | | | |
+| | > usage of | | | |
 +-------------+-------------+-------------+-------------+-------------+
-|             |             |             |             | > sues.     |
+| | | | | > sues. |
 +-------------+-------------+-------------+-------------+-------------+
-|             | >           |             |             |             |
-|             |  resources, |             |             |             |
-|             | > and       |             |             |             |
-|             | > thorough  |             |             |             |
-|             | > verifi-   |             |             |             |
+| | > | | | |
+| | resources, | | | |
+| | > and | | | |
+| | > thorough | | | |
+| | > verifi- | | | |
 +-------------+-------------+-------------+-------------+-------------+
-|             | > cation.   |             |             | > • Correct |
-|             |             |             |             | >           |
-|             |             |             |             | transaction |
-|             |             |             |             | >           |
-|             |             |             |             |  processing |
+| | > cation. | | | > • Correct |
+| | | | | > |
+| | | | | transaction |
+| | | | | > |
+| | | | | processing |
 +-------------+-------------+-------------+-------------+-------------+
 
 > led to flawless financial reconcil-\
@@ -2811,11 +2820,13 @@ temporary uncertainty.
 
 • Revisions in manuscript drafts
 
-  -----------------------------------------------------------------------
-  met               all               editorial         instructions
-  ----------------- ----------------- ----------------- -----------------
+---
 
-  -----------------------------------------------------------------------
+met all editorial instructions
+
+---
+
+---
 
 > perfectly, with edits applied and\
 > aligned as needed.
