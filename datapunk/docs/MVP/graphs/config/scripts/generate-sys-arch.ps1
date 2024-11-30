@@ -3,7 +3,7 @@
 $rootDir = Split-Path (Split-Path (Split-Path (Split-Path (Split-Path $PSScriptRoot))))
 $configPath = Join-Path (Split-Path $PSScriptRoot) "mermaid-theme.json"
 $inputPath = Join-Path $rootDir "docs/MVP/graphs/mmd/overview/sys-arch.mmd"
-$outputDir = Join-Path $rootDir "docs/MVP/graphs/output/svg/overview"
+$outputDir = Join-Path $rootDir "docs/MVP/graphs/output"
 
 # Create output directory if it doesn't exist
 if (!(Test-Path $outputDir)) {
