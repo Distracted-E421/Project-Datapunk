@@ -11,6 +11,10 @@ from shapely.geometry import box, Point, Polygon
 from shapely.ops import unary_union
 import pytz
 import pandas as pd
+from abc import ABC, abstractmethod
+import h3
+from s2sphere import CellId, LatLng
+import pygeohash as pgh
 
 from ..sharding import PartitionStrategy, ShardInfo
 from ..geometry import BoundingBox, GeoPoint
@@ -364,3 +368,190 @@ class AdaptivePartitionStrategy(PartitioningStrategy):
         """Merge partition with neighbors."""
         # TODO: Implement partition merging logic
         return key 
+
+class GridSystem(ABC):
+    @abstractmethod
+    def encode_point(self, lat: float, lng: float, precision: int) -> str:
+        pass
+    
+    @abstractmethod
+    def decode_cell(self, cell_id: str) -> Tuple[float, float]:
+        pass
+    
+    @abstractmethod
+    def get_neighbors(self, cell_id: str) -> List[str]:
+        pass
+
+class GeohashGrid(GridSystem):
+    def encode_point(self, lat: float, lng: float, precision: int) -> str:
+        return pgh.encode(lat, lng, precision)
+    
+    def decode_cell(self, cell_id: str) -> Tuple[float, float]:
+        lat, lng = pgh.decode(cell_id)
+        return lat, lng
+    
+    def get_neighbors(self, cell_id: str) -> List[str]:
+        return list(pgh.neighbors(cell_id).values())
+    
+    def get_precision(self, meters: float) -> int:
+        # Approximate Geohash precision based on meters
+        precision_map = {
+            5000000: 1,  # ±2500km
+            625000: 2,   # ±630km
+            123000: 3,   # ±78km
+            19500: 4,    # ±20km
+            3900: 5,     # ±2.4km
+            610: 6,      # ±610m
+            76: 7,       # ±76m
+            19: 8,       # ±19m
+        }
+        return next((p for m, p in precision_map.items() if meters >= m), 8)
+
+class H3Grid(GridSystem):
+    def encode_point(self, lat: float, lng: float, precision: int) -> str:
+        h3_cell = h3.geo_to_h3(lat, lng, precision)
+        return str(h3_cell)
+    
+    def decode_cell(self, cell_id: str) -> Tuple[float, float]:
+        lat, lng = h3.h3_to_geo(cell_id)
+        return lat, lng
+    
+    def get_neighbors(self, cell_id: str) -> List[str]:
+        return [str(n) for n in h3.k_ring(cell_id, 1)]
+    
+    def get_resolution(self, meters: float) -> int:
+        # Approximate H3 resolution based on meters
+        resolution_map = {
+            1000000: 0,  # ~1107.71km
+            100000: 3,   # ~82.31km
+            10000: 6,    # ~6.10km
+            1000: 9,     # ~0.45km
+            100: 12,     # ~0.03km
+        }
+        return next((r for m, r in resolution_map.items() if meters >= m), 12)
+
+class S2Grid(GridSystem):
+    def encode_point(self, lat: float, lng: float, precision: int) -> str:
+        ll = LatLng.from_degrees(lat, lng)
+        cell = CellId.from_lat_lng(ll).parent(precision)
+        return str(cell.id())
+    
+    def decode_cell(self, cell_id: str) -> Tuple[float, float]:
+        cell = CellId(int(cell_id))
+        ll = cell.to_lat_lng()
+        return ll.lat().degrees, ll.lng().degrees
+    
+    def get_neighbors(self, cell_id: str) -> List[str]:
+        cell = CellId(int(cell_id))
+        neighbors = []
+        for i in range(4):  # Get all 4 adjacent cells
+            neighbor = cell.get_edge_neighbors()[i]
+            neighbors.append(str(neighbor.id()))
+        return neighbors
+    
+    def get_level(self, meters: float) -> int:
+        # Approximate S2 level based on meters
+        level_map = {
+            1000000: 8,   # ~700km
+            100000: 12,   # ~50km
+            10000: 16,    # ~3km
+            1000: 20,     # ~200m
+            100: 24,      # ~10m
+        }
+        return next((l for m, l in level_map.items() if meters >= m), 24)
+
+class GridFactory:
+    @staticmethod
+    def create_grid(grid_type: str) -> GridSystem:
+        grid_map = {
+            'geohash': GeohashGrid(),
+            'h3': H3Grid(),
+            's2': S2Grid()
+        }
+        if grid_type not in grid_map:
+            raise ValueError(f"Unsupported grid system: {grid_type}")
+        return grid_map[grid_type]
+
+class GridPartitionManager:
+    def __init__(self, grid_type: str = 'geohash'):
+        self.grid = GridFactory.create_grid(grid_type)
+        self._recovery_state: Dict[str, Any] = {}
+        
+    def partition_points(self, points: List[Tuple[float, float]], precision: int) -> Dict[str, List[Tuple[float, float]]]:
+        partitions = {}
+        for lat, lng in points:
+            try:
+                cell_id = self.grid.encode_point(lat, lng, precision)
+                if cell_id not in partitions:
+                    partitions[cell_id] = []
+                partitions[cell_id].append((lat, lng))
+                # Save state for recovery
+                self._recovery_state[f"{lat},{lng}"] = cell_id
+            except Exception as e:
+                print(f"Error partitioning point ({lat}, {lng}): {str(e)}")
+        return partitions
+    
+    def recover_partition(self, point: Tuple[float, float]) -> str:
+        """Recover the partition for a given point from saved state"""
+        point_key = f"{point[0]},{point[1]}"
+        return self._recovery_state.get(point_key)
+    
+    def get_partition_stats(self) -> Dict[str, Any]:
+        """Get statistics about the current partitioning"""
+        stats = {
+            'total_partitions': len(set(self._recovery_state.values())),
+            'total_points': len(self._recovery_state),
+            'points_per_partition': {}
+        }
+        
+        for cell_id in set(self._recovery_state.values()):
+            stats['points_per_partition'][cell_id] = list(self._recovery_state.values()).count(cell_id)
+            
+        return stats
+
+# Visualization support
+class GridVisualizer:
+    def __init__(self, grid_manager: GridPartitionManager):
+        self.grid_manager = grid_manager
+        
+    def plot_partitions(self, save_path: str = None):
+        """Generate a visualization of the current partitioning"""
+        try:
+            import folium
+            import branca.colormap as cm
+            
+            # Create base map
+            center_lat = np.mean([float(k.split(',')[0]) for k in self._recovery_state.keys()])
+            center_lng = np.mean([float(k.split(',')[1]) for k in self._recovery_state.keys()])
+            m = folium.Map(location=[center_lat, center_lng], zoom_start=10)
+            
+            # Create color map based on number of points in each partition
+            stats = self.grid_manager.get_partition_stats()
+            max_points = max(stats['points_per_partition'].values())
+            colormap = cm.LinearColormap(
+                colors=['yellow', 'red'],
+                vmin=0,
+                vmax=max_points
+            )
+            
+            # Plot partitions
+            for cell_id, count in stats['points_per_partition'].items():
+                lat, lng = self.grid_manager.grid.decode_cell(cell_id)
+                folium.CircleMarker(
+                    location=[lat, lng],
+                    radius=10,
+                    popup=f"Cell: {cell_id}<br>Points: {count}",
+                    color=colormap(count),
+                    fill=True
+                ).add_to(m)
+            
+            # Add colormap to map
+            colormap.add_to(m)
+            
+            if save_path:
+                m.save(save_path)
+            return m
+            
+        except ImportError:
+            print("Visualization requires folium and branca packages")
+            return None
