@@ -2,7 +2,7 @@
 # Handles service discovery, health checks, and inter-service communication
 # Part of the Infrastructure Layer (see sys-arch.mmd)
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import aiohttp
 import asyncio
 from datetime import datetime, timedelta
@@ -10,6 +10,7 @@ import consul.aio
 from ..config.storage_config import StorageConfig
 from ..core.logging import get_logger
 from datapunk_shared.utils.retry import with_retry, RetryConfig
+import json
 
 logger = get_logger(__name__)
 
@@ -21,10 +22,7 @@ class MeshIntegrator:
     - Service discovery via Consul
     - Health check reporting
     - Inter-service communication
-    
-    NOTE: Critical component for Lake service's distributed operations
-    TODO: Implement circuit breaker pattern
-    FIXME: Add proper connection pooling
+    - Partition coordination and health
     """
     
     def __init__(self, config: StorageConfig):
@@ -38,6 +36,7 @@ class MeshIntegrator:
         self.consul_client = None
         self.service_cache = {}  # Cache for discovered services
         self.last_health_check = None
+        self.partition_status = {}  # Track partition health
         self.retry_config = RetryConfig(
             max_attempts=5,    # Aligned with project retry policies
             base_delay=1.0,    # Start with 1s delay
@@ -148,11 +147,12 @@ class MeshIntegrator:
                 await asyncio.sleep(5)  # Shorter retry interval on failure
     
     async def check_mesh_health(self) -> Dict[str, Any]:
-        """Check health of mesh services"""
+        """Check health of mesh services including partitions"""
         health_status = {
             'stream': False,
             'nexus': False,
-            'consul': False
+            'consul': False,
+            'partitions': {}
         }
         
         try:
@@ -178,7 +178,118 @@ class MeshIntegrator:
                     ) as response:
                         health_status['nexus'] = response.status == 200
                         
+            # Add partition health status
+            active_partitions = await self.list_active_partitions()
+            
+            for partition in active_partitions:
+                partition_id = partition['id']
+                health_status['partitions'][partition_id] = await self.check_partition_health(partition_id)
+                
         except Exception as e:
             logger.error(f"Health check error: {str(e)}")
             
-        return health_status 
+        return health_status
+    
+    async def register_partition_service(self, partition_id: str, details: Dict[str, Any]):
+        """Register a partition as a discoverable service"""
+        service_def = {
+            'name': f'datapunk-lake-partition-{partition_id}',
+            'address': self.config.DB_HOST,
+            'port': self.config.DB_PORT,
+            'tags': ['storage', 'partition', partition_id],
+            'meta': {
+                'partition_type': details.get('type', 'default'),
+                'data_pattern': details.get('pattern', 'general'),
+                'size': str(details.get('size', 0)),
+                'last_updated': str(datetime.utcnow())
+            },
+            'checks': [
+                {
+                    'http': f'http://{self.config.DB_HOST}:{self.config.DB_PORT}/partition/{partition_id}/health',
+                    'interval': '10s',
+                    'timeout': '5s'
+                }
+            ]
+        }
+        await self.consul_client.agent.service.register(**service_def)
+        logger.info(f"Registered partition service: {partition_id}")
+
+    async def deregister_partition_service(self, partition_id: str):
+        """Deregister a partition service"""
+        service_name = f'datapunk-lake-partition-{partition_id}'
+        await self.consul_client.agent.service.deregister(service_name)
+        logger.info(f"Deregistered partition service: {partition_id}")
+
+    async def discover_partition(self, partition_id: str) -> Optional[Dict[str, Any]]:
+        """Discover a specific partition's details"""
+        service_name = f'datapunk-lake-partition-{partition_id}'
+        return await self.discover_service(service_name)
+
+    async def list_active_partitions(self) -> List[Dict[str, Any]]:
+        """List all active and healthy partitions"""
+        _, services = await self.consul_client.health.service('datapunk-lake-partition', passing=True)
+        return [{
+            'id': service['Service']['Service'].replace('datapunk-lake-partition-', ''),
+            'address': service['Service']['Address'],
+            'port': service['Service']['Port'],
+            'meta': service['Service']['Meta'],
+            'health': service['Checks'][0]['Status']
+        } for service in services]
+
+    async def update_partition_status(self, partition_id: str, status: Dict[str, Any]):
+        """Update partition status in Consul KV store"""
+        key = f'datapunk/lake/partitions/{partition_id}/status'
+        value = json.dumps(status)
+        await self.consul_client.kv.put(key, value)
+        self.partition_status[partition_id] = status
+
+    async def get_partition_status(self, partition_id: str) -> Optional[Dict[str, Any]]:
+        """Get partition status from Consul KV store"""
+        key = f'datapunk/lake/partitions/{partition_id}/status'
+        _, data = await self.consul_client.kv.get(key)
+        if data and data['Value']:
+            return json.loads(data['Value'])
+        return None
+
+    async def check_partition_health(self, partition_id: str) -> Dict[str, Any]:
+        """Check health of a specific partition"""
+        health_status = {
+            'id': partition_id,
+            'timestamp': datetime.utcnow().isoformat(),
+            'status': 'unknown',
+            'metrics': {}
+        }
+        
+        try:
+            # Check partition service health
+            _, checks = await self.consul_client.health.checks(f'datapunk-lake-partition-{partition_id}')
+            health_status['status'] = checks[0]['Status'] if checks else 'critical'
+            
+            # Get partition metrics
+            status = await self.get_partition_status(partition_id)
+            if status:
+                health_status['metrics'] = status.get('metrics', {})
+                
+        except Exception as e:
+            logger.error(f"Partition health check error: {str(e)}")
+            health_status['status'] = 'critical'
+            health_status['error'] = str(e)
+            
+        return health_status
+
+    async def handle_partition_request(self, partition_id: str, request: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle requests for specific partitions"""
+        try:
+            partition = await self.discover_partition(partition_id)
+            if not partition:
+                raise ValueError(f"Partition {partition_id} not found")
+                
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    f"http://{partition['address']}:{partition['port']}/partition/{partition_id}/query",
+                    json=request
+                ) as response:
+                    return await response.json()
+        except Exception as e:
+            logger.error(f"Failed to handle partition request: {str(e)}")
+            return {"error": str(e)}
