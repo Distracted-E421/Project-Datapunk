@@ -15,6 +15,7 @@ class IndexType(Enum):
     HASH = auto()
     BITMAP = auto()
     RTREE = auto()  # For spatial data
+    GIST = auto()   # For extensible indexing
 
 @dataclass
 class IndexStats:
@@ -47,53 +48,37 @@ class Index(ABC, Generic[K, V]):
     def __init__(
         self,
         name: str,
-        key_type: str,
-        value_type: str,
+        table_name: str,
+        columns: List[str],
         is_unique: bool = False,
         is_primary: bool = False,
-        properties: Dict[str, Any] = None
+        properties: Optional[Dict[str, Any]] = None
     ):
         self.name = name
-        self.key_type = key_type
-        self.value_type = value_type
+        self.table_name = table_name
+        self.columns = columns
         self.is_unique = is_unique
         self.is_primary = is_primary
         self.properties = properties or {}
-        self.stats = IndexStats(
-            total_entries=0,
-            depth=0,
-            size_bytes=0,
-            last_updated=datetime.now(),
-            read_count=0,
-            write_count=0,
-            avg_lookup_time_ms=0.0,
-            avg_insert_time_ms=0.0
-        )
-        self._lock = threading.RLock()
         
     @abstractmethod
-    def insert(self, key: K, value: V) -> None:
+    def insert(self, key: K, value: V):
         """Insert a key-value pair into the index."""
         pass
         
     @abstractmethod
-    def delete(self, key: K) -> None:
-        """Delete a key from the index."""
+    def search(self, query: Any) -> List[V]:
+        """Search for entries matching the query."""
         pass
         
     @abstractmethod
-    def search(self, key: K) -> Optional[V]:
-        """Search for a value by key."""
+    def get_statistics(self) -> IndexStats:
+        """Get index statistics."""
         pass
         
     @abstractmethod
-    def range_search(self, start_key: K, end_key: K) -> List[V]:
-        """Search for values in a key range."""
-        pass
-        
-    @abstractmethod
-    def clear(self) -> None:
-        """Clear all entries from the index."""
+    def cleanup(self):
+        """Clean up resources."""
         pass
         
     def get_metadata(self) -> IndexMetadata:
@@ -101,24 +86,25 @@ class Index(ABC, Generic[K, V]):
         return IndexMetadata(
             name=self.name,
             index_type=self._get_index_type(),
-            key_type=self.key_type,
-            value_type=self.value_type,
+            key_type=str(type(self).__parameters__[0]),
+            value_type=str(type(self).__parameters__[1]),
             is_unique=self.is_unique,
             is_primary=self.is_primary,
-            columns=self._get_indexed_columns(),
-            stats=self.stats,
+            columns=self.columns,
+            stats=self.get_statistics(),
             properties=self.properties
         )
         
-    @abstractmethod
     def _get_index_type(self) -> IndexType:
         """Get the type of this index."""
-        pass
-        
-    @abstractmethod
-    def _get_indexed_columns(self) -> List[str]:
-        """Get the columns covered by this index."""
-        pass
+        type_map = {
+            "BTreeIndex": IndexType.BTREE,
+            "HashIndex": IndexType.HASH,
+            "BitmapIndex": IndexType.BITMAP,
+            "RTreeIndex": IndexType.RTREE,
+            "GiSTIndex": IndexType.GIST
+        }
+        return type_map.get(type(self).__name__, IndexType.BTREE)
         
     def update_stats(
         self,
