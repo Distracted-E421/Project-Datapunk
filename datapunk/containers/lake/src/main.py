@@ -33,6 +33,8 @@ from .metadata.store import MetadataStore
 from .metadata.analyzer import MetadataAnalyzer
 from .metadata.cache import MetadataCache
 
+from .config.config_manager import ConfigManager
+
 from .handlers.partition_handler import init_partition_routes
 from .handlers.stream_handler import init_stream_routes
 from .handlers.nexus_handler import init_nexus_routes
@@ -42,6 +44,7 @@ from .handlers.query_handler import init_query_routes
 from .handlers.storage_handler import init_storage_routes
 from .handlers.processing_handler import init_processing_routes
 from .handlers.metadata_handler import init_metadata_routes
+from .handlers.config_handler import init_config_routes
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +76,7 @@ class AppState:
         self.metadata_store = None
         self.metadata_analyzer = None
         self.metadata_cache = None
+        self.config_manager = None
 
 app_state = AppState()
 
@@ -137,6 +141,10 @@ async def lifespan(app: FastAPI):
         await app_state.metadata_analyzer.initialize()
         await app_state.metadata_cache.initialize()
 
+        # Initialize config manager
+        app_state.config_manager = ConfigManager()
+        await app_state.config_manager.initialize()
+
         logger.info("Lake service initialized successfully")
         yield
     finally:
@@ -158,7 +166,8 @@ async def lifespan(app: FastAPI):
             app_state.metadata_core,
             app_state.metadata_store,
             app_state.metadata_analyzer,
-            app_state.metadata_cache
+            app_state.metadata_cache,
+            app_state.config_manager
         ]
         
         for component in components:
@@ -256,6 +265,9 @@ async def get_metadata_analyzer():
 async def get_metadata_cache():
     return app_state.metadata_cache
 
+async def get_config_manager():
+    return app_state.config_manager
+
 # Initialize route handlers
 app.include_router(
     init_partition_routes(
@@ -320,6 +332,12 @@ app.include_router(
         cache=Depends(get_metadata_cache)
     )
 )
+app.include_router(
+    init_config_routes(
+        config_manager=Depends(get_config_manager),
+        storage_config=app_state.config
+    )
+)
 
 # Health check endpoint for service mesh integration
 @app.get("/health")
@@ -350,7 +368,8 @@ async def health_check():
                 "store": await app_state.metadata_store.check_health(),
                 "analyzer": await app_state.metadata_analyzer.check_health(),
                 "cache": await app_state.metadata_cache.check_health()
-            }
+            },
+            "config": await app_state.config_manager.check_health()
         }
         return health_status
     except Exception as e:
