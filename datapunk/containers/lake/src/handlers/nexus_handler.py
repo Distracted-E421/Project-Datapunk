@@ -1,61 +1,68 @@
 from typing import Dict, Any, List
-from datetime import datetime
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+import logging
 import numpy as np
+
 from ..storage.stores import VectorStore
 from ..processing.validator import DataValidator
 
-class NexusHandler:
-    """
-    Handles vector similarity search requests through the Nexus gateway
+logger = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/nexus", tags=["nexus"])
+
+class VectorSearchRequest(BaseModel):
+    """Vector search request model"""
+    vector: List[float]
+    limit: int = 10
+    metadata_filters: Dict[str, Any] = {}
+
+class VectorSearchResponse(BaseModel):
+    """Vector search response model"""
+    results: List[Dict[str, Any]]
+    metadata: Dict[str, Any]
+
+def init_nexus_routes(vector_store: VectorStore):
+    """Initialize nexus routes with dependencies"""
     
-    Provides secure vector search capabilities while maintaining data sovereignty:
-    - Vector validation before processing
-    - Similarity search with configurable limits
-    - Metadata enrichment for results
+    validator = DataValidator()
     
-    NOTE: Critical for AI-powered data analysis while preserving privacy
-    FIXME: Add proper request rate limiting
-    """
-    
-    def __init__(self, vector_store: VectorStore):
-        self.vector_store = vector_store
-        self.validator = DataValidator()
-    
-    async def process_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Routes and processes vector search requests with error handling
-        Ensures request validation before processing
-        """
+    @router.post("/search", response_model=VectorSearchResponse)
+    async def vector_search(request: VectorSearchRequest):
+        """Handle vector similarity search request"""
         try:
-            # Validate basic structure before processing
-            if 'payload' not in request:
-                raise ValueError("Missing payload in request")
-                
-            payload = request['payload']
+            # Validate vector before processing
+            vector = validator.validate_vector(request.vector)
             
-            # Currently only supports vector search operations
-            # Future: Add support for other vector operations
-            if payload['query_type'] == 'vector_search':
-                return await self._handle_vector_search(payload)
-            else:
-                raise ValueError(f"Unsupported query type: {payload['query_type']}")
+            # Perform similarity search
+            results = await vector_store.search_similar(
+                vector=vector,
+                limit=request.limit,
+                filters=request.metadata_filters
+            )
+            
+            return VectorSearchResponse(
+                results=results,
+                metadata={
+                    'total_vectors': await vector_store.get_total_count(),
+                    'dimensions': len(request.vector)
+                }
+            )
+        except Exception as e:
+            logger.error(f"Vector search failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
 
-    async def _handle_vector_search(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Performs vector similarity search with privacy-preserving results
-        Converts distance to similarity score for intuitive understanding
-        """
-        vector = self.validator.validate_vector(payload['vector'])
-        
-        # Default limit of 10 for performance and usability
-        results = await self.vector_store.search_similar(
-            vector=vector,
-            limit=payload.get('limit', 10)
-        )
+    @router.get("/stats")
+    async def get_vector_stats():
+        """Get vector store statistics"""
+        try:
+            return {
+                'total_vectors': await vector_store.get_total_count(),
+                'index_status': await vector_store.get_index_status(),
+                'storage_usage': await vector_store.get_storage_usage()
+            }
+        except Exception as e:
+            logger.error(f"Failed to get vector stats: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
 
-# TODO: Implement vector cache for frequent queries
-# TODO: Add support for multi-vector search
-# TODO: Implement proper request throttling
-# TODO: Add metrics collection
-# TODO: Add support for vector clustering
-# TODO: Implement privacy-preserving search filters 
+    return router
