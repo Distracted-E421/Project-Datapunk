@@ -695,4 +695,4 @@ class MetadataAnalyzer:
                     last_vacuum=maint_stats['last_vacuum'] or maint_stats['last_autovacuum'],
                     last_analyze=maint_stats['last_analyze'] or maint_stats['last_autoanalyze'],
                     bloat_ratio=bloat_stats['dead_tuple_ratio'] if bloat_stats['dead_tuple_ratio'] is not None else 0.0
-                ) 
+                )
