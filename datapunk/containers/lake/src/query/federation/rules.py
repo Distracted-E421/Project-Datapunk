@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Any, Set
+from typing import Dict, List, Optional, Any, Set, Tuple
 from dataclasses import dataclass
 from ..optimizer.core import OptimizationRule, QueryPlan
 from .core import DataSourceStats, FederationCost
@@ -497,4 +497,326 @@ class DataLocalityRule(OptimizationRule):
                                   execution_locations: Dict[str, str]) -> QueryPlan:
         """Update plan with optimized execution locations."""
         # Implementation depends on query plan node structure
-        pass 
+        pass
+
+class MaterializationRule(OptimizationRule):
+    """Optimize materialization points in federated queries."""
+    
+    def __init__(self):
+        self.materialized_views: Dict[str, Any] = {}
+        self.materialization_threshold = 0.7  # Cost reduction threshold
+    
+    def apply(self, query_plan: QueryPlan) -> QueryPlan:
+        """Apply materialization optimizations."""
+        # Find potential materialization points
+        candidates = self._find_materialization_candidates(query_plan)
+        
+        # Evaluate benefits
+        beneficial = [
+            candidate for candidate in candidates
+            if self._evaluate_materialization_benefit(candidate) > self.materialization_threshold
+        ]
+        
+        # Apply materializations
+        if beneficial:
+            return self._apply_materializations(query_plan, beneficial)
+        
+        return query_plan
+    
+    def _find_materialization_candidates(self, plan: QueryPlan) -> List[Dict[str, Any]]:
+        """Find subqueries that are candidates for materialization."""
+        candidates = []
+        
+        def analyze_node(node: Any, context: Dict[str, Any]) -> None:
+            if not node:
+                return
+            
+            # Check if node is a materialization candidate
+            if self._is_materialization_candidate(node, context):
+                candidates.append({
+                    'node': node,
+                    'context': context.copy(),
+                    'cost': self._estimate_materialization_cost(node)
+                })
+            
+            # Update context for children
+            child_context = self._update_context(context, node)
+            
+            # Process children
+            if hasattr(node, 'children'):
+                for child in node.children:
+                    analyze_node(child, child_context)
+        
+        analyze_node(plan.root, {})
+        return candidates
+    
+    def _is_materialization_candidate(self,
+                                    node: Any,
+                                    context: Dict[str, Any]) -> bool:
+        """Check if a node is a candidate for materialization."""
+        if not hasattr(node, 'operation_type'):
+            return False
+        
+        # Consider materializing:
+        # 1. Expensive joins
+        # 2. Complex aggregations
+        # 3. Frequently reused subqueries
+        return (
+            self._is_expensive_join(node) or
+            self._is_complex_aggregation(node) or
+            self._is_frequently_reused(node, context)
+        )
+    
+    def _is_expensive_join(self, node: Any) -> bool:
+        """Check if node is an expensive join operation."""
+        return (
+            hasattr(node, 'operation_type') and
+            node.operation_type.lower() == 'join' and
+            hasattr(node, 'estimated_cost') and
+            node.estimated_cost > 1000  # Threshold
+        )
+    
+    def _is_complex_aggregation(self, node: Any) -> bool:
+        """Check if node is a complex aggregation."""
+        return (
+            hasattr(node, 'operation_type') and
+            node.operation_type.lower() == 'aggregate' and
+            hasattr(node, 'aggregations') and
+            len(node.aggregations) > 2
+        )
+    
+    def _is_frequently_reused(self,
+                            node: Any,
+                            context: Dict[str, Any]) -> bool:
+        """Check if node represents a frequently reused subquery."""
+        if not hasattr(node, 'query_hash'):
+            return False
+        
+        reuse_count = context.get('reuse_counts', {}).get(node.query_hash, 0)
+        return reuse_count > 2  # Threshold
+
+class PartitionPruningRule(OptimizationRule):
+    """Optimize partition access in federated queries."""
+    
+    def __init__(self):
+        self.partition_metadata: Dict[str, Dict[str, Any]] = {}
+    
+    def apply(self, query_plan: QueryPlan) -> QueryPlan:
+        """Apply partition pruning optimizations."""
+        # Analyze partition predicates
+        predicates = self._extract_partition_predicates(query_plan)
+        
+        # Determine prunable partitions
+        prunable = self._identify_prunable_partitions(predicates)
+        
+        # Apply pruning
+        if prunable:
+            return self._apply_partition_pruning(query_plan, prunable)
+        
+        return query_plan
+    
+    def _extract_partition_predicates(self,
+                                    plan: QueryPlan) -> Dict[str, List[Dict[str, Any]]]:
+        """Extract predicates relevant to partitioning."""
+        predicates = {}
+        
+        def extract_from_node(node: Any) -> None:
+            if hasattr(node, 'operation_type') and node.operation_type.lower() == 'filter':
+                if hasattr(node, 'condition'):
+                    table_name = self._get_table_name(node)
+                    if table_name:
+                        if table_name not in predicates:
+                            predicates[table_name] = []
+                        predicates[table_name].append({
+                            'condition': node.condition,
+                            'node': node
+                        })
+            
+            if hasattr(node, 'children'):
+                for child in node.children:
+                    extract_from_node(child)
+        
+        extract_from_node(plan.root)
+        return predicates
+    
+    def _identify_prunable_partitions(self,
+                                    predicates: Dict[str, List[Dict[str, Any]]]) -> Dict[str, Set[str]]:
+        """Identify partitions that can be pruned."""
+        prunable = {}
+        
+        for table_name, table_predicates in predicates.items():
+            if table_name in self.partition_metadata:
+                partition_info = self.partition_metadata[table_name]
+                prunable[table_name] = self._evaluate_partition_predicates(
+                    table_predicates,
+                    partition_info
+                )
+        
+        return prunable
+    
+    def _evaluate_partition_predicates(self,
+                                     predicates: List[Dict[str, Any]],
+                                     partition_info: Dict[str, Any]) -> Set[str]:
+        """Evaluate predicates against partition information."""
+        # Implementation depends on partition scheme
+        pass
+
+class FederatedIndexRule(OptimizationRule):
+    """Optimize index usage across federated sources."""
+    
+    def __init__(self):
+        self.source_indexes: Dict[str, Dict[str, Any]] = {}
+        self.index_stats: Dict[str, Dict[str, Any]] = {}
+    
+    def apply(self, query_plan: QueryPlan) -> QueryPlan:
+        """Apply federated index optimizations."""
+        # Analyze index opportunities
+        opportunities = self._find_index_opportunities(query_plan)
+        
+        # Select best indexes
+        selected = self._select_best_indexes(opportunities)
+        
+        # Apply index selections
+        if selected:
+            return self._apply_index_selections(query_plan, selected)
+        
+        return query_plan
+    
+    def _find_index_opportunities(self,
+                                plan: QueryPlan) -> List[Dict[str, Any]]:
+        """Find opportunities for index usage."""
+        opportunities = []
+        
+        def analyze_node(node: Any) -> None:
+            if self._can_use_index(node):
+                opportunities.append({
+                    'node': node,
+                    'indexes': self._find_applicable_indexes(node),
+                    'estimated_benefit': self._estimate_index_benefit(node)
+                })
+            
+            if hasattr(node, 'children'):
+                for child in node.children:
+                    analyze_node(child)
+        
+        analyze_node(plan.root)
+        return opportunities
+    
+    def _can_use_index(self, node: Any) -> bool:
+        """Check if node can benefit from index usage."""
+        if not hasattr(node, 'operation_type'):
+            return False
+        
+        indexable_ops = {'filter', 'join', 'aggregate', 'sort'}
+        return node.operation_type.lower() in indexable_ops
+    
+    def _find_applicable_indexes(self, node: Any) -> List[Dict[str, Any]]:
+        """Find indexes applicable to a node."""
+        if not hasattr(node, 'table_name') or not hasattr(node, 'columns'):
+            return []
+        
+        table_indexes = self.source_indexes.get(node.table_name, {})
+        return [
+            index for index in table_indexes.values()
+            if self._is_index_applicable(index, node)
+        ]
+    
+    def _is_index_applicable(self,
+                           index: Dict[str, Any],
+                           node: Any) -> bool:
+        """Check if an index is applicable to a node."""
+        if not hasattr(node, 'columns'):
+            return False
+        
+        # Check if index columns match node columns
+        index_cols = set(index['columns'])
+        node_cols = set(node.columns)
+        
+        # Index is applicable if it covers any needed columns
+        return bool(index_cols & node_cols)
+    
+    def _estimate_index_benefit(self, node: Any) -> float:
+        """Estimate benefit of using an index."""
+        if not hasattr(node, 'estimated_cost'):
+            return 0.0
+        
+        # Basic cost model
+        base_cost = node.estimated_cost
+        
+        # Estimate reduction from index
+        if hasattr(node, 'operation_type'):
+            if node.operation_type.lower() == 'filter':
+                return base_cost * 0.8  # 80% reduction
+            elif node.operation_type.lower() == 'join':
+                return base_cost * 0.6  # 60% reduction
+            elif node.operation_type.lower() in ('aggregate', 'sort'):
+                return base_cost * 0.4  # 40% reduction
+        
+        return 0.0
+    
+    def _select_best_indexes(self,
+                           opportunities: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Select best indexes to use."""
+        selections = {}
+        
+        for opportunity in opportunities:
+            node_id = opportunity['node'].id
+            indexes = opportunity['indexes']
+            
+            if indexes:
+                # Score each index
+                scores = [
+                    (index, self._score_index(index, opportunity))
+                    for index in indexes
+                ]
+                
+                # Select best scoring index
+                best_index = max(scores, key=lambda x: x[1])[0]
+                selections[node_id] = best_index
+        
+        return selections
+    
+    def _score_index(self,
+                    index: Dict[str, Any],
+                    opportunity: Dict[str, Any]) -> float:
+        """Score an index for an opportunity."""
+        # Consider:
+        # 1. Index selectivity
+        # 2. Index size
+        # 3. Maintenance cost
+        # 4. Usage statistics
+        
+        stats = self.index_stats.get(index['id'], {})
+        
+        selectivity_score = stats.get('selectivity', 0.5)
+        size_score = 1.0 / (1 + stats.get('size_mb', 1000))
+        maintenance_score = 1.0 - stats.get('maintenance_cost', 0.5)
+        usage_score = min(stats.get('usage_count', 0) / 100, 1.0)
+        
+        return (
+            0.4 * selectivity_score +
+            0.2 * size_score +
+            0.2 * maintenance_score +
+            0.2 * usage_score
+        )
+    
+    def _apply_index_selections(self,
+                              plan: QueryPlan,
+                              selections: Dict[str, Any]) -> QueryPlan:
+        """Apply selected indexes to query plan."""
+        def apply_to_node(node: Any) -> Any:
+            if hasattr(node, 'id') and node.id in selections:
+                # Add index hint to node
+                node.hints = {
+                    'use_index': selections[node.id]['name'],
+                    'index_type': selections[node.id]['type']
+                }
+            
+            if hasattr(node, 'children'):
+                node.children = [apply_to_node(child) for child in node.children]
+            
+            return node
+        
+        new_plan = plan.copy()
+        new_plan.root = apply_to_node(new_plan.root)
+        return new_plan 
