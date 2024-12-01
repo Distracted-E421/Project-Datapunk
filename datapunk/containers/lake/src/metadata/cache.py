@@ -8,6 +8,14 @@ from .core import (
     QualityMetadata, AccessPatternMetadata, DependencyMetadata,
     PerformanceMetadata, CacheMetadata, ResourceMetadata
 )
+from abc import ABC, abstractmethod
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import DBSCAN
+from sentence_transformers import SentenceTransformer
+import faiss
+import torch
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +38,261 @@ class CacheEntry(Generic[T]):
         """Record an access to this entry."""
         self.last_accessed = datetime.utcnow()
         self.access_count += 1
+
+class CacheStrategy(ABC):
+    """Base class for cache strategies."""
+    
+    @abstractmethod
+    async def should_cache(self, key: str, metadata: Dict[str, Any]) -> bool:
+        """Determine if an item should be cached."""
+        pass
+    
+    @abstractmethod
+    async def should_evict(self, key: str, metadata: Dict[str, Any]) -> bool:
+        """Determine if an item should be evicted."""
+        pass
+    
+    @abstractmethod
+    async def get_priority(self, key: str, metadata: Dict[str, Any]) -> float:
+        """Get cache priority for an item."""
+        pass
+
+class PredictiveCacheStrategy(CacheStrategy):
+    """Cache strategy using ML for prediction."""
+    
+    def __init__(self):
+        self.scaler = StandardScaler()
+        self.access_history: Dict[str, List[Dict[str, Any]]] = {}
+        self.feature_columns = [
+            'hour_of_day',
+            'day_of_week',
+            'access_count',
+            'avg_latency',
+            'data_size',
+            'last_access_gap'
+        ]
+    
+    async def should_cache(self, key: str, metadata: Dict[str, Any]) -> bool:
+        """Predict if item should be cached based on patterns."""
+        features = await self._extract_features(key, metadata)
+        if not features:
+            return False
+        
+        # Use DBSCAN to detect access pattern clusters
+        X = self.scaler.fit_transform(np.array([features]))
+        clustering = DBSCAN(eps=0.3, min_samples=2).fit(X)
+        
+        # Items in clusters are more likely to be accessed again
+        return clustering.labels_[0] != -1
+    
+    async def should_evict(self, key: str, metadata: Dict[str, Any]) -> bool:
+        """Predict if item should be evicted."""
+        features = await self._extract_features(key, metadata)
+        if not features:
+            return True
+        
+        # Calculate time since last access
+        last_access = metadata.get('last_access_time', datetime.min)
+        time_gap = (datetime.utcnow() - last_access).total_seconds()
+        
+        # Predict future access probability
+        access_probability = await self._predict_access_probability(features)
+        
+        return access_probability < 0.3 and time_gap > 3600  # 1 hour
+    
+    async def get_priority(self, key: str, metadata: Dict[str, Any]) -> float:
+        """Calculate cache priority using ML predictions."""
+        features = await self._extract_features(key, metadata)
+        if not features:
+            return 0.0
+        
+        access_probability = await self._predict_access_probability(features)
+        data_size = metadata.get('size_bytes', 0)
+        access_count = metadata.get('access_count', 0)
+        
+        # Weighted scoring
+        size_score = 1.0 / (1 + np.log1p(data_size))
+        count_score = np.log1p(access_count) / 10.0
+        
+        return 0.5 * access_probability + 0.3 * size_score + 0.2 * count_score
+    
+    async def _extract_features(self, key: str, metadata: Dict[str, Any]) -> Optional[List[float]]:
+        """Extract features for ML prediction."""
+        try:
+            now = datetime.utcnow()
+            last_access = metadata.get('last_access_time', now)
+            
+            features = [
+                float(now.hour),
+                float(now.weekday()),
+                float(metadata.get('access_count', 0)),
+                float(metadata.get('avg_latency_ms', 0)),
+                float(metadata.get('size_bytes', 0)),
+                float((now - last_access).total_seconds())
+            ]
+            
+            return features
+        except Exception as e:
+            logging.error(f"Error extracting features: {e}")
+            return None
+    
+    async def _predict_access_probability(self, features: List[float]) -> float:
+        """Predict probability of future access."""
+        try:
+            X = self.scaler.transform(np.array([features]))
+            # Simple heuristic-based prediction
+            recency_score = 1.0 / (1 + features[5] / 3600)  # Time gap
+            frequency_score = np.log1p(features[2]) / 10.0  # Access count
+            temporal_score = np.cos(np.pi * features[0] / 12)  # Hour of day
+            
+            return 0.4 * recency_score + 0.4 * frequency_score + 0.2 * temporal_score
+        except Exception as e:
+            logging.error(f"Error predicting access probability: {e}")
+            return 0.0
+
+class SemanticCacheStrategy(CacheStrategy):
+    """Cache strategy using semantic similarity."""
+    
+    def __init__(self):
+        self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.index = faiss.IndexFlatL2(384)  # Dimension of embeddings
+        self.cached_queries: Dict[str, np.ndarray] = {}
+    
+    async def should_cache(self, key: str, metadata: Dict[str, Any]) -> bool:
+        """Determine caching based on semantic similarity."""
+        query = metadata.get('query', '')
+        if not query:
+            return False
+        
+        try:
+            # Get query embedding
+            embedding = self.model.encode([query])[0]
+            
+            if len(self.cached_queries) > 0:
+                # Search for similar queries
+                D, I = self.index.search(
+                    np.array([embedding]).astype('float32'), 
+                    min(5, len(self.cached_queries))
+                )
+                
+                # Cache if no similar queries found
+                return D[0][0] > 0.5 if len(D) > 0 else True
+            else:
+                return True
+        except Exception as e:
+            logging.error(f"Error in semantic cache decision: {e}")
+            return False
+    
+    async def should_evict(self, key: str, metadata: Dict[str, Any]) -> bool:
+        """Determine eviction based on semantic similarity."""
+        query = metadata.get('query', '')
+        if not query or key not in self.cached_queries:
+            return True
+        
+        try:
+            embedding = self.cached_queries[key]
+            
+            # Find similar cached queries
+            D, I = self.index.search(
+                np.array([embedding]).astype('float32'),
+                min(5, len(self.cached_queries))
+            )
+            
+            # Evict if many similar queries are cached
+            return len(D) > 0 and D[0][0] < 0.3
+        except Exception as e:
+            logging.error(f"Error in semantic eviction decision: {e}")
+            return True
+    
+    async def get_priority(self, key: str, metadata: Dict[str, Any]) -> float:
+        """Calculate priority based on semantic uniqueness."""
+        query = metadata.get('query', '')
+        if not query or key not in self.cached_queries:
+            return 0.0
+        
+        try:
+            embedding = self.cached_queries[key]
+            
+            # Calculate average distance to other cached queries
+            D, _ = self.index.search(
+                np.array([embedding]).astype('float32'),
+                min(10, len(self.cached_queries))
+            )
+            
+            # Higher priority for unique queries
+            return float(np.mean(D)) if len(D) > 0 else 1.0
+        except Exception as e:
+            logging.error(f"Error calculating semantic priority: {e}")
+            return 0.0
+
+class HybridCacheStrategy(CacheStrategy):
+    """Combines multiple cache strategies with weights."""
+    
+    def __init__(self):
+        self.predictive = PredictiveCacheStrategy()
+        self.semantic = SemanticCacheStrategy()
+        self.weights = {
+            'predictive': 0.5,
+            'semantic': 0.5
+        }
+    
+    async def should_cache(self, key: str, metadata: Dict[str, Any]) -> bool:
+        """Combine multiple strategies for cache decision."""
+        try:
+            predictive_score = float(await self.predictive.should_cache(key, metadata))
+            semantic_score = float(await self.semantic.should_cache(key, metadata))
+            
+            combined_score = (
+                self.weights['predictive'] * predictive_score +
+                self.weights['semantic'] * semantic_score
+            )
+            
+            return combined_score >= 0.5
+        except Exception as e:
+            logging.error(f"Error in hybrid cache decision: {e}")
+            return False
+    
+    async def should_evict(self, key: str, metadata: Dict[str, Any]) -> bool:
+        """Combine multiple strategies for eviction decision."""
+        try:
+            predictive_score = float(await self.predictive.should_evict(key, metadata))
+            semantic_score = float(await self.semantic.should_evict(key, metadata))
+            
+            combined_score = (
+                self.weights['predictive'] * predictive_score +
+                self.weights['semantic'] * semantic_score
+            )
+            
+            return combined_score >= 0.5
+        except Exception as e:
+            logging.error(f"Error in hybrid eviction decision: {e}")
+            return True
+    
+    async def get_priority(self, key: str, metadata: Dict[str, Any]) -> float:
+        """Combine multiple strategies for priority calculation."""
+        try:
+            predictive_priority = await self.predictive.get_priority(key, metadata)
+            semantic_priority = await self.semantic.get_priority(key, metadata)
+            
+            return (
+                self.weights['predictive'] * predictive_priority +
+                self.weights['semantic'] * semantic_priority
+            )
+        except Exception as e:
+            logging.error(f"Error calculating hybrid priority: {e}")
+            return 0.0
+    
+    async def update_weights(self, 
+                           cache_hits: int, 
+                           cache_misses: int,
+                           strategy_hits: Dict[str, int]) -> None:
+        """Dynamically adjust strategy weights based on performance."""
+        total_hits = sum(strategy_hits.values())
+        if total_hits > 0:
+            self.weights = {
+                strategy: hits / total_hits
+                for strategy, hits in strategy_hits.items()
+            }
 
 class MetadataCache:
     """LRU cache for metadata with TTL."""
