@@ -21,6 +21,11 @@ class MetadataType(Enum):
     PERFORMANCE = "performance"
     CACHE = "cache"
     RESOURCE = "resource"
+    WORKLOAD = "workload"
+    EVOLUTION = "evolution"
+    COMPLIANCE = "compliance"
+    ENHANCED_QUALITY = "enhanced_quality"
+    STORAGE = "storage"
 
 class SchemaMetadata(BaseModel):
     """Schema metadata for a table or collection."""
@@ -192,6 +197,137 @@ class ResourceMetadata(BaseModel):
     last_analyze: datetime
     bloat_ratio: float
 
+class WorkloadType(Enum):
+    """Types of workload patterns."""
+    OLTP = "oltp"
+    OLAP = "olap"
+    MIXED = "mixed"
+    BATCH = "batch"
+    STREAMING = "streaming"
+    ETL = "etl"
+    ML = "machine_learning"
+
+class QueryPattern(BaseModel):
+    """Represents a query pattern in workload."""
+    pattern_hash: str
+    query_template: str
+    frequency: int
+    avg_duration_ms: float
+    peak_duration_ms: float
+    resource_usage: Dict[str, float]
+    last_seen: datetime
+    parameters: Dict[str, Any]
+
+class WorkloadMetadata(BaseModel):
+    """Workload pattern metadata."""
+    table_name: str
+    workload_type: WorkloadType
+    query_patterns: List[QueryPattern]
+    peak_qps: float
+    avg_qps: float
+    busy_periods: List[Dict[str, Any]]
+    quiet_periods: List[Dict[str, Any]]
+    last_analyzed: datetime
+
+class SchemaChange(BaseModel):
+    """Represents a schema change event."""
+    change_type: str  # 'add_column', 'drop_column', 'modify_column', etc.
+    column_name: Optional[str]
+    old_value: Optional[Dict[str, Any]]
+    new_value: Optional[Dict[str, Any]]
+    timestamp: datetime
+    applied_by: str
+    change_script: Optional[str]
+
+class DataEvolutionMetadata(BaseModel):
+    """Data evolution and change history."""
+    table_name: str
+    schema_version: int
+    schema_changes: List[SchemaChange]
+    data_growth_rate: float  # rows per day
+    size_growth_rate: float  # bytes per day
+    value_distributions: Dict[str, Dict[str, Any]]
+    temporal_patterns: Dict[str, Any]
+    last_analyzed: datetime
+
+class ComplianceRule(BaseModel):
+    """Represents a compliance rule."""
+    rule_id: str
+    rule_type: str  # 'retention', 'encryption', 'access', 'audit', etc.
+    description: str
+    parameters: Dict[str, Any]
+    validation_query: Optional[str]
+    remediation_action: Optional[str]
+
+class ComplianceCheck(BaseModel):
+    """Result of a compliance check."""
+    rule_id: str
+    status: str  # 'passed', 'failed', 'warning'
+    details: str
+    timestamp: datetime
+    affected_rows: Optional[int]
+
+class ComplianceMetadata(BaseModel):
+    """Compliance and governance metadata."""
+    table_name: str
+    classification_level: str
+    applicable_rules: List[ComplianceRule]
+    compliance_checks: List[ComplianceCheck]
+    encryption_status: Dict[str, Any]
+    retention_status: Dict[str, Any]
+    audit_logs: List[Dict[str, Any]]
+    last_validated: datetime
+
+class DataQualityRule(BaseModel):
+    """Represents a data quality rule."""
+    rule_id: str
+    rule_type: str  # 'completeness', 'accuracy', 'consistency', etc.
+    column_name: Optional[str]
+    condition: str
+    threshold: float
+    severity: str  # 'critical', 'warning', 'info'
+
+class DataQualityCheck(BaseModel):
+    """Result of a data quality check."""
+    rule_id: str
+    status: str
+    value: float
+    threshold: float
+    sample_size: Optional[int]
+    timestamp: datetime
+
+class EnhancedQualityMetadata(BaseModel):
+    """Enhanced data quality metadata."""
+    table_name: str
+    quality_rules: List[DataQualityRule]
+    quality_checks: List[DataQualityCheck]
+    historical_scores: List[Dict[str, Any]]
+    anomaly_detections: List[Dict[str, Any]]
+    remediation_history: List[Dict[str, Any]]
+    last_checked: datetime
+
+class PartitionInfo(BaseModel):
+    """Information about a table partition."""
+    partition_key: str
+    partition_value: Any
+    row_count: int
+    size_bytes: int
+    last_accessed: datetime
+    access_frequency: float
+    is_compressed: bool
+
+class StorageMetadata(BaseModel):
+    """Enhanced storage metadata."""
+    table_name: str
+    partitions: List[PartitionInfo]
+    compression_ratio: float
+    storage_format: str
+    block_size: int
+    replication_factor: int
+    distribution_key: Optional[str]
+    storage_policy: Dict[str, Any]
+    last_updated: datetime
+
 class MetadataStore(ABC):
     """Abstract base class for metadata storage."""
     
@@ -284,6 +420,56 @@ class MetadataStore(ABC):
     async def update_resource_metadata(self, metadata: ResourceMetadata) -> None:
         """Update resource usage metadata."""
         pass
+    
+    @abstractmethod
+    async def get_workload(self, table_name: str) -> Optional[WorkloadMetadata]:
+        """Retrieve workload metadata."""
+        pass
+    
+    @abstractmethod
+    async def update_workload(self, metadata: WorkloadMetadata) -> None:
+        """Update workload metadata."""
+        pass
+    
+    @abstractmethod
+    async def get_evolution(self, table_name: str) -> Optional[DataEvolutionMetadata]:
+        """Retrieve evolution metadata."""
+        pass
+    
+    @abstractmethod
+    async def update_evolution(self, metadata: DataEvolutionMetadata) -> None:
+        """Update evolution metadata."""
+        pass
+    
+    @abstractmethod
+    async def get_compliance(self, table_name: str) -> Optional[ComplianceMetadata]:
+        """Retrieve compliance metadata."""
+        pass
+    
+    @abstractmethod
+    async def update_compliance(self, metadata: ComplianceMetadata) -> None:
+        """Update compliance metadata."""
+        pass
+    
+    @abstractmethod
+    async def get_enhanced_quality(self, table_name: str) -> Optional[EnhancedQualityMetadata]:
+        """Retrieve enhanced quality metadata."""
+        pass
+    
+    @abstractmethod
+    async def update_enhanced_quality(self, metadata: EnhancedQualityMetadata) -> None:
+        """Update enhanced quality metadata."""
+        pass
+    
+    @abstractmethod
+    async def get_storage(self, table_name: str) -> Optional[StorageMetadata]:
+        """Retrieve storage metadata."""
+        pass
+    
+    @abstractmethod
+    async def update_storage(self, metadata: StorageMetadata) -> None:
+        """Update storage metadata."""
+        pass
 
 class PostgresMetadataStore(MetadataStore):
     """PostgreSQL-based metadata store implementation."""
@@ -351,6 +537,26 @@ class MetadataManager:
             resource = await self._analyze_resource(table_name)
             await self.store.update_resource_metadata(resource)
             
+            # Update workload metadata
+            workload = await self._analyze_workload(table_name)
+            await self.store.update_workload(workload)
+            
+            # Update evolution metadata
+            evolution = await self._analyze_evolution(table_name)
+            await self.store.update_evolution(evolution)
+            
+            # Update compliance metadata
+            compliance = await self._analyze_compliance(table_name)
+            await self.store.update_compliance(compliance)
+            
+            # Update enhanced quality metadata
+            enhanced_quality = await self._analyze_enhanced_quality(table_name)
+            await self.store.update_enhanced_quality(enhanced_quality)
+            
+            # Update storage metadata
+            storage = await self._analyze_storage(table_name)
+            await self.store.update_storage(storage)
+            
             self.logger.info(f"Successfully analyzed table: {table_name}")
             
         except Exception as e:
@@ -394,6 +600,31 @@ class MetadataManager:
     
     async def _analyze_resource(self, table_name: str) -> ResourceMetadata:
         """Analyze and extract resource usage metadata."""
+        # Implementation
+        pass
+    
+    async def _analyze_workload(self, table_name: str) -> WorkloadMetadata:
+        """Analyze and extract workload metadata."""
+        # Implementation
+        pass
+    
+    async def _analyze_evolution(self, table_name: str) -> DataEvolutionMetadata:
+        """Analyze and extract evolution metadata."""
+        # Implementation
+        pass
+    
+    async def _analyze_compliance(self, table_name: str) -> ComplianceMetadata:
+        """Analyze and extract compliance metadata."""
+        # Implementation
+        pass
+    
+    async def _analyze_enhanced_quality(self, table_name: str) -> EnhancedQualityMetadata:
+        """Analyze and extract enhanced quality metadata."""
+        # Implementation
+        pass
+    
+    async def _analyze_storage(self, table_name: str) -> StorageMetadata:
+        """Analyze and extract storage metadata."""
         # Implementation
         pass
     
@@ -447,7 +678,12 @@ class MetadataManager:
             "dependencies": await self.store.get_dependencies(table_name),
             "performance": await self.store.get_performance(table_name),
             "cache": await self.store.get_cache_metadata(table_name),
-            "resource": await self.store.get_resource_metadata(table_name)
+            "resource": await self.store.get_resource_metadata(table_name),
+            "workload": await self.store.get_workload(table_name),
+            "evolution": await self.store.get_evolution(table_name),
+            "compliance": await self.store.get_compliance(table_name),
+            "enhanced_quality": await self.store.get_enhanced_quality(table_name),
+            "storage": await self.store.get_storage(table_name)
         }
     
     async def refresh_statistics(self, table_name: str) -> None:
