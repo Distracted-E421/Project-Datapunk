@@ -1,6 +1,18 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional, Tuple
 from bitarray import bitarray
+from enum import Enum
+import gzip
+import lzma
+import zstd
+import snappy
+import json
+import logging
+from typing import Any, Dict, Union, Optional
+from pathlib import Path
+import os
+
+logger = logging.getLogger(__name__)
 
 class BitmapCompression(ABC):
     """Base class for bitmap compression algorithms."""
@@ -215,3 +227,217 @@ class RoaringBitmapCompression(BitmapCompression):
                             result[position] = 1
                             
         return result 
+
+class CompressionAlgorithm(Enum):
+    """Supported compression algorithms."""
+    GZIP = "gz"
+    LZMA = "xz"
+    ZSTD = "zst"
+    SNAPPY = "snappy"
+    NONE = "raw"
+
+class CompressionLevel(Enum):
+    """Compression level presets."""
+    FAST = "fast"
+    BALANCED = "balanced"
+    MAX = "max"
+
+class CompressionOptimizer:
+    """Handles compression optimization for incremental exports."""
+    
+    # Algorithm-specific compression levels
+    COMPRESSION_LEVELS = {
+        CompressionAlgorithm.GZIP: {
+            CompressionLevel.FAST: 1,
+            CompressionLevel.BALANCED: 6,
+            CompressionLevel.MAX: 9
+        },
+        CompressionAlgorithm.LZMA: {
+            CompressionLevel.FAST: 0,
+            CompressionLevel.BALANCED: 6,
+            CompressionLevel.MAX: 9
+        },
+        CompressionAlgorithm.ZSTD: {
+            CompressionLevel.FAST: 1,
+            CompressionLevel.BALANCED: 3,
+            CompressionLevel.MAX: 22
+        }
+    }
+
+    def __init__(
+        self,
+        algorithm: CompressionAlgorithm = CompressionAlgorithm.ZSTD,
+        level: CompressionLevel = CompressionLevel.BALANCED,
+        auto_select: bool = True
+    ):
+        self.algorithm = algorithm
+        self.level = level
+        self.auto_select = auto_select
+
+    def compress_file(
+        self,
+        input_path: Union[str, Path],
+        output_path: Optional[Union[str, Path]] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Compress a file using the selected algorithm."""
+        input_path = Path(input_path)
+        if not output_path:
+            output_path = input_path.with_suffix(f".{self.algorithm.value}")
+        output_path = Path(output_path)
+
+        # Auto-select algorithm if enabled
+        if self.auto_select:
+            self.algorithm = self._select_algorithm(input_path)
+            output_path = output_path.with_suffix(f".{self.algorithm.value}")
+
+        # Get compression level
+        compression_level = self.COMPRESSION_LEVELS.get(
+            self.algorithm, {}
+        ).get(self.level)
+
+        # Compress file
+        input_size = os.path.getsize(input_path)
+        try:
+            if self.algorithm == CompressionAlgorithm.GZIP:
+                with open(input_path, 'rb') as f_in:
+                    with gzip.open(output_path, 'wb', compresslevel=compression_level) as f_out:
+                        f_out.write(f_in.read())
+
+            elif self.algorithm == CompressionAlgorithm.LZMA:
+                with open(input_path, 'rb') as f_in:
+                    with lzma.open(output_path, 'wb', preset=compression_level) as f_out:
+                        f_out.write(f_in.read())
+
+            elif self.algorithm == CompressionAlgorithm.ZSTD:
+                with open(input_path, 'rb') as f_in:
+                    data = f_in.read()
+                    compressed = zstd.compress(data, compression_level)
+                    with open(output_path, 'wb') as f_out:
+                        f_out.write(compressed)
+
+            elif self.algorithm == CompressionAlgorithm.SNAPPY:
+                with open(input_path, 'rb') as f_in:
+                    data = f_in.read()
+                    compressed = snappy.compress(data)
+                    with open(output_path, 'wb') as f_out:
+                        f_out.write(compressed)
+
+            else:  # NONE
+                import shutil
+                shutil.copy2(input_path, output_path)
+
+        except Exception as e:
+            logger.error(f"Compression failed: {e}")
+            raise
+
+        # Calculate compression stats
+        output_size = os.path.getsize(output_path)
+        compression_ratio = input_size / output_size if output_size > 0 else 0
+
+        compression_info = {
+            "algorithm": self.algorithm.value,
+            "level": self.level.value,
+            "input_size": input_size,
+            "output_size": output_size,
+            "compression_ratio": compression_ratio
+        }
+
+        if metadata:
+            compression_info.update(metadata)
+
+        return compression_info
+
+    def decompress_file(
+        self,
+        input_path: Union[str, Path],
+        output_path: Union[str, Path]
+    ) -> None:
+        """Decompress a file."""
+        input_path = Path(input_path)
+        output_path = Path(output_path)
+
+        # Detect algorithm from file extension
+        algorithm = CompressionAlgorithm(input_path.suffix[1:])
+
+        try:
+            if algorithm == CompressionAlgorithm.GZIP:
+                with gzip.open(input_path, 'rb') as f_in:
+                    with open(output_path, 'wb') as f_out:
+                        f_out.write(f_in.read())
+
+            elif algorithm == CompressionAlgorithm.LZMA:
+                with lzma.open(input_path, 'rb') as f_in:
+                    with open(output_path, 'wb') as f_out:
+                        f_out.write(f_in.read())
+
+            elif algorithm == CompressionAlgorithm.ZSTD:
+                with open(input_path, 'rb') as f_in:
+                    data = f_in.read()
+                    decompressed = zstd.decompress(data)
+                    with open(output_path, 'wb') as f_out:
+                        f_out.write(decompressed)
+
+            elif algorithm == CompressionAlgorithm.SNAPPY:
+                with open(input_path, 'rb') as f_in:
+                    data = f_in.read()
+                    decompressed = snappy.decompress(data)
+                    with open(output_path, 'wb') as f_out:
+                        f_out.write(decompressed)
+
+            else:  # NONE
+                import shutil
+                shutil.copy2(input_path, output_path)
+
+        except Exception as e:
+            logger.error(f"Decompression failed: {e}")
+            raise
+
+    def _select_algorithm(self, input_path: Path) -> CompressionAlgorithm:
+        """Auto-select best compression algorithm based on file characteristics."""
+        # Read sample of file content
+        sample_size = min(os.path.getsize(input_path), 1024 * 1024)  # Max 1MB sample
+        with open(input_path, 'rb') as f:
+            sample = f.read(sample_size)
+
+        # Analyze content type
+        try:
+            # Try to parse as JSON to detect structured data
+            json.loads(sample.decode('utf-8'))
+            # Structured data typically compresses well with ZSTD
+            return CompressionAlgorithm.ZSTD
+        except:
+            pass
+
+        # Calculate entropy of sample
+        entropy = self._calculate_entropy(sample)
+
+        # Select algorithm based on entropy and file size
+        file_size = os.path.getsize(input_path)
+
+        if entropy > 7.5:  # High entropy (already compressed or encrypted)
+            return CompressionAlgorithm.NONE
+        elif file_size < 1024 * 1024:  # Small files (<1MB)
+            return CompressionAlgorithm.SNAPPY  # Fast compression
+        elif entropy < 4.0:  # Low entropy (highly compressible)
+            return CompressionAlgorithm.LZMA  # Best compression
+        else:  # Medium entropy
+            return CompressionAlgorithm.ZSTD  # Good balance
+
+    def _calculate_entropy(self, data: bytes) -> float:
+        """Calculate Shannon entropy of data."""
+        if not data:
+            return 0.0
+
+        # Count byte frequencies
+        frequencies = {}
+        for byte in data:
+            frequencies[byte] = frequencies.get(byte, 0) + 1
+
+        # Calculate entropy
+        entropy = 0
+        for count in frequencies.values():
+            probability = count / len(data)
+            entropy -= probability * (probability.bit_length() - 1)
+
+        return entropy
