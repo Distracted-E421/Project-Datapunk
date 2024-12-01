@@ -1,119 +1,141 @@
 graph TD
-    %% External Ports
-    Gateway[[Gateway Layer Port]]
-    Core[[Core Services Port]]
-    Infrastructure[[Infrastructure Layer Port]]
+    %% Initialize with theme matching core-services
+    %%{
+        init: {
+            'theme': 'dark',
+            'themeVariables': {
+                'darkMode': true,
+                'background': 'transparent',
+                'primaryColor': '#1c1c2420',
+                'secondaryColor': '#14141920',
+                'tertiaryColor': '#25252520',
+                'primaryTextColor': '#ffffff',
+                'secondaryTextColor': '#e0e0e0',
+                'tertiaryTextColor': '#cccccc',
+                'lineColor': '#569cd6',
+                'mainBkg': 'transparent',
+                'nodeBorder': '#569cd6',
+                'clusterBkg': 'rgba(10, 10, 15, 0.2)',
+                'clusterBorder': '#ffffff22',
+                'defaultLinkColor': '#569cd6',
+                'fontFamily': 'PixelOperator, monospace',
+                'fontSize': '16px'
+            }
+        }
+    }%%
+
+    %% External Ports with enhanced shapes
+    Gateway((Gateway Layer))
+    Core((Core Services))
+    Infrastructure((Infrastructure Layer))
 
     subgraph "Security Layer"
-        direction LR
-        subgraph "Identity & Access"
+        direction TB
+        subgraph "Access Control"
+            direction LR
             subgraph "Authentication"
-                AuthN[Authentication Service]
-                MFA[MFA Handler]
-                SessionMgr[Session Manager]
-                TokenMgr[Token Manager]
+                AuthN[[Authentication Service]]
+                MFA{{MFA Handler}}
+                SessionMgr[(Session Manager)]
+                TokenMgr[(Token Manager)]
             end
 
             subgraph "Authorization"
-                AuthZ[Authorization Service]
-                RBAC[Role Manager]
-                ABAC[Attribute Manager]
-                PolicyEngine[Policy Engine]
-            end
-
-            subgraph "Identity Management"
-                IDProvider[Identity Provider]
-                UserRegistry[User Registry]
-                GroupManager[Group Manager]
-                PrivilegeManager[Privilege Manager]
+                AuthZ[[Authorization Service]]
+                RBAC{Role Manager}
+                ABAC{Attribute Manager}
+                PolicyEngine[[Policy Engine]]
             end
         end
 
-        subgraph "Data Protection"
-            subgraph "Encryption Services"
-                KeyManager[Key Management]
-                HSM[Hardware Security Module]
-                CertManager[Certificate Manager]
-                VaultService[Secret Vault]
+        subgraph "Protection Services"
+            direction LR
+            subgraph "Encryption"
+                KeyManager[[Key Management]]
+                HSM{{Hardware Security Module}}
+                CertManager[[Certificate Manager]]
+                VaultService[(Secret Vault)]
             end
 
             subgraph "Data Security"
-                PIIHandler[PII Handler]
-                Masking[Data Masking]
-                Tokenization[Tokenization]
-                DLP[Data Loss Prevention]
+                PIIHandler>PII Handler]
+                Masking>Data Masking]
+                Tokenization>Tokenization]
+                DLP{{Data Loss Prevention}}
             end
         end
 
         subgraph "Security Operations"
+            direction LR
             subgraph "Monitoring"
-                SIEM[Security Info & Event Mgmt]
-                IDS[Intrusion Detection]
-                WAF[Web App Firewall]
-                ThreatIntel[Threat Intelligence]
+                SIEM[[Security Info & Event Mgmt]]
+                IDS{{Intrusion Detection}}
+                WAF{{Web App Firewall}}
+                ThreatIntel>Threat Intelligence]
             end
 
-            subgraph "Audit"
-                AuditLogger[Audit Logger]
-                ComplianceMonitor[Compliance Monitor]
-                ForensicsCollector[Forensics Collector]
-                RiskAnalyzer[Risk Analyzer]
+            subgraph "Compliance"
+                AuditLogger[(Audit Logger)]
+                ComplianceMonitor>Compliance Monitor]
+                ForensicsCollector>Forensics Collector]
+                RiskAnalyzer>Risk Analyzer]
             end
         end
 
         subgraph "Network Security"
-            subgraph "Access Control"
-                Firewall[Network Firewall]
-                MTLS[mTLS Handler]
-                VPN[VPN Service]
-                NetworkPolicy[Network Policy]
+            direction LR
+            subgraph "Perimeter"
+                Firewall{{Network Firewall}}
+                MTLS{{mTLS Handler}}
+                VPN{{VPN Service}}
+                NetworkPolicy[[Network Policy]]
             end
 
-            subgraph "Traffic Protection"
-                LoadBalancer[Load Balancer]
-                DDoSProtection[DDoS Protection]
-                RateLimit[Rate Limiter]
-                TLSTermination[TLS Termination]
+            subgraph "Traffic Control"
+                LoadBalancer[[Load Balancer]]
+                DDoSProtection>DDoS Protection]
+                RateLimit>Rate Limiter]
+                TLSTermination{{TLS Termination}}
             end
         end
     end
 
-    %% External Connections
-    Gateway -->|"Auth Request"| AuthN
-    AuthN -->|"Session"| SessionMgr
-    SessionMgr -->|"Token"| TokenMgr
-    TokenMgr -->|"Validate"| AuthZ
+    %% Enhanced External Connections
+    Gateway ==>|"Auth Request"| AuthN
+    AuthN ==>|"Session"| SessionMgr
+    SessionMgr ==>|"Token"| TokenMgr
+    TokenMgr ==>|"Validate"| AuthZ
 
-    Core -->|"Access Check"| PolicyEngine
-    Core -->|"Encrypt"| KeyManager
-    Core -->|"Audit"| AuditLogger
+    Core ==>|"Access Check"| PolicyEngine
+    Core -.->|"Encrypt"| KeyManager
+    Core -.->|"Audit"| AuditLogger
 
-    Infrastructure -->|"Secrets"| VaultService
-    Infrastructure -->|"Network Policy"| NetworkPolicy
+    Infrastructure -.->|"Secrets"| VaultService
+    Infrastructure -.->|"Network Policy"| NetworkPolicy
 
-    %% Internal Flows
-    AuthZ -->|"Roles"| RBAC
-    RBAC -->|"Attributes"| ABAC
-    ABAC -->|"Policy"| PolicyEngine
+    %% Enhanced Internal Flows
+    AuthZ ==>|"Roles"| RBAC
+    RBAC ==>|"Attributes"| ABAC
+    ABAC ==>|"Policy"| PolicyEngine
 
     PIIHandler -->|"Mask"| Masking
     Masking -->|"Tokenize"| Tokenization
-    DLP -->|"Alert"| SIEM
+    DLP -.->|"Alert"| SIEM
 
-    SIEM -->|"Detect"| IDS
-    IDS -->|"Block"| WAF
-    ThreatIntel -->|"Update"| WAF
+    SIEM ==>|"Detect"| IDS
+    IDS ==>|"Block"| WAF
+    ThreatIntel -.->|"Update"| WAF
 
     %% Style Definitions
-    classDef port fill:#f9f,stroke:#333,stroke-width:4px;
-    classDef auth fill:#f5ebff,stroke:#4d0099,stroke-width:2px;
-    classDef protect fill:#ebffeb,stroke:#006600,stroke-width:2px;
-    classDef ops fill:#fff2eb,stroke:#994d00,stroke-width:2px;
-    classDef network fill:#ebf5ff,stroke:#004d99,stroke-width:2px;
+    classDef port fill:#fff5f5,stroke:#cc0000,stroke-width:3px
+    classDef auth fill:#f5ebff,stroke:#4d0099,stroke-width:2px
+    classDef protect fill:#ebffeb,stroke:#006600,stroke-width:2px
+    classDef ops fill:#fff2eb,stroke:#994d00,stroke-width:2px
+    classDef network fill:#ebf5ff,stroke:#004d99,stroke-width:2px
 
     %% Apply styles
-    class Gateway,Core,Infrastructure port;
-    class AuthN,AuthZ,IDProvider,SessionMgr,TokenMgr,RBAC,ABAC,PolicyEngine auth;
-    class KeyManager,HSM,CertManager,VaultService,PIIHandler,Masking,Tokenization,DLP protect;
-    class SIEM,IDS,WAF,ThreatIntel,AuditLogger,ComplianceMonitor,ForensicsCollector,RiskAnalyzer ops;
-    class Firewall,MTLS,VPN,NetworkPolicy,LoadBalancer,DDoSProtection,RateLimit,TLSTermination network;
+    class Gateway,Core,Infrastructure port
+    class AuthN,AuthZ,SessionMgr,TokenMgr,RBAC,ABAC,PolicyEngine auth
+    class KeyManager,HSM,CertManager,VaultService,PIIHandler,Masking,Tokenization,DLP protect
+    class SIEM,IDS,WAF,ThreatIntel,AuditLogger,ComplianceMonitor,ForensicsCollector,RiskAnalyzer ops
+    class Firewall,MTLS,VPN,NetworkPolicy,LoadBalancer,DDoSProtection,RateLimit,TLSTermination network

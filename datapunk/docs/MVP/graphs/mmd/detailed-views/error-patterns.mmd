@@ -1,108 +1,139 @@
 graph TD
-    %% External Ports
-    Frontend[[Frontend Layer Port]]
-    Gateway[[Gateway Layer Port]]
-    Core[[Core Services Port]]
+    %% Initialize with theme matching core-services
+    %%{
+        init: {
+            'theme': 'dark',
+            'themeVariables': {
+                'darkMode': true,
+                'background': 'transparent',
+                'primaryColor': '#1c1c2420',
+                'secondaryColor': '#14141920',
+                'tertiaryColor': '#25252520',
+                'primaryTextColor': '#ffffff',
+                'secondaryTextColor': '#e0e0e0',
+                'tertiaryTextColor': '#cccccc',
+                'lineColor': '#569cd6',
+                'mainBkg': 'transparent',
+                'nodeBorder': '#569cd6',
+                'clusterBkg': 'rgba(10, 10, 15, 0.2)',
+                'clusterBorder': '#ffffff22',
+                'defaultLinkColor': '#569cd6',
+                'fontFamily': 'PixelOperator, monospace',
+                'fontSize': '16px'
+            }
+        }
+    }%%
+
+    %% External Ports with enhanced shapes
+    Frontend((Frontend Layer))
+    Gateway((API Gateway))
+    Core((Core Services))
 
     subgraph "Error Handling Patterns"
         direction TB
         
-        subgraph ClientPatterns["Client-Side Patterns"]
+        subgraph "Client-Side Patterns"
             direction TB
-            subgraph UIErrors["UI Error Handling"]
-                ErrorBoundary[Error Boundary]
-                FallbackUI[Fallback UI]
-                RetryButton[Retry Mechanism]
-                ErrorToast[Error Notifications]
+            subgraph "UI Error Handling"
+                ErrorBoundary[[Error Boundary]]
+                FallbackUI[/Fallback UI/]
+                RetryButton[/Retry Mechanism/]
+                ErrorToast[/Error Notifications/]
             end
 
-            subgraph NetworkErrors["Network Error Handling"]
-                NetworkRetry[Network Retry]
-                OfflineQueue[Offline Queue]
-                SyncManager[Sync Manager]
-                ConnectivityCheck[Connectivity Check]
+            subgraph "Network Error Handling"
+                NetworkRetry{{Network Retry}}
+                OfflineQueue[(Offline Queue)]
+                SyncManager[[Sync Manager]]
+                ConnectivityCheck{Connectivity Check}
             end
         end
 
-        subgraph GatewayPatterns["Gateway Patterns"]
+        subgraph "Gateway Patterns"
             direction TB
-            subgraph RequestValidation["Request Validation"]
-                InputValidator[Input Validator]
-                SchemaCheck[Schema Validator]
-                RateCheck[Rate Limit Check]
-                AuthCheck[Auth Validator]
+            subgraph "Request Validation"
+                InputValidator[[Input Validator]]
+                SchemaCheck[[Schema Validator]]
+                RateCheck>Rate Limit Check]
+                AuthCheck>Auth Validator]
             end
 
-            subgraph CircuitBreaking["Circuit Breaking"]
-                CircuitBreaker[Circuit Breaker]
-                Fallback[Fallback Response]
-                ServiceHealth[Health Check]
-                FailureThreshold[Failure Threshold]
+            subgraph "Circuit Breaking"
+                CircuitBreaker{Circuit Breaker}
+                Fallback[/Fallback Response/]
+                ServiceHealth[[Health Check]]
+                FailureThreshold>Failure Threshold]
             end
         end
 
-        subgraph ServicePatterns["Service Patterns"]
+        subgraph "Service Patterns"
             direction TB
-            subgraph ResiliencePatterns["Resilience Patterns"]
-                Retry[Retry Pattern]
-                Timeout[Timeout Pattern]
-                Bulkhead[Bulkhead Pattern]
-                BackoffStrategy[Backoff Strategy]
+            subgraph "Resilience Patterns"
+                Retry[[Retry Pattern]]
+                Timeout[[Timeout Pattern]]
+                Bulkhead[[Bulkhead Pattern]]
+                BackoffStrategy[[Backoff Strategy]]
             end
 
-            subgraph DataConsistency["Data Consistency"]
-                Saga[Saga Pattern]
-                Compensation[Compensation Logic]
-                StateRecovery[State Recovery]
-                EventLog[Event Log]
+            subgraph "Data Consistency"
+                Saga{Saga Pattern}
+                Compensation[[Compensation Logic]]
+                StateRecovery[[State Recovery]]
+                EventLog[(Event Log)]
             end
         end
 
-        subgraph InfraPatterns["Infrastructure Patterns"]
+        subgraph "Infrastructure Patterns"
             direction TB
-            subgraph QueueErrors["Queue Error Handling"]
-                DLQ[Dead Letter Queue]
-                RetryQueue[Retry Queue]
-                PoisonMsg[Poison Message Handler]
-                QueueMonitor[Queue Monitor]
+            subgraph "Queue Error Handling"
+                DLQ[(Dead Letter Queue)]
+                RetryQueue[(Retry Queue)]
+                PoisonMsg[[Poison Message Handler]]
+                QueueMonitor[[Queue Monitor]]
             end
 
-            subgraph StorageErrors["Storage Error Handling"]
-                Replication[Replication Handler]
-                DataRecovery[Data Recovery]
-                ConsistencyCheck[Consistency Check]
-                BackupRestore[Backup Restore]
+            subgraph "Storage Error Handling"
+                Replication[[Replication Handler]]
+                DataRecovery[[Data Recovery]]
+                ConsistencyCheck{Consistency Check}
+                BackupRestore[(Backup Restore)]
             end
         end
     end
 
-    %% External Connections
-    Frontend -->|"UI Errors"| ErrorBoundary
-    Frontend -->|"Network Errors"| NetworkRetry
-    Gateway -->|"Validation Errors"| InputValidator
-    Gateway -->|"Circuit Breaking"| CircuitBreaker
-    Core -->|"Service Errors"| Retry
-    Core -->|"Data Errors"| Saga
+    %% Enhanced External Connections with varied styles
+    Frontend ==>|"UI Errors"| ErrorBoundary
+    Frontend -.->|"Network Errors"| NetworkRetry
+    Gateway ==>|"Validation Errors"| InputValidator
+    Gateway ==>|"Circuit Breaking"| CircuitBreaker
+    Core -.->|"Service Errors"| Retry
+    Core ==>|"Data Errors"| Saga
 
-    %% Error Flows
-    ErrorBoundary -->|"Show"| FallbackUI
-    NetworkRetry -->|"Queue"| OfflineQueue
-    InputValidator -->|"Invalid"| Fallback
-    CircuitBreaker -->|"Tripped"| ServiceHealth
-    Retry -->|"Exhausted"| BackoffStrategy
-    Saga -->|"Failed"| Compensation
-    DLQ -->|"Process"| RetryQueue
-    Replication -->|"Recover"| DataRecovery
+    %% Enhanced Error Flows with meaningful line styles
+    ErrorBoundary ==>|"Show"| FallbackUI
+    NetworkRetry -.->|"Queue"| OfflineQueue
+    InputValidator ==>|"Invalid"| Fallback
+    CircuitBreaker ==>|"Tripped"| ServiceHealth
+    Retry -.->|"Exhausted"| BackoffStrategy
+    Saga ==>|"Failed"| Compensation
+    DLQ ==>|"Process"| RetryQueue
+    Replication -.->|"Recover"| DataRecovery
+
+    %% Additional Critical Path Connections
+    ServiceHealth -.->|"Monitor"| FailureThreshold
+    Compensation ==>|"Log"| EventLog
+    QueueMonitor -.->|"Check"| ConsistencyCheck
+    BackoffStrategy -->|"Retry"| RetryQueue
 
     %% Style Definitions
-    classDef port fill:#f9f,stroke:#333,stroke-width:4px
-    classDef client fill:#ff1b6b20,stroke:#cc3333,stroke-width:2px
-    classDef gateway fill:#00ffff20,stroke:#3333cc,stroke-width:2px
-    classDef service fill:#0fff4f20,stroke:#33cc33,stroke-width:2px
-    classDef infra fill:#ffac0620,stroke:#cc6633,stroke-width:2px
+    classDef external fill:#ffebeb,stroke:#990000,stroke-width:2px
+    classDef client fill:#ebf5ff,stroke:#004d99,stroke-width:2px
+    classDef gateway fill:#ebffeb,stroke:#006600,stroke-width:2px
+    classDef service fill:#ebfffd,stroke:#006666,stroke-width:2px
+    classDef infra fill:#fff2eb,stroke:#994d00,stroke-width:2px
 
     %% Apply styles
-    class Frontend,Gateway,Core port
+    class Frontend,Gateway,Core external
     class ErrorBoundary,FallbackUI,RetryButton,ErrorToast,NetworkRetry,OfflineQueue,SyncManager,ConnectivityCheck client
     class InputValidator,SchemaCheck,RateCheck,AuthCheck,CircuitBreaker,Fallback,ServiceHealth,FailureThreshold gateway
     class Retry,Timeout,Bulkhead,BackoffStrategy,Saga,Compensation,StateRecovery,EventLog service

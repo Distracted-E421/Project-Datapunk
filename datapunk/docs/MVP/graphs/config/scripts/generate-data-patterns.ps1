@@ -10,7 +10,7 @@ if (!(Test-Path $outputDir)) {
     New-Item -ItemType Directory -Path $outputDir -Force
 }
 
-$outputPath = Join-Path $outputDir "data-patterns.svg"
+$outputPath = Join-Path $outputDir "data-patterns-v1.svg"
 
 Write-Host "Processing: data-patterns.mmd"
 mmdc "-i" $inputPath "-o" $outputPath "-c" $configPath 

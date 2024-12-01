@@ -1,94 +1,156 @@
 graph TD
-    %% External Ports
-    Gateway[[Gateway Layer Port]]
-    Core[[Core Services Port]]
-    Storage[[Storage Layer Port]]
+    %% Initialize with theme matching core-services
+    %%{
+        init: {
+            'theme': 'dark',
+            'themeVariables': {
+                'darkMode': true,
+                'background': 'transparent',
+                'primaryColor': '#1c1c2420',
+                'secondaryColor': '#14141920',
+                'tertiaryColor': '#25252520',
+                'primaryTextColor': '#ffffff',
+                'secondaryTextColor': '#e0e0e0',
+                'tertiaryTextColor': '#cccccc',
+                'lineColor': '#569cd6',
+                'mainBkg': 'transparent',
+                'nodeBorder': '#569cd6',
+                'clusterBkg': 'rgba(10, 10, 15, 0.2)',
+                'clusterBorder': '#ffffff22',
+                'defaultLinkColor': '#569cd6',
+                'fontFamily': 'PixelOperator, monospace',
+                'fontSize': '16px'
+            }
+        }
+    }%%
+
+    %% External Ports with enhanced shapes
+    Gateway((API Gateway))
+    Core{Core Services}
+    Storage[(Infrastructure Layer)]
 
     subgraph "Data Patterns"
         direction LR
-        subgraph "Data Flow Patterns"
-            subgraph "Ingestion Patterns"
-                BatchIngestion[Batch Ingestion]
-                StreamIngestion[Stream Ingestion]
-                EventIngestion[Event Ingestion]
-                ChangeDataCapture[CDC]
+        
+        subgraph "Ingestion & Processing"
+            direction TB
+            
+            subgraph "Data Collection"
+                BatchIngestion[/Batch ETL/]
+                StreamIngestion[/Stream Processing/]
+                EventIngestion[/Event Sourcing/]
+                ChangeDataCapture[/CDC Pipeline/]
             end
 
-            subgraph "Processing Patterns"
-                ETL[ETL Pipeline]
-                ELT[ELT Pipeline]
-                Streaming[Stream Processing]
-                Lambda[Lambda Architecture]
+            subgraph "Processing Models"
+                ETL[[ETL Workflows]]
+                ELT[[ELT Analytics]]
+                Streaming[[Real-time Processing]]
+                Lambda[[Lambda Architecture]]
+                Kappa[[Kappa Architecture]]
+            end
+
+            subgraph "Data Quality"
+                Validation{{Schema Validation}}
+                Enrichment{{Data Enrichment}}
+                Cleansing{{Data Cleansing}}
+                Monitoring{{Quality Monitoring}}
             end
         end
 
-        subgraph "Data Storage Patterns"
-            subgraph "Storage Models"
-                OLTP[OLTP Storage]
-                OLAP[OLAP Storage]
-                Vector[Vector Storage]
-                TimeSeries[TimeSeries Storage]
-                Document[Document Storage]
+        subgraph "Storage & Access"
+            direction TB
+            
+            subgraph "Storage Patterns"
+                OLTP[OLTP Store]
+                OLAP[OLAP Analytics]
+                Vector[Vector Store]
+                TimeSeries[Time Series DB]
+                Document[Document Store]
+                Graph[Graph Database]
             end
 
             subgraph "Access Patterns"
-                CQRS[CQRS Pattern]
-                EventSourcing[Event Sourcing]
+                CQRS[CQRS]
+                EventSourcing[Event Store]
                 MaterializedView[Materialized Views]
                 ReadReplica[Read Replicas]
+                CacheAside[Cache-Aside]
+                WriteThrough[Write-Through]
+            end
+
+            subgraph "Data Distribution"
+                Sharding[Data Sharding]
+                Replication[Replication]
+                Federation[Federation]
+                Partitioning[Partitioning]
             end
         end
 
-        subgraph "Data Consistency"
-            subgraph "Transaction Patterns"
-                ACID[ACID Transactions]
-                BASE[BASE Transactions]
+        subgraph "Consistency & Evolution"
+            direction TB
+            
+            subgraph "Data Consistency"
+                ACID[ACID Properties]
+                BASE[BASE Properties]
                 Saga[Saga Pattern]
-                TwoPhase[2PC]
+                TwoPhase[2PC Protocol]
+                Consensus[Consensus Protocol]
             end
 
-            subgraph "Consistency Models"
-                Strong[Strong Consistency]
-                Eventual[Eventual Consistency]
-                Causal[Causal Consistency]
-                Session[Session Consistency]
-            end
-        end
-
-        subgraph "Data Evolution"
-            subgraph "Schema Management"
+            subgraph "Data Evolution"
                 SchemaRegistry[Schema Registry]
                 VersionControl[Version Control]
                 Migration[Schema Migration]
                 Validation[Schema Validation]
+                DataLifecycle[Data Lifecycle]
             end
 
-            subgraph "Data Lifecycle"
-                Archival[Data Archival]
-                Retention[Data Retention]
-                Purging[Data Purging]
-                Recovery[Data Recovery]
+            subgraph "Observability"
+                Metrics[Metrics Collection]
+                Tracing[Data Lineage]
+                Logging[Audit Logging]
+                Alerting[Alert System]
             end
         end
     end
 
-    %% External Connections
-    Gateway -->|"Write Request"| CQRS
-    Gateway -->|"Read Request"| ReadReplica
-    Core -->|"Process"| ETL
-    Core -->|"Store"| OLTP
-    Storage -->|"Archive"| Archival
+    %% Enhanced Core Pattern Relationships with varied line styles
+    Gateway ==>|"Write"| CQRS
+    Gateway ==>|"Read"| CacheAside
+    Core -.->|"Process"| Streaming
+    Core -.->|"Store"| Vector
+    Storage -->|"Manage"| DataLifecycle
 
-    %% Style Definitions
-    classDef port fill:#f9f,stroke:#333,stroke-width:4px;
-    classDef flow fill:#ebf5ff,stroke:#004d99,stroke-width:2px;
-    classDef store fill:#ebffeb,stroke:#006600,stroke-width:2px;
-    classDef consist fill:#fff2eb,stroke:#994d00,stroke-width:2px;
-    classDef evolve fill:#f5ebff,stroke:#4d0099,stroke-width:2px;
+    %% Pattern Interconnections with meaningful line styles
+    BatchIngestion ==>|"Batch"| ETL
+    StreamIngestion -.->|"Real-time"| Streaming
+    EventIngestion -.->|"Events"| EventSourcing
+    ChangeDataCapture -.->|"Changes"| Lambda
 
-    %% Apply styles
-    class Gateway,Core,Storage port;
-    class BatchIngestion,StreamIngestion,EventIngestion,ChangeDataCapture,ETL,ELT,Streaming,Lambda flow;
-    class OLTP,OLAP,Vector,TimeSeries,Document,CQRS,EventSourcing,MaterializedView,ReadReplica store;
-    class ACID,BASE,Saga,TwoPhase,Strong,Eventual,Causal,Session consist;
-    class SchemaRegistry,VersionControl,Migration,Validation,Archival,Retention,Purging,Recovery evolve;
+    %% Storage flows with thick arrows for critical paths
+    ETL ==>|"Write"| OLTP
+    ELT ==>|"Analytics"| OLAP
+    Streaming -.->|"Time Series"| TimeSeries
+    
+    %% Access patterns with dotted lines for async operations
+    OLTP -.->|"Views"| MaterializedView
+    OLAP -.->|"Replicate"| ReadReplica
+    Vector -.->|"Cache"| CacheAside
+    
+    %% Consistency flows with thick arrows for critical paths
+    ACID ==>|"Ensure"| TwoPhase
+    BASE -->|"Enable"| Saga
+    SchemaRegistry ==>|"Control"| Migration
+
+    %% Monitoring Connections with dotted lines for background operations
+    Metrics -.->|"Alert"| Alerting
+    Tracing -.->|"Record"| Logging
+    Validation -.->|"Check"| Monitoring
+
+    %% Basic class assignments
+    class Gateway,Core,Storage gateway
+    class DataOps,EventEngine,InferencePipeline,TrainingPipeline processor
+    class StreamAnalytics,VectorOps,ModelMetrics service
+    class StateManager,ModelRegistry,ExperimentMgr manager
+    class LakeRouter,StreamRouter,CortexRouter,ForgeRouter router

@@ -1,106 +1,131 @@
 graph TD
-    %% External Ports
-    External[[External Layer Port]]
-    Core[[Core Services Port]]
-    ServiceMesh[[Service Mesh Port]]
+    %% Initialize with theme matching core-services
+    %%{
+        init: {
+            'theme': 'dark',
+            'themeVariables': {
+                'darkMode': true,
+                'background': 'transparent',
+                'primaryColor': '#1c1c2420',
+                'secondaryColor': '#14141920',
+                'tertiaryColor': '#25252520',
+                'primaryTextColor': '#ffffff',
+                'secondaryTextColor': '#e0e0e0',
+                'tertiaryTextColor': '#cccccc',
+                'lineColor': '#569cd6',
+                'mainBkg': 'transparent',
+                'nodeBorder': '#569cd6',
+                'clusterBkg': 'rgba(10, 10, 15, 0.2)',
+                'clusterBorder': '#ffffff22',
+                'defaultLinkColor': '#569cd6',
+                'fontFamily': 'PixelOperator, monospace',
+                'fontSize': '16px'
+            }
+        }
+    }%%
+
+    %% External Ports with enhanced shapes
+    External((External Layer))
+    Core((Core Services))
+    ServiceMesh((Service Mesh))
 
     subgraph "Gateway Layer"
         direction LR
         subgraph "Load Balancing"
-            LB[NGINX Load Balancer]
-            SSL[SSL Termination]
-            WAF[Web Application Firewall]
-            RateLimit[Rate Limiting]
+            LB[[NGINX Load Balancer]]
+            SSL{{SSL Termination}}
+            WAF{{Web Application Firewall}}
+            RateLimit>Rate Limiting]
 
             subgraph "Load Balancer Config"
-                UpstreamRules[Upstream Rules]
-                SSLConfig[SSL Configuration]
-                WAFRules[WAF Rule Sets]
-                RateLimits[Rate Limit Rules]
+                UpstreamRules[/Upstream Rules/]
+                SSLConfig[/SSL Configuration/]
+                WAFRules[/WAF Rule Sets/]
+                RateLimits[/Rate Limit Rules/]
             end
         end
 
         subgraph "Authentication"
             subgraph "External Auth"
-                OAuth[OAuth Service]
-                JWT[JWT Service]
-                TokenMgmt[Token Management]
+                OAuth[[OAuth Service]]
+                JWT[[JWT Service]]
+                TokenMgmt[[Token Management]]
                 
                 subgraph "Token Handlers"
-                    TokenValidator[Token Validator]
-                    TokenRefresher[Token Refresher]
-                    TokenRevocation[Token Revocation]
+                    TokenValidator>Token Validator]
+                    TokenRefresher>Token Refresher]
+                    TokenRevocation>Token Revocation]
                 end
             end
             
             subgraph "Internal Auth"
-                MTLS[mTLS Handler]
-                APIKey[API Key Manager]
-                ServiceAuth[Service Auth]
-                ServiceReg[Service Registry]
+                MTLS{{mTLS Handler}}
+                APIKey{{API Key Manager}}
+                ServiceAuth[[Service Auth]]
+                ServiceReg[(Service Registry)]
                 
                 subgraph "Service Security"
-                    CertManager[Certificate Manager]
-                    KeyRotation[Key Rotation]
-                    AccessControl[Access Control]
+                    CertManager>Certificate Manager]
+                    KeyRotation>Key Rotation]
+                    AccessControl>Access Control]
                 end
             end
         end
 
         subgraph "Nexus Service"
-            Router[Request Router]
-            APIGateway[API Gateway]
-            StateManager[State Manager]
-            Validator[Request Validator]
+            Router[[Request Router]]
+            APIGateway[[API Gateway]]
+            StateManager[(State Manager)]
+            Validator>Request Validator]
             
             subgraph "Router Rules"
-                DataOps[Data Operations]
-                StreamOps[Stream Operations]
-                AIops[AI Operations]
+                DataOps{Data Operations}
+                StreamOps{Stream Operations}
+                AIops{AI Operations}
                 
                 subgraph "Operation Handlers"
-                    RequestTransform[Request Transform]
-                    ResponseTransform[Response Transform]
-                    ErrorHandler[Error Handler]
+                    RequestTransform[/Request Transform/]
+                    ResponseTransform[/Response Transform/]
+                    ErrorHandler{{Error Handler}}
                 end
             end
         end
     end
 
-    %% External Connections
-    External -->|"Incoming Requests"| LB
-    LB -->|"Validated Traffic"| WAF
-    WAF -->|"Clean Traffic"| Router
+    %% Enhanced External Connections
+    External ==>|"Incoming Requests"| LB
+    LB ==>|"Validated Traffic"| WAF
+    WAF ==>|"Clean Traffic"| Router
 
-    %% Auth Flows
-    Router -->|"Auth Check"| OAuth
-    OAuth -->|"Token"| JWT
-    JWT -->|"Validated"| TokenMgmt
+    %% Enhanced Auth Flows
+    Router -.->|"Auth Check"| OAuth
+    OAuth ==>|"Token"| JWT
+    JWT ==>|"Validated"| TokenMgmt
 
-    %% Service Auth
-    Router -->|"Service Auth"| MTLS
-    MTLS -->|"Cert Validation"| ServiceAuth
-    ServiceAuth -->|"Registry Check"| ServiceReg
+    %% Enhanced Service Auth
+    Router -.->|"Service Auth"| MTLS
+    MTLS ==>|"Cert Validation"| ServiceAuth
+    ServiceAuth ==>|"Registry Check"| ServiceReg
 
-    %% Core Service Routes
-    Router -->|"Data Requests"| DataOps
-    Router -->|"Stream Requests"| StreamOps
-    Router -->|"AI Requests"| AIops
-    DataOps & StreamOps & AIops -->|"Routed Requests"| Core
+    %% Enhanced Core Service Routes
+    Router ==>|"Data Requests"| DataOps
+    Router ==>|"Stream Requests"| StreamOps
+    Router ==>|"AI Requests"| AIops
+    DataOps & StreamOps & AIops ==>|"Routed Requests"| Core
 
-    %% Service Discovery
-    ServiceReg -->|"Service Updates"| ServiceMesh
+    %% Enhanced Service Discovery
+    ServiceReg -.->|"Service Updates"| ServiceMesh
 
     %% Style Definitions
-    classDef port fill:#f9f,stroke:#333,stroke-width:4px;
-    classDef lb fill:#ebf5ff,stroke:#004d99,stroke-width:2px;
-    classDef auth fill:#f5ebff,stroke:#4d0099,stroke-width:2px;
-    classDef router fill:#ebffeb,stroke:#006600,stroke-width:2px;
-    classDef handler fill:#fff2eb,stroke:#994d00,stroke-width:2px;
+    classDef port fill:#fff5f5,stroke:#cc0000,stroke-width:3px
+    classDef lb fill:#ebf5ff,stroke:#004d99,stroke-width:3px
+    classDef auth fill:#f5ebff,stroke:#4d0099,stroke-width:2px
+    classDef router fill:#ebffeb,stroke:#006600,stroke-width:2px
+    classDef handler fill:#fff2eb,stroke:#994d00,stroke-width:2px
 
     %% Apply styles
-    class External,Core,ServiceMesh port;
-    class LB,SSL,WAF,RateLimit lb;
-    class OAuth,JWT,MTLS,ServiceAuth,TokenMgmt auth;
-    class Router,APIGateway,DataOps,StreamOps,AIops router;
-    class RequestTransform,ResponseTransform,ErrorHandler,TokenValidator,TokenRefresher,TokenRevocation handler; 
+    class External,Core,ServiceMesh port
+    class LB,SSL,WAF,RateLimit lb
+    class OAuth,JWT,MTLS,ServiceAuth,TokenMgmt auth
+    class Router,APIGateway,DataOps,StreamOps,AIops router
+    class RequestTransform,ResponseTransform,ErrorHandler,TokenValidator,TokenRefresher,TokenRevocation handler

@@ -1,71 +1,119 @@
 graph TD
-    %% External Ports
-    Gateway[[Gateway Layer Port]]
-    Core[[Core Services Port]]
-    Infrastructure[[Infrastructure Layer Port]]
+    %% Initialize with theme matching core-services
+    %%{
+        init: {
+            'theme': 'dark',
+            'themeVariables': {
+                'darkMode': true,
+                'background': 'transparent',
+                'primaryColor': '#1c1c2420',
+                'secondaryColor': '#14141920',
+                'tertiaryColor': '#25252520',
+                'primaryTextColor': '#ffffff',
+                'secondaryTextColor': '#e0e0e0',
+                'tertiaryTextColor': '#cccccc',
+                'lineColor': '#569cd6',
+                'mainBkg': 'transparent',
+                'nodeBorder': '#569cd6',
+                'clusterBkg': 'rgba(10, 10, 15, 0.2)',
+                'clusterBorder': '#ffffff22',
+                'defaultLinkColor': '#569cd6',
+                'fontFamily': 'PixelOperator, monospace',
+                'fontSize': '16px'
+            }
+        }
+    }%%
+
+    %% External Ports with enhanced shapes
+    Gateway((Gateway Layer))
+    Core((Core Services))
+    Infrastructure((Infrastructure Layer))
 
     subgraph "Service Mesh"
-        direction LR
-        subgraph "Communication"
-            gRPC[gRPC Services]
-            RESTServices[REST Services]
-            MessageQueue[Message Queue]
-            ProtoSerializer[Protocol Serializer]
-            LoadBalancer[Load Balancer]
-            CircuitBreaker[Circuit Breaker]
-            Retry[Retry Handler]
-        end
-        
-        subgraph "Service Management"
-            Consul[Consul]
-            ServiceRegistry[Service Registry]
-            HealthCheck[Health Check]
-            Registration[Service Registration]
-            Discovery[Service Discovery]
-            Resolution[Service Resolution]
+        direction TB
+        subgraph "Protocol Layer"
+            direction LR
+            subgraph "Communication"
+                gRPC[[gRPC Services]]
+                RESTServices[[REST Services]]
+                MessageQueue[(Message Queue)]
+                ProtoSerializer{{Protocol Serializer}}
+            end
+
+            subgraph "Load Management"
+                LoadBalancer>Load Balancer]
+                CircuitBreaker>Circuit Breaker]
+                Retry>Retry Handler]
+            end
         end
 
-        subgraph "Resilience"
-            Failover[Failover Handler]
-            Timeout[Timeout Handler]
-            Bulkhead[Bulkhead Pattern]
-            RouteRules[Routing Rules]
-            LoadBalancing[Load Balancing]
-            TrafficSplit[Traffic Splitting]
+        subgraph "Service Control"
+            direction LR
+            subgraph "Service Management"
+                Consul[[Consul]]
+                ServiceRegistry[(Service Registry)]
+                HealthCheck{{Health Check}}
+                Registration>Service Registration]
+                Discovery>Service Discovery]
+                Resolution>Service Resolution]
+            end
+
+            subgraph "Resilience Patterns"
+                Failover{{Failover Handler}}
+                Timeout{{Timeout Handler}}
+                Bulkhead{{Bulkhead Pattern}}
+                RouteRules[/Routing Rules/]
+                LoadBalancing[/Load Balancing/]
+                TrafficSplit[/Traffic Splitting/]
+            end
         end
 
-        subgraph "Observability"
-            MetricsCollector[Metrics Collector]
-            TracingCollector[Tracing Collector]
-            LogCollector[Log Collector]
-            HealthRegistry[Health Registry]
-            MetricsAggregator[Metrics Aggregator]
-            LogFormatter[Log Formatter]
+        subgraph "Observability Layer"
+            direction LR
+            subgraph "Collectors"
+                MetricsCollector[[Metrics Collector]]
+                TracingCollector[[Tracing Collector]]
+                LogCollector[[Log Collector]]
+            end
+
+            subgraph "Aggregation"
+                HealthRegistry[(Health Registry)]
+                MetricsAggregator>Metrics Aggregator]
+                LogFormatter>Log Formatter]
+            end
         end
     end
 
-    %% External Connections
-    Gateway -->|"Service Discovery"| ServiceRegistry
-    Core -->|"Health Updates"| HealthCheck
-    Infrastructure -->|"Telemetry"| MetricsCollector
+    %% Enhanced External Connections
+    Gateway ==>|"Service Discovery"| ServiceRegistry
+    Core ==>|"Health Updates"| HealthCheck
+    Infrastructure -.->|"Telemetry"| MetricsCollector
 
-    %% Internal Flows
-    gRPC & RESTServices & MessageQueue -->|"Protocol"| ProtoSerializer
-    ServiceRegistry -->|"Updates"| Discovery
-    HealthCheck -->|"Status"| HealthRegistry
-    RouteRules -->|"Config"| LoadBalancing
+    %% Enhanced Internal Flows
+    gRPC & RESTServices & MessageQueue ==>|"Protocol"| ProtoSerializer
+    ServiceRegistry ==>|"Updates"| Discovery
+    HealthCheck ==>|"Status"| HealthRegistry
+    RouteRules -.->|"Config"| LoadBalancing
+
+    %% Additional Service Mesh Flows
+    ProtoSerializer -->|"Transform"| LoadBalancer
+    LoadBalancer -->|"Route"| CircuitBreaker
+    CircuitBreaker -->|"Protect"| Retry
+    Discovery -.->|"Resolve"| Resolution
+    Resolution -.->|"Balance"| LoadBalancing
+    LoadBalancing -.->|"Split"| TrafficSplit
 
     %% Style Definitions
-    classDef port fill:#f9f,stroke:#333,stroke-width:4px;
-    classDef mesh fill:#f0f0ff,stroke:#6666cc,stroke-width:2px;
-    classDef comm fill:#ebf5ff,stroke:#004d99,stroke-width:2px;
-    classDef discovery fill:#ebffeb,stroke:#006600,stroke-width:2px;
-    classDef resilience fill:#fff2eb,stroke:#994d00,stroke-width:2px;
-    classDef observe fill:#f5ebff,stroke:#4d0099,stroke-width:2px;
+    classDef port fill:#fff5f5,stroke:#cc0000,stroke-width:3px
+    classDef mesh fill:#f0f0ff,stroke:#6666cc,stroke-width:2px
+    classDef comm fill:#ebf5ff,stroke:#004d99,stroke-width:2px
+    classDef discovery fill:#ebffeb,stroke:#006600,stroke-width:2px
+    classDef resilience fill:#fff2eb,stroke:#994d00,stroke-width:2px
+    classDef observe fill:#f5ebff,stroke:#4d0099,stroke-width:2px
 
     %% Apply styles
     class Gateway,Core,Infrastructure port;
     class gRPC,RESTServices,MessageQueue,ProtoSerializer,LoadBalancer,CircuitBreaker,Retry comm;
     class Consul,ServiceRegistry,HealthCheck,Registration,Discovery,Resolution discovery;
     class Failover,Timeout,Bulkhead,RouteRules,LoadBalancing,TrafficSplit resilience;
-    class MetricsCollector,TracingCollector,LogCollector,HealthRegistry,MetricsAggregator,LogFormatter observe; 
+    class MetricsCollector,TracingCollector,LogCollector,HealthRegistry,MetricsAggregator,LogFormatter observe;

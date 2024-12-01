@@ -1,99 +1,122 @@
 graph TD
-    %% External Ports
-    Frontend[[Frontend Layer Port]]
-    Gateway[[Gateway Layer Port]]
-    Auth[[Authentication Port]]
+    %% Initialize with theme matching core-services
+    %%{
+        init: {
+            'theme': 'dark',
+            'themeVariables': {
+                'darkMode': true,
+                'background': 'transparent',
+                'primaryColor': '#1c1c2420',
+                'secondaryColor': '#14141920',
+                'tertiaryColor': '#25252520',
+                'primaryTextColor': '#ffffff',
+                'secondaryTextColor': '#e0e0e0',
+                'tertiaryTextColor': '#cccccc',
+                'lineColor': '#569cd6',
+                'mainBkg': 'transparent',
+                'nodeBorder': '#569cd6',
+                'clusterBkg': 'rgba(10, 10, 15, 0.2)',
+                'clusterBorder': '#ffffff22',
+                'defaultLinkColor': '#569cd6',
+                'fontFamily': 'PixelOperator, monospace',
+                'fontSize': '16px'
+            }
+        }
+    }%%
+
+    %% External Ports with enhanced shapes
+    Frontend((Frontend Layer))
+    Gateway((API Gateway))
+    Auth((Authentication))
 
     subgraph "External Layer"
         direction LR
         subgraph "Client Layer"
-            WebClient[Web Client]
-            MobileClient[Mobile Client]
-            ThirdParty[Third Party Apps]
+            WebClient[[Web Client]]
+            MobileClient[[Mobile Client]]
+            ThirdParty[[Third Party Apps]]
 
             subgraph "Client Protocols"
-                REST[REST API]
-                GraphQL[GraphQL API]
-                WS[WebSocket]
+                REST{REST API}
+                GraphQL{GraphQL API}
+                WS{WebSocket}
             end
 
-            %% Protocol Details
             subgraph "Protocol Handlers"
-                RESTHandler[REST Handler]
-                GraphQLHandler[GraphQL Handler]
-                WSHandler[WebSocket Handler]
-                ProtocolValidator[Protocol Validator]
+                RESTHandler[[REST Handler]]
+                GraphQLHandler[[GraphQL Handler]]
+                WSHandler[[WebSocket Handler]]
+                ProtocolValidator>Protocol Validator]
             end
         end
 
         subgraph "Third Party Services"
             direction LR
             subgraph "Google Services"
-                YouTube[YouTube API]
-                Maps[Maps API]
-                Fit[Fit API]
-                Photos[Photos API]
-                Play[Play API]
-                GOAuth[Google OAuth]
-                GToken[Google Token]
+                YouTube([YouTube API])
+                Maps([Maps API])
+                Fit([Fit API])
+                Photos([Photos API])
+                Play([Play API])
+                GOAuth{{Google OAuth}}
+                GToken[(Google Token)]
             end
             
             subgraph "Microsoft Services"
-                MSGraph[MS Graph API]
-                OneDrive[OneDrive API]
-                Teams[Teams API]
-                MSOAuth[Microsoft OAuth]
-                MSToken[Microsoft Token]
+                MSGraph([MS Graph API])
+                OneDrive([OneDrive API])
+                Teams([Teams API])
+                MSOAuth{{Microsoft OAuth}}
+                MSToken[(Microsoft Token)]
             end
             
             subgraph "Entertainment Services"
-                Spotify[Spotify API]
-                Discord[Discord API]
-                Twitch[Twitch API]
-                EntOAuth[Entertainment OAuth]
-                EntToken[Entertainment Token]
+                Spotify([Spotify API])
+                Discord([Discord API])
+                Twitch([Twitch API])
+                EntOAuth{{Entertainment OAuth}}
+                EntToken[(Entertainment Token)]
             end
 
-            %% Service Management
             subgraph "Service Management"
-                TokenManager[Token Manager]
-                RateController[Rate Controller]
-                ServiceMonitor[Service Monitor]
+                TokenManager[[Token Manager]]
+                RateController>Rate Controller]
+                ServiceMonitor[[Service Monitor]]
             end
         end
     end
 
-    %% External Connections
-    Frontend -->|"Client Requests"| WebClient
-    Frontend -->|"Mobile Requests"| MobileClient
-    Frontend -->|"3rd Party Requests"| ThirdParty
+    %% Enhanced External Connections with varied styles
+    Frontend ==>|"Client Requests"| WebClient
+    Frontend ==>|"Mobile Requests"| MobileClient
+    Frontend ==>|"3rd Party Requests"| ThirdParty
 
-    WebClient & MobileClient & ThirdParty -->|"Protocol Routes"| REST & GraphQL & WS
-    REST & GraphQL & WS -->|"Validated Requests"| Gateway
+    WebClient & MobileClient & ThirdParty -.->|"Protocol Routes"| REST & GraphQL & WS
+    REST & GraphQL & WS ==>|"Validated Requests"| Gateway
 
-    %% Auth Flows
-    YouTube & Maps & Fit & Photos & Play --> GOAuth
-    GOAuth --> GToken
-    MSGraph & OneDrive & Teams --> MSOAuth
-    MSOAuth --> MSToken
-    Spotify & Discord & Twitch --> EntOAuth
-    EntOAuth --> EntToken
+    %% Enhanced Auth Flows with meaningful line styles
+    YouTube & Maps & Fit & Photos & Play -.->|"Auth"| GOAuth
+    GOAuth ==>|"Token"| GToken
+    MSGraph & OneDrive & Teams -.->|"Auth"| MSOAuth
+    MSOAuth ==>|"Token"| MSToken
+    Spotify & Discord & Twitch -.->|"Auth"| EntOAuth
+    EntOAuth ==>|"Token"| EntToken
 
-    GToken & MSToken & EntToken --> TokenManager
-    TokenManager -->|"Token Validation"| Auth
+    GToken & MSToken & EntToken ==>|"Validate"| TokenManager
+    TokenManager ==>|"Token Validation"| Auth
 
     %% Style Definitions
-    classDef port fill:#f9f,stroke:#333,stroke-width:4px;
-    classDef client fill:#ffebeb,stroke:#990000,stroke-width:2px;
-    classDef protocol fill:#ebf5ff,stroke:#004d99,stroke-width:2px;
-    classDef service fill:#ebffeb,stroke:#006600,stroke-width:2px;
-    classDef auth fill:#f5ebff,stroke:#4d0099,stroke-width:2px;
-    classDef manager fill:#fff2eb,stroke:#994d00,stroke-width:2px;
+    classDef external fill:#ffebeb,stroke:#990000,stroke-width:2px
+    classDef client fill:#ebf5ff,stroke:#004d99,stroke-width:2px
+    classDef protocol fill:#ebffeb,stroke:#006600,stroke-width:2px
+    classDef service fill:#ebfffd,stroke:#006666,stroke-width:2px
+    classDef auth fill:#f5ebff,stroke:#4d0099,stroke-width:2px
+    classDef manager fill:#fff2eb,stroke:#994d00,stroke-width:2px
 
     %% Apply styles
-    class Frontend,Gateway,Auth port;
-    class WebClient,MobileClient,ThirdParty client;
-    class REST,GraphQL,WS,RESTHandler,GraphQLHandler,WSHandler protocol;
-    class YouTube,Maps,Fit,Photos,Play,MSGraph,OneDrive,Teams,Spotify,Discord,Twitch service;
-    class GOAuth,MSOAuth,EntOAuth,GToken,MSToken,EntToken auth;
-    class TokenManager,RateController,ServiceMonitor manager; 
+    class Frontend,Gateway,Auth external
+    class WebClient,MobileClient,ThirdParty client
+    class REST,GraphQL,WS,RESTHandler,GraphQLHandler,WSHandler protocol
+    class YouTube,Maps,Fit,Photos,Play,MSGraph,OneDrive,Teams,Spotify,Discord,Twitch service
+    class GOAuth,MSOAuth,EntOAuth,GToken,MSToken,EntToken auth
+    class TokenManager,RateController,ServiceMonitor manager
