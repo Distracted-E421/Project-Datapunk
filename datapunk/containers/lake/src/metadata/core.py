@@ -16,6 +16,11 @@ class MetadataType(Enum):
     SECURITY = "security"
     QUALITY = "quality"
     GOVERNANCE = "governance"
+    ACCESS_PATTERN = "access_pattern"
+    DEPENDENCY = "dependency"
+    PERFORMANCE = "performance"
+    CACHE = "cache"
+    RESOURCE = "resource"
 
 class SchemaMetadata(BaseModel):
     """Schema metadata for a table or collection."""
@@ -95,6 +100,98 @@ class GovernanceMetadata(BaseModel):
     tags: List[str]
     documentation: Optional[str]
 
+class AccessPattern(BaseModel):
+    """Represents a data access pattern."""
+    pattern_type: str  # 'read', 'write', 'scan', 'seek'
+    frequency: int
+    avg_latency_ms: float
+    peak_latency_ms: float
+    bytes_accessed: int
+    timestamp: datetime
+    query_pattern: Optional[str]
+    index_used: Optional[str]
+
+class AccessPatternMetadata(BaseModel):
+    """Access pattern metadata for a table."""
+    table_name: str
+    patterns: List[AccessPattern]
+    last_updated: datetime
+    total_reads: int
+    total_writes: int
+    hot_spots: Dict[str, float]  # column -> access frequency
+    cold_spots: Dict[str, float]
+
+class DependencyType(Enum):
+    """Types of dependencies between data objects."""
+    FOREIGN_KEY = "foreign_key"
+    VIEW = "view"
+    MATERIALIZED_VIEW = "materialized_view"
+    TRIGGER = "trigger"
+    FUNCTION = "function"
+    ETL = "etl"
+    APPLICATION = "application"
+
+class Dependency(BaseModel):
+    """Represents a dependency between data objects."""
+    source: str
+    target: str
+    dependency_type: DependencyType
+    properties: Dict[str, Any]
+    is_blocking: bool
+    impact_level: str  # 'high', 'medium', 'low'
+    created_at: datetime
+    validated_at: datetime
+
+class DependencyMetadata(BaseModel):
+    """Dependency metadata for a table."""
+    table_name: str
+    upstream: List[Dependency]
+    downstream: List[Dependency]
+    last_validated: datetime
+    is_valid: bool
+    validation_errors: List[str]
+
+class PerformanceMetric(BaseModel):
+    """Performance metric for operations."""
+    operation_type: str
+    execution_time_ms: float
+    cpu_time_ms: float
+    io_time_ms: float
+    memory_mb: float
+    timestamp: datetime
+
+class PerformanceMetadata(BaseModel):
+    """Performance metadata for a table."""
+    table_name: str
+    metrics: List[PerformanceMetric]
+    last_updated: datetime
+    avg_query_time_ms: float
+    peak_memory_mb: float
+    bottlenecks: List[str]
+
+class CacheMetadata(BaseModel):
+    """Cache behavior metadata."""
+    table_name: str
+    hit_rate: float
+    miss_rate: float
+    eviction_rate: float
+    cache_size_mb: float
+    cached_rows: int
+    last_updated: datetime
+    access_patterns: Dict[str, float]
+
+class ResourceMetadata(BaseModel):
+    """Resource usage metadata."""
+    table_name: str
+    disk_usage_mb: float
+    index_size_mb: float
+    temp_space_mb: float
+    peak_connections: int
+    avg_active_time_ms: float
+    last_vacuum: datetime
+    last_analyze: datetime
+    bloat_ratio: float
+
 class MetadataStore(ABC):
     """Abstract base class for metadata storage."""
     
@@ -136,6 +233,56 @@ class MetadataStore(ABC):
     @abstractmethod
     async def update_quality(self, metadata: QualityMetadata) -> None:
         """Update quality metadata."""
+        pass
+    
+    @abstractmethod
+    async def get_access_patterns(self, table_name: str) -> Optional[AccessPatternMetadata]:
+        """Retrieve access pattern metadata."""
+        pass
+    
+    @abstractmethod
+    async def update_access_patterns(self, metadata: AccessPatternMetadata) -> None:
+        """Update access pattern metadata."""
+        pass
+    
+    @abstractmethod
+    async def get_dependencies(self, table_name: str) -> Optional[DependencyMetadata]:
+        """Retrieve dependency metadata."""
+        pass
+    
+    @abstractmethod
+    async def update_dependencies(self, metadata: DependencyMetadata) -> None:
+        """Update dependency metadata."""
+        pass
+    
+    @abstractmethod
+    async def get_performance(self, table_name: str) -> Optional[PerformanceMetadata]:
+        """Retrieve performance metadata."""
+        pass
+    
+    @abstractmethod
+    async def update_performance(self, metadata: PerformanceMetadata) -> None:
+        """Update performance metadata."""
+        pass
+    
+    @abstractmethod
+    async def get_cache_metadata(self, table_name: str) -> Optional[CacheMetadata]:
+        """Retrieve cache metadata."""
+        pass
+    
+    @abstractmethod
+    async def update_cache_metadata(self, metadata: CacheMetadata) -> None:
+        """Update cache metadata."""
+        pass
+    
+    @abstractmethod
+    async def get_resource_metadata(self, table_name: str) -> Optional[ResourceMetadata]:
+        """Retrieve resource usage metadata."""
+        pass
+    
+    @abstractmethod
+    async def update_resource_metadata(self, metadata: ResourceMetadata) -> None:
+        """Update resource usage metadata."""
         pass
 
 class PostgresMetadataStore(MetadataStore):
@@ -184,6 +331,26 @@ class MetadataManager:
             quality = await self._analyze_quality(table_name)
             await self.store.update_quality(quality)
             
+            # Update access patterns
+            access_patterns = await self._analyze_access_patterns(table_name)
+            await self.store.update_access_patterns(access_patterns)
+            
+            # Update dependencies
+            dependencies = await self._analyze_dependencies(table_name)
+            await self.store.update_dependencies(dependencies)
+            
+            # Update performance metrics
+            performance = await self._analyze_performance(table_name)
+            await self.store.update_performance(performance)
+            
+            # Update cache metadata
+            cache = await self._analyze_cache(table_name)
+            await self.store.update_cache_metadata(cache)
+            
+            # Update resource usage metadata
+            resource = await self._analyze_resource(table_name)
+            await self.store.update_resource_metadata(resource)
+            
             self.logger.info(f"Successfully analyzed table: {table_name}")
             
         except Exception as e:
@@ -202,6 +369,31 @@ class MetadataManager:
     
     async def _analyze_quality(self, table_name: str) -> QualityMetadata:
         """Analyze and extract quality metadata."""
+        # Implementation
+        pass
+    
+    async def _analyze_access_patterns(self, table_name: str) -> AccessPatternMetadata:
+        """Analyze and extract access pattern metadata."""
+        # Implementation
+        pass
+    
+    async def _analyze_dependencies(self, table_name: str) -> DependencyMetadata:
+        """Analyze and extract dependency metadata."""
+        # Implementation
+        pass
+    
+    async def _analyze_performance(self, table_name: str) -> PerformanceMetadata:
+        """Analyze and extract performance metadata."""
+        # Implementation
+        pass
+    
+    async def _analyze_cache(self, table_name: str) -> CacheMetadata:
+        """Analyze and extract cache metadata."""
+        # Implementation
+        pass
+    
+    async def _analyze_resource(self, table_name: str) -> ResourceMetadata:
+        """Analyze and extract resource usage metadata."""
         # Implementation
         pass
     
@@ -250,7 +442,12 @@ class MetadataManager:
             "schema": await self.store.get_schema(table_name),
             "statistics": await self.store.get_statistics(table_name),
             "quality": await self.store.get_quality(table_name),
-            "lineage": await self.store.get_lineage(table_name)
+            "lineage": await self.store.get_lineage(table_name),
+            "access_patterns": await self.store.get_access_patterns(table_name),
+            "dependencies": await self.store.get_dependencies(table_name),
+            "performance": await self.store.get_performance(table_name),
+            "cache": await self.store.get_cache_metadata(table_name),
+            "resource": await self.store.get_resource_metadata(table_name)
         }
     
     async def refresh_statistics(self, table_name: str) -> None:
