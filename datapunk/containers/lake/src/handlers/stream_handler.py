@@ -2,95 +2,112 @@
 # Manages real-time data ingestion and storage with type-specific processing
 # Part of the Core Services layer (see sys-arch.mmd)
 
-from typing import Dict, Any
+from typing import Dict, Any, List
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 from datetime import datetime
-import json
+import logging
+
 from ..processing.validator import DataValidator
 from ..storage.stores import TimeSeriesStore, SpatialStore
 
-class StreamHandler:
-    """
-    Real-time stream data processor with specialized storage handlers
+logger = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/stream", tags=["stream"])
+
+class LocationRecord(BaseModel):
+    """Location record model"""
+    latitude: float
+    longitude: float
+    timestamp: datetime
+    source: str
+
+class LocationHistoryRequest(BaseModel):
+    """Location history request model"""
+    user_id: str
+    records: List[LocationRecord]
+
+class ActivityData(BaseModel):
+    """Activity data model"""
+    user_id: str
+    timestamp: datetime
+    metrics: Dict[str, float]
+    source: str
+
+class StreamResponse(BaseModel):
+    """Stream processing response model"""
+    status: str
+    processed: int
+    timestamp: datetime
+
+def init_stream_routes(timeseries_store: TimeSeriesStore, spatial_store: SpatialStore):
+    """Initialize stream routes with dependencies"""
     
-    Processes incoming data streams with type-specific handling:
-    - Location data → Spatial storage with GeoJSON formatting
-    - Activity data → Time series storage with metrics
+    validator = DataValidator()
     
-    NOTE: Critical for real-time data sovereignty - enables immediate data control
-    FIXME: Add proper error recovery for failed stream processing
-    """
-    
-    def __init__(self, timeseries_store: TimeSeriesStore, spatial_store: SpatialStore):
-        # Initialize storage engines for different data types
-        self.timeseries_store = timeseries_store
-        self.spatial_store = spatial_store
-        self.validator = DataValidator()
-    
-    async def process_stream_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Routes incoming stream data to appropriate processor based on content type
-        Ensures data validation before processing
-        """
+    @router.post("/location", response_model=StreamResponse)
+    async def process_location_history(request: LocationHistoryRequest):
+        """Handle location history stream data"""
         try:
-            # Validate basic structure before processing
-            if 'payload' not in data:
-                raise ValueError("Missing payload in stream data")
-                
-            payload = data['payload']
+            processed_count = 0
             
-            # Route to specialized processors based on content type
-            if payload['data']['content_type'] == 'location_history':
-                return await self._process_location_history(payload)
-            elif payload['data']['content_type'] == 'activity_data':
-                return await self._process_activity_data(payload)
-            else:
-                raise ValueError(f"Unsupported content type: {payload['data']['content_type']}")
-                
-        except Exception as e:
-            return {
-                'status': 'error',
-                'error': str(e),
-                'timestamp': datetime.utcnow().isoformat()
-            }
-    
-    async def _process_location_history(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        """Process location history data"""
-        processed_count = 0
-        
-        for record in payload['data']['records']:
-            # Create GeoJSON point
-            geom = {
-                'type': 'Point',
-                'coordinates': [record['longitude'], record['latitude']]
-            }
-            
-            # Store in spatial database
-            await self.spatial_store.insert_location(
-                geom=geom,
-                properties={
-                    'user_id': payload['user_id'],
-                    'timestamp': record['timestamp'],
-                    'source': payload['data']['source']
+            for record in request.records:
+                # Create GeoJSON point
+                geom = {
+                    'type': 'Point',
+                    'coordinates': [record.longitude, record.latitude]
                 }
+                
+                # Store in spatial database
+                await spatial_store.insert_location(
+                    geom=geom,
+                    properties={
+                        'user_id': request.user_id,
+                        'timestamp': record.timestamp,
+                        'source': record.source
+                    }
+                )
+                processed_count += 1
+            
+            return StreamResponse(
+                status='success',
+                processed=processed_count,
+                timestamp=datetime.utcnow()
             )
-            processed_count += 1
-        
-        return {
-            'status': 'success',
-            'processed': processed_count,
-            'timestamp': datetime.utcnow().isoformat()
-        }
-    
-    async def _process_activity_data(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        """Process activity data"""
-        # Store in time series database
-        await self.timeseries_store.insert_metrics(
-            metrics=payload['data'],
-            timestamp=datetime.fromisoformat(payload['timestamp'])
-        )
-        
-        return {
-            'status': 'success',
-            'processed': 1,
-            'timestamp': datetime.utcnow().isoformat()
-        } 
+        except Exception as e:
+            logger.error(f"Location history processing failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    @router.post("/activity", response_model=StreamResponse)
+    async def process_activity_data(data: ActivityData):
+        """Handle activity stream data"""
+        try:
+            # Store in time series database
+            await timeseries_store.insert_metrics(
+                metrics=data.metrics,
+                timestamp=data.timestamp
+            )
+            
+            return StreamResponse(
+                status='success',
+                processed=1,
+                timestamp=datetime.utcnow()
+            )
+        except Exception as e:
+            logger.error(f"Activity data processing failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    @router.get("/stats")
+    async def get_stream_stats():
+        """Get stream processing statistics"""
+        try:
+            return {
+                'location_stats': await spatial_store.get_stats(),
+                'activity_stats': await timeseries_store.get_stats(),
+                'timestamp': datetime.utcnow()
+            }
+        except Exception as e:
+            logger.error(f"Failed to get stream stats: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    return router 
