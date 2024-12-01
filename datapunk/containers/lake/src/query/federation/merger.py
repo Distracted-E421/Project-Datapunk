@@ -5,6 +5,11 @@ import pandas as pd
 import numpy as np
 from .planner import DataSourceType
 from .executor import QueryResult
+from datetime import datetime
+import asyncio
+import logging
+from ..parser.core import QueryPlan, QueryNode
+from .splitter import SubQuery
 
 class MergeStrategy(Enum):
     """Available merge strategies."""
@@ -245,3 +250,333 @@ class ResultMerger:
             
         # Convert to list of dictionaries
         return result.to_dict("records")
+
+@dataclass
+class MergeStrategy:
+    """Strategy for merging query results."""
+    operation: str  # 'union', 'join', 'aggregate', etc.
+    parameters: Dict[str, Any]
+    estimated_memory: int  # bytes
+    parallelizable: bool
+
+class QueryMerger:
+    """Merges results from federated query execution."""
+    
+    def __init__(self, max_memory_mb: int = 1024):
+        self.max_memory_bytes = max_memory_mb * 1024 * 1024
+        self.logger = logging.getLogger(__name__)
+    
+    async def merge_results(self,
+                          results: List[Any],
+                          subqueries: List[SubQuery],
+                          original_plan: QueryPlan) -> Any:
+        """Merge results from multiple subqueries."""
+        try:
+            # Convert results to DataFrames for easier manipulation
+            dfs = [self._to_dataframe(result) for result in results]
+            
+            # Determine merge strategy
+            strategy = self._determine_merge_strategy(
+                subqueries, original_plan, dfs
+            )
+            
+            # Check memory requirements
+            self._check_memory_requirements(strategy, dfs)
+            
+            # Execute merge based on strategy
+            if strategy.operation == 'union':
+                return await self._merge_union(dfs, strategy)
+            elif strategy.operation == 'join':
+                return await self._merge_join(dfs, strategy)
+            elif strategy.operation == 'aggregate':
+                return await self._merge_aggregate(dfs, strategy)
+            else:
+                raise ValueError(f"Unsupported merge operation: {strategy.operation}")
+        except Exception as e:
+            self.logger.error(f"Error merging results: {e}")
+            raise
+    
+    def _to_dataframe(self, result: Any) -> pd.DataFrame:
+        """Convert query result to DataFrame."""
+        if isinstance(result, pd.DataFrame):
+            return result
+        elif isinstance(result, list):
+            return pd.DataFrame(result)
+        elif isinstance(result, dict):
+            return pd.DataFrame([result])
+        else:
+            raise ValueError(f"Unsupported result type: {type(result)}")
+    
+    def _determine_merge_strategy(self,
+                                subqueries: List[SubQuery],
+                                original_plan: QueryPlan,
+                                dfs: List[pd.DataFrame]) -> MergeStrategy:
+        """Determine how to merge the results."""
+        # Check for joins in original plan
+        if self._has_joins(original_plan):
+            return MergeStrategy(
+                operation='join',
+                parameters=self._extract_join_params(original_plan),
+                estimated_memory=self._estimate_join_memory(dfs),
+                parallelizable=True
+            )
+        
+        # Check for aggregations
+        elif self._has_aggregates(original_plan):
+            return MergeStrategy(
+                operation='aggregate',
+                parameters=self._extract_aggregate_params(original_plan),
+                estimated_memory=self._estimate_aggregate_memory(dfs),
+                parallelizable=True
+            )
+        
+        # Default to union
+        else:
+            return MergeStrategy(
+                operation='union',
+                parameters={},
+                estimated_memory=sum(df.memory_usage(deep=True).sum() for df in dfs),
+                parallelizable=True
+            )
+    
+    def _check_memory_requirements(self,
+                                 strategy: MergeStrategy,
+                                 dfs: List[pd.DataFrame]) -> None:
+        """Check if merge operation fits in memory."""
+        if strategy.estimated_memory > self.max_memory_bytes:
+            # Try to optimize memory usage
+            if strategy.operation == 'join':
+                self._optimize_join_memory(dfs, strategy)
+            elif strategy.operation == 'aggregate':
+                self._optimize_aggregate_memory(dfs, strategy)
+            
+            # Recheck after optimization
+            if strategy.estimated_memory > self.max_memory_bytes:
+                raise MemoryError(
+                    f"Merge operation requires {strategy.estimated_memory / 1024 / 1024}MB, "
+                    f"but only {self.max_memory_bytes / 1024 / 1024}MB available"
+                )
+    
+    async def _merge_union(self,
+                          dfs: List[pd.DataFrame],
+                          strategy: MergeStrategy) -> pd.DataFrame:
+        """Merge results using union operation."""
+        try:
+            # Ensure consistent column names
+            columns = set()
+            for df in dfs:
+                columns.update(df.columns)
+            
+            # Add missing columns with NaN values
+            aligned_dfs = []
+            for df in dfs:
+                missing_cols = columns - set(df.columns)
+                if missing_cols:
+                    df = df.copy()
+                    for col in missing_cols:
+                        df[col] = np.nan
+                aligned_dfs.append(df[sorted(columns)])
+            
+            # Perform union
+            if strategy.parallelizable and len(aligned_dfs) > 2:
+                # Parallel union for multiple DataFrames
+                chunk_size = max(2, len(aligned_dfs) // asyncio.get_event_loop().get_default_executor()._max_workers)
+                chunks = [aligned_dfs[i:i + chunk_size] for i in range(0, len(aligned_dfs), chunk_size)]
+                
+                async def union_chunk(chunk: List[pd.DataFrame]) -> pd.DataFrame:
+                    return pd.concat(chunk, ignore_index=True)
+                
+                tasks = [union_chunk(chunk) for chunk in chunks]
+                chunk_results = await asyncio.gather(*tasks)
+                return pd.concat(chunk_results, ignore_index=True)
+            else:
+                # Sequential union for small number of DataFrames
+                return pd.concat(aligned_dfs, ignore_index=True)
+        except Exception as e:
+            self.logger.error(f"Error in union merge: {e}")
+            raise
+    
+    async def _merge_join(self,
+                         dfs: List[pd.DataFrame],
+                         strategy: MergeStrategy) -> pd.DataFrame:
+        """Merge results using join operation."""
+        try:
+            join_keys = strategy.parameters.get('keys', [])
+            join_type = strategy.parameters.get('type', 'inner')
+            
+            if not join_keys:
+                raise ValueError("Join keys not specified in strategy")
+            
+            result = dfs[0]
+            remaining_dfs = dfs[1:]
+            
+            if strategy.parallelizable and len(remaining_dfs) > 1:
+                # Parallel joins
+                async def join_pair(left: pd.DataFrame,
+                                  right: pd.DataFrame) -> pd.DataFrame:
+                    return pd.merge(
+                        left, right,
+                        on=join_keys,
+                        how=join_type
+                    )
+                
+                while len(remaining_dfs) > 0:
+                    # Join in pairs
+                    pair_tasks = []
+                    for i in range(0, len(remaining_dfs), 2):
+                        if i + 1 < len(remaining_dfs):
+                            pair_tasks.append(
+                                join_pair(remaining_dfs[i], remaining_dfs[i + 1])
+                            )
+                        else:
+                            remaining_dfs[i] = remaining_dfs[i]
+                    
+                    if pair_tasks:
+                        pair_results = await asyncio.gather(*pair_tasks)
+                        remaining_dfs = list(pair_results)
+                    
+                    if len(remaining_dfs) == 1:
+                        result = await join_pair(result, remaining_dfs[0])
+                        break
+            else:
+                # Sequential joins
+                for df in remaining_dfs:
+                    result = pd.merge(
+                        result, df,
+                        on=join_keys,
+                        how=join_type
+                    )
+            
+            return result
+        except Exception as e:
+            self.logger.error(f"Error in join merge: {e}")
+            raise
+    
+    async def _merge_aggregate(self,
+                             dfs: List[pd.DataFrame],
+                             strategy: MergeStrategy) -> pd.DataFrame:
+        """Merge results using aggregation."""
+        try:
+            group_by = strategy.parameters.get('group_by', [])
+            aggregations = strategy.parameters.get('aggregations', {})
+            
+            if not aggregations:
+                raise ValueError("Aggregations not specified in strategy")
+            
+            if strategy.parallelizable and len(dfs) > 2:
+                # Parallel aggregation
+                chunk_size = max(2, len(dfs) // asyncio.get_event_loop().get_default_executor()._max_workers)
+                chunks = [dfs[i:i + chunk_size] for i in range(0, len(dfs), chunk_size)]
+                
+                async def aggregate_chunk(chunk: List[pd.DataFrame]) -> pd.DataFrame:
+                    combined = pd.concat(chunk, ignore_index=True)
+                    return combined.groupby(group_by).agg(aggregations)
+                
+                # Aggregate chunks in parallel
+                tasks = [aggregate_chunk(chunk) for chunk in chunks]
+                chunk_results = await asyncio.gather(*tasks)
+                
+                # Final aggregation of chunk results
+                final_df = pd.concat(chunk_results, ignore_index=True)
+                return final_df.groupby(group_by).agg(aggregations)
+            else:
+                # Sequential aggregation
+                combined = pd.concat(dfs, ignore_index=True)
+                return combined.groupby(group_by).agg(aggregations)
+        except Exception as e:
+            self.logger.error(f"Error in aggregate merge: {e}")
+            raise
+    
+    def _has_joins(self, plan: QueryPlan) -> bool:
+        """Check if plan contains join operations."""
+        def check_node(node: QueryNode) -> bool:
+            if node.operation_type.lower() == 'join':
+                return True
+            return any(check_node(child) for child in node.children)
+        return check_node(plan.root)
+    
+    def _has_aggregates(self, plan: QueryPlan) -> bool:
+        """Check if plan contains aggregate operations."""
+        def check_node(node: QueryNode) -> bool:
+            if node.operation_type.lower() == 'aggregate':
+                return True
+            return any(check_node(child) for child in node.children)
+        return check_node(plan.root)
+    
+    def _extract_join_params(self, plan: QueryPlan) -> Dict[str, Any]:
+        """Extract join parameters from query plan."""
+        params = {
+            'keys': [],
+            'type': 'inner'
+        }
+        
+        def extract_from_node(node: QueryNode) -> None:
+            if node.operation_type.lower() == 'join':
+                params['keys'].extend(node.join_keys)
+                params['type'] = node.join_type or 'inner'
+            for child in node.children:
+                extract_from_node(child)
+        
+        extract_from_node(plan.root)
+        return params
+    
+    def _extract_aggregate_params(self, plan: QueryPlan) -> Dict[str, Any]:
+        """Extract aggregation parameters from query plan."""
+        params = {
+            'group_by': [],
+            'aggregations': {}
+        }
+        
+        def extract_from_node(node: QueryNode) -> None:
+            if node.operation_type.lower() == 'aggregate':
+                params['group_by'].extend(node.group_by or [])
+                params['aggregations'].update(node.aggregations or {})
+            for child in node.children:
+                extract_from_node(child)
+        
+        extract_from_node(plan.root)
+        return params
+    
+    def _estimate_join_memory(self, dfs: List[pd.DataFrame]) -> int:
+        """Estimate memory required for join operation."""
+        total_rows = sum(len(df) for df in dfs)
+        avg_row_size = np.mean([
+            df.memory_usage(deep=True).sum() / len(df)
+            for df in dfs
+            if len(df) > 0
+        ])
+        # Assume worst case of cartesian product
+        return int(total_rows * total_rows * avg_row_size)
+    
+    def _estimate_aggregate_memory(self, dfs: List[pd.DataFrame]) -> int:
+        """Estimate memory required for aggregation."""
+        total_size = sum(df.memory_usage(deep=True).sum() for df in dfs)
+        # Assume aggregation reduces size by 90%
+        return int(total_size * 0.1)
+    
+    def _optimize_join_memory(self,
+                            dfs: List[pd.DataFrame],
+                            strategy: MergeStrategy) -> None:
+        """Optimize memory usage for join operation."""
+        # Convert object columns to categories where beneficial
+        for df in dfs:
+            for col in df.select_dtypes(include=['object']):
+                if df[col].nunique() / len(df) < 0.1:  # Less than 10% unique values
+                    df[col] = df[col].astype('category')
+        
+        # Update memory estimate
+        strategy.estimated_memory = self._estimate_join_memory(dfs)
+    
+    def _optimize_aggregate_memory(self,
+                                 dfs: List[pd.DataFrame],
+                                 strategy: MergeStrategy) -> None:
+        """Optimize memory usage for aggregation."""
+        # Convert numeric columns to smaller types where possible
+        for df in dfs:
+            for col in df.select_dtypes(include=['int64', 'float64']):
+                if df[col].min() >= np.iinfo(np.int32).min and \
+                   df[col].max() <= np.iinfo(np.int32).max:
+                    df[col] = df[col].astype(np.int32)
+        
+        # Update memory estimate
+        strategy.estimated_memory = self._estimate_aggregate_memory(dfs)
