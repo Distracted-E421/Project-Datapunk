@@ -1,6 +1,9 @@
 import unittest
 from datetime import datetime, timedelta
 import pytz
+import numpy as np
+from shapely.geometry import Polygon, Point
+import time
 from ..src.storage.index.strategies.partitioning import (
     TimePartitionStrategy,
     GeoPartitionStrategy,
@@ -11,7 +14,11 @@ from ..src.storage.index.strategies.partitioning import (
     TimeRange,
     GeoGrid,
     BoundingBox,
-    GeoPoint
+    GeoPoint,
+    GridSystem, GeohashGrid, H3Grid, S2Grid,
+    GridFactory, GridPartitionManager, GridVisualizer,
+    PartitionHistory, SpatialCache, DensityAnalyzer, LoadBalancer,
+    SpatialIndexManager
 )
 
 class TestTimePartitioning(unittest.TestCase):
@@ -310,3 +317,482 @@ class TestAdaptivePartitioning(unittest.TestCase):
             strategy.access_patterns["key1"][0][0],
             old_time
         )
+
+class TestGridSystems(unittest.TestCase):
+    def setUp(self):
+        self.test_point = (37.7749, -122.4194)  # San Francisco coordinates
+        self.test_precision = 7  # High precision for accurate testing
+        
+    def test_geohash_grid(self):
+        grid = GeohashGrid()
+        
+        # Test encoding and decoding
+        cell_id = grid.encode_point(*self.test_point, self.test_precision)
+        self.assertIsInstance(cell_id, str)
+        
+        lat, lng = grid.decode_cell(cell_id)
+        self.assertAlmostEqual(lat, self.test_point[0], places=2)
+        self.assertAlmostEqual(lng, self.test_point[1], places=2)
+        
+        # Test neighbors
+        neighbors = grid.get_neighbors(cell_id)
+        self.assertEqual(len(neighbors), 8)  # Geohash has 8 neighbors
+        
+        # Test precision selection
+        self.assertEqual(grid.get_precision(5000000), 1)
+        self.assertEqual(grid.get_precision(100), 7)
+        
+    def test_h3_grid(self):
+        grid = H3Grid()
+        
+        # Test encoding and decoding
+        cell_id = grid.encode_point(*self.test_point, 9)  # H3 uses different precision levels
+        self.assertIsInstance(cell_id, str)
+        
+        lat, lng = grid.decode_cell(cell_id)
+        self.assertAlmostEqual(lat, self.test_point[0], places=2)
+        self.assertAlmostEqual(lng, self.test_point[1], places=2)
+        
+        # Test neighbors
+        neighbors = grid.get_neighbors(cell_id)
+        self.assertGreater(len(neighbors), 0)
+        
+        # Test resolution selection
+        self.assertEqual(grid.get_resolution(1000000), 0)
+        self.assertEqual(grid.get_resolution(50), 12)
+        
+    def test_s2_grid(self):
+        grid = S2Grid()
+        
+        # Test encoding and decoding
+        cell_id = grid.encode_point(*self.test_point, 20)  # S2 uses different precision levels
+        self.assertIsInstance(cell_id, str)
+        
+        lat, lng = grid.decode_cell(cell_id)
+        self.assertAlmostEqual(lat, self.test_point[0], places=2)
+        self.assertAlmostEqual(lng, self.test_point[1], places=2)
+        
+        # Test neighbors
+        neighbors = grid.get_neighbors(cell_id)
+        self.assertEqual(len(neighbors), 4)  # S2 has 4 edge neighbors
+        
+        # Test level selection
+        self.assertEqual(grid.get_level(1000000), 8)
+        self.assertEqual(grid.get_level(50), 24)
+
+class TestGridFactory(unittest.TestCase):
+    def test_grid_creation(self):
+        factory = GridFactory()
+        
+        geohash_grid = factory.create_grid('geohash')
+        self.assertIsInstance(geohash_grid, GeohashGrid)
+        
+        h3_grid = factory.create_grid('h3')
+        self.assertIsInstance(h3_grid, H3Grid)
+        
+        s2_grid = factory.create_grid('s2')
+        self.assertIsInstance(s2_grid, S2Grid)
+        
+        with self.assertRaises(ValueError):
+            factory.create_grid('invalid_grid')
+
+class TestGridPartitionManager(unittest.TestCase):
+    def setUp(self):
+        self.manager = GridPartitionManager('geohash')
+        self.test_points = [
+            (37.7749, -122.4194),  # San Francisco
+            (37.7739, -122.4312),  # Close to SF
+            (40.7128, -74.0060),   # New York
+        ]
+        
+    def test_partition_points(self):
+        partitions = self.manager.partition_points(self.test_points, 5)
+        
+        # Should have at least 2 partitions (SF area and NY)
+        self.assertGreaterEqual(len(partitions), 2)
+        
+        # Test recovery state
+        self.assertEqual(len(self.manager._recovery_state), len(self.test_points))
+        
+    def test_recover_partition(self):
+        # First partition points
+        self.manager.partition_points(self.test_points, 5)
+        
+        # Then try to recover a point's partition
+        recovered_cell = self.manager.recover_partition(self.test_points[0])
+        self.assertIsNotNone(recovered_cell)
+        
+    def test_partition_stats(self):
+        self.manager.partition_points(self.test_points, 5)
+        stats = self.manager.get_partition_stats()
+        
+        self.assertIn('total_partitions', stats)
+        self.assertIn('total_points', stats)
+        self.assertIn('points_per_partition', stats)
+        
+        self.assertEqual(stats['total_points'], len(self.test_points))
+
+class TestGridVisualizer(unittest.TestCase):
+    def setUp(self):
+        self.manager = GridPartitionManager('geohash')
+        self.visualizer = GridVisualizer(self.manager)
+        self.test_points = [
+            (37.7749, -122.4194),  # San Francisco
+            (37.7739, -122.4312),  # Close to SF
+            (40.7128, -74.0060),   # New York
+        ]
+        
+    def test_plot_partitions(self):
+        # First partition some points
+        self.manager.partition_points(self.test_points, 5)
+        
+        try:
+            # Try to create visualization
+            map_obj = self.visualizer.plot_partitions()
+            # If folium is installed, we should get a map object
+            if map_obj is not None:
+                self.assertTrue(hasattr(map_obj, '_name'))
+        except ImportError:
+            # If folium is not installed, this test is considered passed
+            pass
+
+class TestPartitionHistory(unittest.TestCase):
+    def setUp(self):
+        self.history = PartitionHistory()
+        self.test_partitions = {
+            'cell1': [(1.0, 1.0), (1.1, 1.1)],
+            'cell2': [(2.0, 2.0)]
+        }
+        
+    def test_add_snapshot(self):
+        self.history.add_snapshot(self.test_partitions)
+        self.assertEqual(len(self.history.history), 1)
+        
+        snapshot = self.history.history[0]
+        self.assertIn('timestamp', snapshot)
+        self.assertIn('partitions', snapshot)
+        self.assertIn('stats', snapshot)
+        
+    def test_get_partition_growth(self):
+        # Add multiple snapshots
+        self.history.add_snapshot(self.test_partitions, timestamp=1.0)
+        
+        # Modify partitions and add another snapshot
+        modified_partitions = self.test_partitions.copy()
+        modified_partitions['cell1'].append((1.2, 1.2))
+        self.history.add_snapshot(modified_partitions, timestamp=2.0)
+        
+        # Check growth tracking
+        growth = self.history.get_partition_growth('cell1')
+        self.assertEqual(len(growth), 2)
+        self.assertEqual(growth[0], (1.0, 2))  # 2 points at time 1.0
+        self.assertEqual(growth[1], (2.0, 3))  # 3 points at time 2.0
+
+class TestSpatialCache(unittest.TestCase):
+    def setUp(self):
+        self.cache = SpatialCache(max_size=2)
+        
+    def test_cache_operations(self):
+        # Test basic set/get
+        self.cache.set('key1', 'value1')
+        self.assertEqual(self.cache.get('key1'), 'value1')
+        
+        # Test max size enforcement
+        self.cache.set('key2', 'value2')
+        self.cache.set('key3', 'value3')  # Should evict key1
+        
+        self.assertIsNone(self.cache.get('key1'))
+        self.assertEqual(self.cache.get('key2'), 'value2')
+        self.assertEqual(self.cache.get('key3'), 'value3')
+
+class TestAdvancedGridPartitionManager(unittest.TestCase):
+    def setUp(self):
+        self.manager = GridPartitionManager('geohash', 
+                                          rebalance_threshold=0.3,
+                                          max_points_per_partition=5)
+        self.test_points = [
+            (37.7749, -122.4194),  # San Francisco
+            (37.7749, -122.4194),  # Duplicate point
+            (37.7749, -122.4194),  # Another duplicate
+            (37.7739, -122.4312),  # Close to SF
+            (40.7128, -74.0060),   # New York
+        ]
+        
+    def test_dynamic_repartitioning(self):
+        # Initial partitioning
+        partitions = self.manager.partition_points(self.test_points, 5)
+        
+        # Should have split SF points due to exceeding max_points_per_partition
+        sf_points = sum(len(points) for points in partitions.values())
+        self.assertEqual(sf_points, len(self.test_points))
+        self.assertGreater(len(partitions), 1)  # Should have split into multiple partitions
+        
+    def test_batch_processing(self):
+        # Test with small batch size
+        start_time = time.time()
+        partitions1 = self.manager.partition_points(self.test_points, 5, batch_size=2)
+        time1 = time.time() - start_time
+        
+        # Test with larger batch size
+        start_time = time.time()
+        partitions2 = self.manager.partition_points(self.test_points, 5, batch_size=10)
+        time2 = time.time() - start_time
+        
+        # Results should be the same regardless of batch size
+        self.assertEqual(set(partitions1.keys()), set(partitions2.keys()))
+        
+    def test_polygon_operations(self):
+        # Create test polygon (rough SF bay area)
+        sf_polygon = Polygon([
+            (-122.5, 37.7),
+            (-122.5, 37.8),
+            (-122.4, 37.8),
+            (-122.4, 37.7)
+        ])
+        
+        # Test polygon partitioning
+        cells = self.manager.partition_polygon(sf_polygon, 5)
+        self.assertGreater(len(cells), 0)
+        
+        # Test spatial join
+        points = [(37.75, -122.45)]  # Point inside SF polygon
+        join_results = self.manager.spatial_join(points, [sf_polygon], 5)
+        
+        # Should find the point within the polygon
+        self.assertGreater(len(join_results), 0)
+        for cell_id, results in join_results.items():
+            for poly, matched_points in results:
+                self.assertGreater(len(matched_points), 0)
+                
+    def test_cell_polygon_generation(self):
+        # Test polygon generation for each grid type
+        for grid_type in ['geohash', 'h3', 's2']:
+            manager = GridPartitionManager(grid_type)
+            
+            # Get a cell ID by encoding a point
+            cell_id = manager.grid.encode_point(37.7749, -122.4194, 5)
+            
+            # Get the cell polygon
+            poly = manager.get_cell_polygon(cell_id)
+            
+            # Basic polygon validity checks
+            self.assertIsInstance(poly, Polygon)
+            self.assertTrue(poly.is_valid)
+            self.assertGreater(poly.area, 0)
+
+class TestEnhancedVisualization(unittest.TestCase):
+    def setUp(self):
+        self.manager = GridPartitionManager('geohash')
+        self.visualizer = GridVisualizer(self.manager)
+        self.test_points = [
+            (37.7749, -122.4194),  # San Francisco
+            (37.7739, -122.4312),  # Close to SF
+            (40.7128, -74.0060),   # New York
+        ]
+        
+    def test_visualization_options(self):
+        # First partition some points
+        self.manager.partition_points(self.test_points, 5)
+        
+        try:
+            # Test basic visualization
+            map1 = self.visualizer.plot_partitions()
+            if map1 is not None:
+                self.assertTrue(hasattr(map1, '_name'))
+            
+            # Test with history
+            map2 = self.visualizer.plot_partitions(show_history=True)
+            if map2 is not None:
+                self.assertTrue(hasattr(map2, '_name'))
+            
+            # Test with cell highlighting
+            cells = set(self.manager._recovery_state.values())
+            map3 = self.visualizer.plot_partitions(highlight_cells=cells)
+            if map3 is not None:
+                self.assertTrue(hasattr(map3, '_name'))
+                
+        except ImportError:
+            # If visualization packages aren't installed, tests pass
+            pass
+
+class TestQuadkeyGrid(unittest.TestCase):
+    def setUp(self):
+        self.grid = QuadkeyGrid()
+        self.test_point = (37.7749, -122.4194)
+        
+    def test_encoding_decoding(self):
+        cell_id = self.grid.encode_point(*self.test_point, 15)
+        self.assertIsInstance(cell_id, str)
+        
+        lat, lng = self.grid.decode_cell(cell_id)
+        self.assertAlmostEqual(lat, self.test_point[0], places=2)
+        self.assertAlmostEqual(lng, self.test_point[1], places=2)
+        
+    def test_neighbors(self):
+        cell_id = self.grid.encode_point(*self.test_point, 15)
+        neighbors = self.grid.get_neighbors(cell_id)
+        self.assertGreater(len(neighbors), 0)
+
+class TestRTreeGrid(unittest.TestCase):
+    def setUp(self):
+        self.grid = RTreeGrid()
+        self.test_points = [
+            (37.7749, -122.4194),
+            (37.7739, -122.4312),
+            (40.7128, -74.0060)
+        ]
+        
+    def test_point_insertion(self):
+        for point in self.test_points:
+            cell_id = self.grid.encode_point(*point, 10)
+            self.assertIsInstance(cell_id, str)
+            
+    def test_point_retrieval(self):
+        cell_ids = [self.grid.encode_point(*p, 10) for p in self.test_points]
+        for cell_id in cell_ids:
+            lat, lng = self.grid.decode_cell(cell_id)
+            self.assertIsInstance(lat, float)
+            self.assertIsInstance(lng, float)
+            
+    def test_neighbor_search(self):
+        cell_ids = [self.grid.encode_point(*p, 10) for p in self.test_points]
+        for cell_id in cell_ids:
+            neighbors = self.grid.get_neighbors(cell_id)
+            self.assertIsInstance(neighbors, list)
+
+class TestDensityAnalyzer(unittest.TestCase):
+    def setUp(self):
+        self.manager = GridPartitionManager('geohash')
+        self.analyzer = DensityAnalyzer(self.manager)
+        self.test_points = [
+            (37.7749, -122.4194),  # SF cluster
+            (37.7748, -122.4193),
+            (37.7747, -122.4192),
+            (40.7128, -74.0060),   # NYC isolated point
+        ]
+        
+    def test_density_metrics(self):
+        metrics = self.analyzer.calculate_density_metrics(self.test_points, 5)
+        self.assertGreater(len(metrics), 0)
+        
+        # SF cell should have higher density
+        sf_cell = self.manager.grid.encode_point(37.7749, -122.4194, 5)
+        nyc_cell = self.manager.grid.encode_point(40.7128, -74.0060, 5)
+        self.assertGreater(metrics[sf_cell], metrics[nyc_cell])
+        
+    def test_hotspot_detection(self):
+        hotspots = self.analyzer.find_hotspots(self.test_points, 5)
+        self.assertGreater(len(hotspots), 0)
+        
+        # SF cell should be a hotspot
+        sf_cell = self.manager.grid.encode_point(37.7749, -122.4194, 5)
+        self.assertIn(sf_cell, hotspots)
+        
+    def test_clustering(self):
+        clusters = self.analyzer.cluster_analysis(self.test_points)
+        self.assertGreater(len(clusters), 0)
+        
+        # Should identify at least two clusters (SF and NYC)
+        cluster_sizes = [len(points) for points in clusters.values()]
+        self.assertIn(3, cluster_sizes)  # SF cluster
+        self.assertIn(1, cluster_sizes)  # NYC point
+
+class TestLoadBalancer(unittest.TestCase):
+    def setUp(self):
+        self.manager = GridPartitionManager('geohash')
+        self.balancer = LoadBalancer(self.manager)
+        self.test_partitions = {
+            'cell1': [(1.0, 1.0)] * 10,  # Overloaded
+            'cell2': [(2.0, 2.0)] * 2,   # Underloaded
+            'cell3': [(3.0, 3.0)] * 1    # Underloaded
+        }
+        
+    def test_load_metrics(self):
+        metrics = self.balancer.calculate_load_metrics(self.test_partitions)
+        self.assertEqual(len(metrics), 3)
+        
+        # cell1 should have highest load
+        self.assertGreater(metrics['cell1'], metrics['cell2'])
+        self.assertGreater(metrics['cell1'], metrics['cell3'])
+        
+    def test_rebalancing_suggestions(self):
+        suggestions = self.balancer.suggest_rebalancing(self.test_partitions)
+        self.assertGreater(len(suggestions), 0)
+        
+        # Should suggest splitting overloaded cell
+        split_suggestions = [s for s in suggestions if s[2] == 1]
+        self.assertGreater(len(split_suggestions), 0)
+        self.assertEqual(split_suggestions[0][0], 'cell1')
+        
+        # Should suggest merging underloaded cells
+        merge_suggestions = [s for s in suggestions if s[2] == 2]
+        self.assertGreater(len(merge_suggestions), 0)
+
+class TestSpatialIndexManager(unittest.TestCase):
+    def setUp(self):
+        self.index_manager = SpatialIndexManager()
+        self.test_points = [
+            (37.7749, -122.4194),
+            (37.7739, -122.4312),
+            (40.7128, -74.0060)
+        ]
+        
+    def test_index_building(self):
+        self.index_manager.build_indexes(self.test_points)
+        self.assertEqual(len(self.index_manager.points), len(self.test_points))
+        self.assertIsNotNone(self.index_manager.kdtree)
+        
+    def test_nearest_neighbors(self):
+        self.index_manager.build_indexes(self.test_points)
+        query_point = (37.7749, -122.4194)
+        neighbors = self.index_manager.nearest_neighbors(query_point, k=2)
+        self.assertEqual(len(neighbors), 2)
+        
+        # First neighbor should be the query point itself
+        self.assertEqual(neighbors[0], query_point)
+        
+    def test_range_query(self):
+        self.index_manager.build_indexes(self.test_points)
+        # Query SF area
+        bounds = (-123.0, 37.0, -122.0, 38.0)
+        results = self.index_manager.range_query(bounds)
+        self.assertEqual(len(results), 2)  # Should find both SF points
+
+class TestEnhancedVisualization(unittest.TestCase):
+    def setUp(self):
+        self.manager = GridPartitionManager('geohash')
+        self.visualizer = GridVisualizer(self.manager)
+        self.test_points = [
+            (37.7749, -122.4194),  # SF cluster
+            (37.7748, -122.4193),
+            (37.7747, -122.4192),
+            (40.7128, -74.0060),   # NYC point
+        ]
+        
+    def test_visualization_layers(self):
+        # First partition points
+        self.manager.partition_points(self.test_points, 5)
+        
+        try:
+            # Test with all layers enabled
+            map_obj = self.visualizer.plot_partitions(
+                show_history=True,
+                show_density=True,
+                show_clusters=True
+            )
+            
+            if map_obj is not None:
+                self.assertTrue(hasattr(map_obj, '_name'))
+                
+                # Test saving to file
+                map_obj.save('test_map.html')
+                import os
+                self.assertTrue(os.path.exists('test_map.html'))
+                os.remove('test_map.html')
+                
+        except ImportError:
+            # If visualization packages aren't installed, tests pass
+            pass
+
+if __name__ == '__main__':
+    unittest.main()
