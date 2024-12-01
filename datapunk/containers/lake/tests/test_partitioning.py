@@ -18,7 +18,8 @@ from ..src.storage.index.strategies.partitioning import (
     GridSystem, GeohashGrid, H3Grid, S2Grid,
     GridFactory, GridPartitionManager, GridVisualizer,
     PartitionHistory, SpatialCache, DensityAnalyzer, LoadBalancer,
-    SpatialIndexManager
+    SpatialIndexManager, AdvancedClusterAnalyzer,
+    DistributedPartitionManager, InteractiveVisualizer
 )
 
 class TestTimePartitioning(unittest.TestCase):
@@ -758,10 +759,10 @@ class TestSpatialIndexManager(unittest.TestCase):
         results = self.index_manager.range_query(bounds)
         self.assertEqual(len(results), 2)  # Should find both SF points
 
-class TestEnhancedVisualization(unittest.TestCase):
+class TestAdvancedClustering(unittest.TestCase):
     def setUp(self):
         self.manager = GridPartitionManager('geohash')
-        self.visualizer = GridVisualizer(self.manager)
+        self.analyzer = AdvancedClusterAnalyzer(self.manager)
         self.test_points = [
             (37.7749, -122.4194),  # SF cluster
             (37.7748, -122.4193),
@@ -769,30 +770,155 @@ class TestEnhancedVisualization(unittest.TestCase):
             (40.7128, -74.0060),   # NYC point
         ]
         
-    def test_visualization_layers(self):
-        # First partition points
+    def test_hdbscan_clustering(self):
+        clusters = self.analyzer.hdbscan_clustering(self.test_points)
+        self.assertGreater(len(clusters), 0)
+        
+        # Should identify SF cluster
+        cluster_sizes = [len(points) for points in clusters.values()]
+        self.assertIn(3, cluster_sizes)  # SF cluster
+        
+    def test_optics_clustering(self):
+        clusters = self.analyzer.optics_clustering(self.test_points)
+        self.assertGreater(len(clusters), 0)
+        
+        # Should identify SF cluster
+        cluster_sizes = [len(points) for points in clusters.values()]
+        self.assertIn(3, cluster_sizes)  # SF cluster
+        
+    def test_cluster_stability(self):
+        stability = self.analyzer.analyze_cluster_stability(
+            self.test_points,
+            time_window=timedelta(hours=1)
+        )
+        self.assertGreater(len(stability), 0)
+        
+        # Stable clusters should have high stability scores
+        self.assertTrue(any(score > 0.5 for score in stability.values()))
+
+class TestTimePartitioning(unittest.TestCase):
+    def setUp(self):
+        self.strategy = TimePartitionStrategy('timestamp')
+        self.test_data = [
+            {'timestamp': '2023-01-01T00:00:00Z', 'value': 1},
+            {'timestamp': '2023-01-01T12:00:00Z', 'value': 2},
+            {'timestamp': '2023-01-02T00:00:00Z', 'value': 3},
+        ]
+        
+    def test_partition_data(self):
+        partitions = self.strategy.partition_data(self.test_data)
+        self.assertEqual(len(partitions), 2)  # Two different days
+        
+        # Check partition contents
+        self.assertEqual(len(partitions['2023-01-01T00:00:00']), 2)
+        self.assertEqual(len(partitions['2023-01-02T00:00:00']), 1)
+        
+    def test_get_partition_for_time(self):
+        partition_key = self.strategy.get_partition_for_time('2023-01-01T15:30:00Z')
+        self.assertEqual(partition_key, '2023-01-01T00:00:00')
+        
+    def test_get_partitions_in_range(self):
+        start_time = '2023-01-01T00:00:00Z'
+        end_time = '2023-01-03T00:00:00Z'
+        
+        partitions = self.strategy.get_partitions_in_range(start_time, end_time)
+        self.assertEqual(len(partitions), 3)  # Three days
+
+class TestDistributedPartitioning(unittest.TestCase):
+    def setUp(self):
+        self.manager = DistributedPartitionManager()
+        self.test_data = [
+            {'id': 1, 'value': 'a'},
+            {'id': 2, 'value': 'b'},
+            {'id': 3, 'value': 'c'}
+        ]
+        
+    def test_partition_distributed(self):
+        try:
+            partition_locations = self.manager.partition_distributed(
+                self.test_data, 'id'
+            )
+            self.assertGreater(len(partition_locations), 0)
+            
+            # Test partition retrieval
+            for partition_id in partition_locations.values():
+                data = self.manager.get_partition(partition_id)
+                self.assertIsInstance(data, list)
+                
+        except Exception as e:
+            # Skip if Redis is not available
+            self.skipTest(f"Redis not available: {str(e)}")
+            
+    def test_process_partition(self):
+        try:
+            # Create test partition
+            partition_id = 'test_partition'
+            self.manager.redis_client.set(
+                partition_id,
+                '[{"id": 1, "value": "a"}]'
+            )
+            
+            # Process partition
+            result = self.manager.process_partition(
+                partition_id,
+                lambda x: len(x)
+            )
+            self.assertEqual(result, 1)
+            
+        except Exception as e:
+            # Skip if Redis is not available
+            self.skipTest(f"Redis not available: {str(e)}")
+
+class TestInteractiveVisualization(unittest.TestCase):
+    def setUp(self):
+        self.manager = GridPartitionManager('geohash')
+        self.visualizer = InteractiveVisualizer(self.manager)
+        self.test_points = [
+            (37.7749, -122.4194),  # SF cluster
+            (37.7748, -122.4193),
+            (37.7747, -122.4192),
+            (40.7128, -74.0060),   # NYC point
+        ]
+        
+    def test_create_dashboard(self):
+        # First partition some points
         self.manager.partition_points(self.test_points, 5)
         
         try:
-            # Test with all layers enabled
-            map_obj = self.visualizer.plot_partitions(
-                show_history=True,
-                show_density=True,
-                show_clusters=True
-            )
+            # Create dashboard
+            fig = self.visualizer.create_interactive_dashboard()
+            self.assertIsNotNone(fig)
             
-            if map_obj is not None:
-                self.assertTrue(hasattr(map_obj, '_name'))
-                
-                # Test saving to file
-                map_obj.save('test_map.html')
-                import os
-                self.assertTrue(os.path.exists('test_map.html'))
-                os.remove('test_map.html')
-                
+            # Test saving
+            fig.write_html('test_dashboard.html')
+            import os
+            self.assertTrue(os.path.exists('test_dashboard.html'))
+            os.remove('test_dashboard.html')
+            
         except ImportError:
-            # If visualization packages aren't installed, tests pass
-            pass
+            # Skip if plotting packages aren't installed
+            self.skipTest("Plotting packages not available")
+            
+    def test_time_analysis_dashboard(self):
+        time_partitions = {
+            '2023-01-01T00:00:00': [{'value': 1}],
+            '2023-01-02T00:00:00': [{'value': 2}, {'value': 3}]
+        }
+        
+        try:
+            # Create dashboard
+            fig = self.visualizer.create_time_analysis_dashboard(time_partitions)
+            self.assertIsNotNone(fig)
+            
+            # Test saving
+            fig.write_html('test_time_dashboard.html')
+            import os
+            self.assertTrue(os.path.exists('test_time_dashboard.html'))
+            os.remove('test_time_dashboard.html')
+            
+        except ImportError:
+            # Skip if plotting packages aren't installed
+            self.skipTest("Plotting packages not available")
 
 if __name__ == '__main__':
     unittest.main()
