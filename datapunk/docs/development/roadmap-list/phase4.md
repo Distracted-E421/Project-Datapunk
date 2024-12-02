@@ -250,3 +250,10 @@
    - Best practices
    - Configuration guides
    - Troubleshooting
+
+## Legend
+
+- ✅ [x] - Completed
+- 🔄 - In Progress
+- [ ] - Planned
+- ❌ - Blocked
