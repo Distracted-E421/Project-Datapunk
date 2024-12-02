@@ -158,3 +158,10 @@
   - [ ] Alert rules
   - [ ] Notification channels
   - [ ] Escalation policies
+
+## Legend
+
+- ✅ [x] - Completed
+- 🔄 - In Progress
+- [ ] - Planned
+- ❌ - Blocked
