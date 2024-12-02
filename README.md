@@ -282,10 +282,6 @@ To use these settings:
 
 ## License
 
-Copyright © 2024 Datapunk Project
-
-This software is proprietary and confidential. Unauthorized copying, transfer, or reproduction of the contents of this software, via any medium, is strictly prohibited.
-
 Limited License Grant:
 
 1. Non-commercial use permitted for research and evaluation
