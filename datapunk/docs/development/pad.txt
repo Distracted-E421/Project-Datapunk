@@ -1,0 +1,7 @@
+Is this everything we need in broad strokes for this phase of documentation,  or are we feeling like its kinda light, in an incomplete sorta way, and we need more details or features are missing @Codebase @sys-arch.mmd 
+
+lets rewrite all of that to add to phase \ of our current @ROADMAP.md
+
+using our new @ROADMAP.md for phase /, lets rewrite the checklist here in @  with as much detail as possible.
+
+, but needs to be rechecked, unsure of validity of claims
