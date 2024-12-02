@@ -1,3 +1,4 @@
+
 # Lake Service: Core data storage and processing service for Datapunk
 # Handles vector, timeseries, and spatial data storage operations
 # Part of the Core Services layer in the Datapunk architecture
@@ -48,42 +49,108 @@ from .handlers.config_handler import init_config_routes
 
 logger = logging.getLogger(__name__)
 
-# Application state and dependencies
+# The Lake service is a foundational component that provides:
+# 1. Multi-modal data storage (vector, timeseries, spatial)
+# 2. Distributed query processing and optimization
+# 3. Data ingestion and validation pipelines
+# 4. Federation capabilities for cross-service data access
+# 5. Metadata management and analysis
+# 6. Service mesh integration for service discovery and health monitoring
+#
+# Architecture Overview:
+# - Uses FastAPI for high-performance async API endpoints
+# - Implements a modular design with clear separation of concerns
+# - Provides comprehensive health monitoring and metrics collection
+# - Supports horizontal scaling through grid-based partitioning
+# - Integrates with the service mesh for service discovery and load balancing
+#
+# TODO: Future Enhancements
+# 1. Implement advanced caching strategies with ML-based prediction
+# 2. Add support for custom index types and auto-indexing
+# 3. Enhance federation capabilities with cross-region support
+# 4. Implement advanced monitoring with anomaly detection
+# 5. Add support for custom storage engines
+
 class AppState:
+    """Centralized state management for the Lake service.
+    
+    This class maintains references to all core components and ensures proper initialization order.
+    
+    Design Decisions:
+        - Uses a singleton pattern for global state management
+        - Separates concerns into distinct components for maintainability
+        - Enables dependency injection for better testing and modularity
+    """
+    
     def __init__(self):
-        self.config = StorageConfig()
-        self.mesh_integrator = None
-        self.partition_manager = None
-        self.ingestion_core = None
-        self.ingestion_monitor = None
-        self.federation_manager = None
-        self.federation_monitor = None
-        self.federation_visualizer = None
-        self.timeseries_store = None
-        self.spatial_store = None
-        self.vector_store = None
-        self.cache_manager = None
-        self.quorum_manager = None
-        self.sql_parser = None
-        self.nosql_parser = None
-        self.sql_validator = None
-        self.nosql_validator = None
-        self.query_optimizer = None
-        self.query_executor = None
-        self.streaming_executor = None
-        self.data_validator = None
-        self.metadata_core = None
-        self.metadata_store = None
-        self.metadata_analyzer = None
-        self.metadata_cache = None
-        self.config_manager = None
+        # Core configuration and mesh integration
+        self.config = StorageConfig()  # Centralized configuration management
+        self.mesh_integrator = None    # Service mesh integration for discovery and routing
+        
+        # Data partitioning and ingestion
+        self.partition_manager = None   # Manages data distribution across nodes
+        self.ingestion_core = None     # Core data ingestion pipeline
+        self.ingestion_monitor = None  # Monitors ingestion health and performance
+        
+        # Federation and cross-service communication
+        self.federation_manager = None  # Manages cross-service data access
+        self.federation_monitor = None  # Monitors federation health
+        self.federation_visualizer = None  # Visualizes federation topology
+        
+        # Storage engines for different data types
+        self.timeseries_store = None   # Optimized for time-series data
+        self.spatial_store = None      # Handles geospatial data
+        self.vector_store = None       # Manages high-dimensional vectors
+        self.cache_manager = None      # Multi-level caching system
+        self.quorum_manager = None     # Ensures data consistency
+        
+        # Query processing components
+        self.sql_parser = None         # Parses SQL queries
+        self.nosql_parser = None       # Parses NoSQL queries
+        self.sql_validator = None      # Validates SQL syntax and semantics
+        self.nosql_validator = None    # Validates NoSQL operations
+        self.query_optimizer = None    # Optimizes query execution plans
+        self.query_executor = None     # Executes queries
+        self.streaming_executor = None # Handles streaming queries
+        
+        # Data processing and validation
+        self.data_validator = None     # Validates data quality and schema
+        
+        # Metadata management
+        self.metadata_core = None      # Core metadata operations
+        self.metadata_store = None     # Persistent metadata storage
+        self.metadata_analyzer = None  # Analyzes metadata patterns
+        self.metadata_cache = None     # Caches frequently accessed metadata
+        
+        # Configuration management
+        self.config_manager = None     # Manages service configuration
 
 app_state = AppState()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Manage application lifespan and dependencies"""
+    """Manages the application lifecycle and component dependencies.
+    
+    This context manager handles initialization and cleanup of all service components.
+    
+    Design Decisions:
+        - Uses async context manager for proper resource management
+        - Implements ordered initialization to handle dependencies
+        - Provides graceful shutdown with component cleanup
+        - Logs initialization status for monitoring
+    
+    Critical Sections:
+        1. Component Initialization: Orders matter due to dependencies
+        2. Error Handling: Ensures partial initialization is properly cleaned up
+        3. Shutdown: Ensures all resources are properly released
+    """
     try:
+        # Initialize components in dependency order
+        # 1. Core infrastructure (mesh, partitioning)
+        # 2. Storage engines
+        # 3. Query processing
+        # 4. Metadata and configuration
+        
         # Initialize mesh integrator
         app_state.mesh_integrator = MeshIntegrator(app_state.config)
         await app_state.mesh_integrator.initialize()
@@ -148,7 +215,7 @@ async def lifespan(app: FastAPI):
         logger.info("Lake service initialized successfully")
         yield
     finally:
-        # Cleanup on shutdown
+        # Cleanup components in reverse dependency order
         components = [
             app_state.mesh_integrator,
             app_state.partition_manager,
@@ -339,10 +406,22 @@ app.include_router(
     )
 )
 
-# Health check endpoint for service mesh integration
 @app.get("/health")
 async def health_check():
-    """Service health check endpoint"""
+    """Comprehensive health check endpoint for service mesh integration.
+    
+    This endpoint performs deep health checking of all service components
+    and provides granular status reporting for monitoring.
+    
+    Design Decisions:
+        - Implements deep health checking of all components
+        - Provides granular status reporting for each subsystem
+        - Supports service mesh health monitoring
+        - Includes error details for debugging
+    
+    Returns:
+        Dict: Detailed health status of all service components
+    """
     try:
         health_status = {
             "status": "healthy",
@@ -379,7 +458,9 @@ async def health_check():
             "error": str(e)
         }
 
-# Development server configuration
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)  # FIXME: Configure from environment
+    # FIXME: Configure host/port from environment variables
+    # TODO: Add SSL/TLS configuration for production
+    # TODO: Add rate limiting and security middleware
+    uvicorn.run(app, host="0.0.0.0", port=8000)
