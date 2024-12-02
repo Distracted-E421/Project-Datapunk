@@ -556,7 +556,7 @@ sequenceDiagram
     deactivate Gateway
 ```
 
-### Phase 2: Infrastructure Layer
+### Phase 2: Infrastructure Layer Enhancements
 
 #### 2.1 Core Infrastructure Services
 
@@ -736,6 +736,195 @@ class InfrastructureMonitor:
         pass
 ```
 
+#### 2.7 Cache Service Extensions
+
+Enhances existing CacheService with distributed coordination:
+
+```python
+from typing import Dict, List, Optional
+from enum import Enum
+
+class ConsistencyMode(Enum):
+    EVENTUAL = "eventual"
+    STRONG = "strong"
+    SESSION = "session"
+
+class CacheServiceExtensions:
+    """Extensions for the existing CacheService class"""
+
+    async def configure_consistency(self, mode: ConsistencyMode) -> None:
+        """Configure cache consistency model"""
+        pass
+
+    async def setup_cache_replication(self, replica_count: int) -> None:
+        """Configure cache replication strategy"""
+        pass
+
+    async def handle_cache_events(self, event_type: str) -> None:
+        """Handle cache invalidation events"""
+        pass
+```
+
+#### 2.8 Database Service Extensions
+
+Extends DatabaseService with advanced failover and replication:
+
+```python
+from typing import Dict, List, Optional
+from dataclasses import dataclass
+
+@dataclass
+class ReplicaConfig:
+    host: str
+    port: int
+    replica_type: str  # sync, async, logical
+
+class DatabaseServiceExtensions:
+    """Extensions for the existing DatabaseService class"""
+
+    async def configure_replication(self, replica_configs: List[ReplicaConfig]) -> None:
+        """Setup and manage database replication"""
+        pass
+
+    async def manage_connection_pools(self) -> None:
+        """Advanced connection pool management"""
+        pass
+
+    async def handle_failover_scenarios(self) -> None:
+        """Automated failover handling"""
+        pass
+```
+
+#### 2.9 Message Queue Extensions
+
+Enhances MessageQueueService with advanced resilience patterns:
+
+```python
+from typing import Dict, Optional, Callable
+from dataclasses import dataclass
+
+@dataclass
+class QueueResilienceConfig:
+    retry_limit: int
+    backoff_factor: float
+    dead_letter_policy: str
+
+class MessageQueueExtensions:
+    """Extensions for the existing MessageQueueService class"""
+
+    async def setup_message_tracking(self) -> None:
+        """Enhanced message tracking and replay"""
+        pass
+
+    async def configure_queue_resilience(self, config: QueueResilienceConfig) -> None:
+        """Advanced resilience configuration"""
+        pass
+
+    async def implement_circuit_breaker(self) -> None:
+        """Queue-specific circuit breaker"""
+        pass
+```
+
+#### 2.10 Resource Management Extensions
+
+Extends ResourceManager with predictive capabilities:
+
+```python
+from typing import Dict, List
+import numpy as np
+from datetime import datetime
+
+class ResourceManagerExtensions:
+    """Extensions for the existing ResourceManager class"""
+
+    async def predict_resource_usage(self, window_size: int) -> Dict[str, float]:
+        """Predictive resource analytics"""
+        pass
+
+    async def optimize_resource_distribution(self) -> None:
+        """Advanced resource optimization"""
+        pass
+
+    async def handle_resource_spikes(self) -> None:
+        """Spike detection and handling"""
+        pass
+```
+
+#### 2.11 Integration Patterns
+
+##### 2.11.1 Cross-Service Communication
+
+```mermaid
+graph TD
+    subgraph "Enhanced Infrastructure"
+        A[Cache Extensions] --> B[Event Bus]
+        C[DB Extensions] --> B
+        D[Queue Extensions] --> B
+        E[Resource Extensions] --> B
+        B --> F[Monitoring]
+    end
+```
+
+#### 2.11.2 Monitoring Integration
+
+Extends existing monitoring with advanced telemetry:
+
+```python
+class EnhancedMonitoring:
+    """Extensions for the existing InfrastructureMonitor class"""
+
+    async def collect_distributed_metrics(self) -> Dict[str, float]:
+        """Collect metrics from distributed components"""
+        pass
+
+    async def analyze_performance_patterns(self) -> Dict[str, List]:
+        """Advanced performance analysis"""
+        pass
+```
+
+#### 2.12 Performance Considerations
+
+- Minimal overhead for consistency management
+- Optimized replication strategies
+- Efficient resource prediction
+- Low-latency monitoring
+
+#### 2.13 Security Considerations
+
+- Enhanced encryption for distributed caching
+- Secure replica synchronization
+- Queue-level access control
+- Resource isolation guarantees
+
+#### 2.14 Enhanced Component Testing
+
+- Distributed cache consistency
+- Replica failover scenarios
+- Message queue resilience
+- Resource prediction accuracy
+
+#### 2.15 Integration Testing for Infrastructure
+
+- Cross-component communication
+- Failure recovery mechanisms
+- Performance under load
+- Security compliance
+
+#### 2.16 Migration Guide for existing implementations
+
+For existing implementations:
+
+```python
+# Example extension integration
+class EnhancedCacheService(CacheService, CacheServiceExtensions):
+    """Combines existing CacheService with new extensions"""
+
+    async def initialize_extensions(self) -> None:
+        """Setup enhanced features"""
+        await self.configure_consistency(ConsistencyMode.STRONG)
+        await self.setup_cache_replication(replica_count=3)
+```
+
 ### Phase 3: Service Mesh Implementation
 
 #### 3.1 Core Mesh Components
@@ -911,6 +1100,172 @@ class MeshSecurity:
 
     async def setup_mtls(self, service_id: str) -> Dict:
         # mTLS setup implementation
+        pass
+```
+
+#### 3.6 Proxy/Sidecar Implementation
+
+```python
+from typing import Dict, Optional
+from dataclasses import dataclass
+import aiohttp
+import asyncio
+
+@dataclass
+class ProxyConfig:
+    service_name: str
+    listen_port: int
+    metrics_port: int
+    admin_port: int
+    tracing_enabled: bool
+    access_log_path: str
+
+class ServiceProxy:
+    def __init__(self, config: ProxyConfig):
+        self.config = config
+        self.metrics = {}
+        self.active_connections: Dict[str, int] = {}
+
+    async def initialize(self) -> None:
+        # Proxy initialization implementation
+        pass
+
+    async def handle_request(self, request: Dict) -> Dict:
+        # Request handling with telemetry
+        pass
+
+    async def collect_metrics(self) -> Dict:
+        # Metrics collection for proxy
+        pass
+```
+
+#### 3.7 Traffic Management
+
+```python
+from typing import Dict, List, Optional
+from enum import Enum
+from dataclasses import dataclass
+
+class TrafficPolicy(Enum):
+    CANARY = "canary"
+    BLUE_GREEN = "blue_green"
+    A_B_TEST = "a_b_test"
+    SHADOW = "shadow"
+
+@dataclass
+class RouteRule:
+    service: str
+    destination: str
+    weight: int
+    headers: Optional[Dict] = None
+    retry_policy: Optional[Dict] = None
+    timeout: Optional[int] = None
+
+class TrafficManager:
+    def __init__(self):
+        self.rules: Dict[str, List[RouteRule]] = {}
+        self.active_policies: Dict[str, TrafficPolicy] = {}
+
+    async def apply_routing_rules(self, service: str, rules: List[RouteRule]) -> None:
+        # Route rule application implementation
+        pass
+
+    async def handle_canary_deployment(self, service: str, new_version: str, percentage: float) -> None:
+        # Canary deployment implementation
+        pass
+```
+
+#### 3.8 Retry & Backoff Policies
+
+```python
+from typing import Optional, Dict
+from dataclasses import dataclass
+import random
+import asyncio
+
+@dataclass
+class RetryPolicy:
+    max_attempts: int = 3
+    initial_delay: float = 0.1
+    max_delay: float = 2.0
+    multiplier: float = 2.0
+    jitter: float = 0.1
+
+class RetryHandler:
+    def __init__(self, policy: RetryPolicy):
+        self.policy = policy
+        self.attempt_counts: Dict[str, int] = {}
+
+    async def execute_with_retry(self, operation_id: str, operation: callable) -> Optional[any]:
+        attempt = 0
+        while attempt < self.policy.max_attempts:
+            try:
+                return await operation()
+            except Exception as e:
+                delay = self._calculate_backoff(attempt)
+                attempt += 1
+                if attempt == self.policy.max_attempts:
+                    raise e
+                await asyncio.sleep(delay)
+
+    def _calculate_backoff(self, attempt: int) -> float:
+        delay = min(
+            self.policy.initial_delay * (self.policy.multiplier ** attempt),
+            self.policy.max_delay
+        )
+        return delay + random.uniform(0, self.policy.jitter)
+```
+
+#### 3.9 Service Mesh Control Plane
+
+```mermaid
+graph TD
+    subgraph "Control Plane"
+        CP[Control Plane] --> PM[Policy Manager]
+        CP --> PCM[Proxy Config Manager]
+        CP --> SM[Status Monitor]
+
+        PM --> MP[Mesh Policies]
+        PCM --> PC[Proxy Configs]
+        SM --> MS[Mesh Status]
+    end
+
+    subgraph "Data Plane"
+        DP[Data Plane] --> P1[Proxy 1]
+        DP --> P2[Proxy 2]
+        DP --> P3[Proxy N]
+    end
+
+    CP --> DP
+```
+
+```python
+from typing import Dict, List, Optional
+from dataclasses import dataclass
+
+@dataclass
+class MeshPolicy:
+    timeout_ms: int
+    retry_policy: RetryPolicy
+    circuit_breaker_policy: Dict
+    traffic_policy: TrafficPolicy
+
+class ControlPlane:
+    def __init__(self):
+        self.policies: Dict[str, MeshPolicy] = {}
+        self.proxy_configs: Dict[str, ProxyConfig] = {}
+        self.global_settings: Dict = {}
+
+    async def apply_mesh_policy(self, service: str, policy: MeshPolicy) -> None:
+        # Policy application implementation
+        pass
+
+    async def configure_service_mesh(self, config: Dict) -> None:
+        # Mesh configuration implementation
+        pass
+
+    async def get_mesh_status(self) -> Dict:
+        # Mesh status collection implementation
         pass
 ```
 
@@ -1596,164 +1951,526 @@ class TokenPropagator:
         pass
 ```
 
-### Phase 5: Monitoring and Observability
+### Phase 5: Monitoring and Observability Enhancement
 
-#### 5.1 Metrics Collection
+#### 5.1 Core Observability Infrastructure
 
 ```mermaid
 graph TD
-    A[Monitoring] --> B[Metrics Collection]
-    A --> C[Log Aggregation]
-    A --> D[Tracing]
-    B --> E[Prometheus]
-    C --> F[ELK Stack]
-    D --> G[Jaeger]
+    subgraph "Telemetry Collection"
+        A[Monitoring Service] --> B[Metrics Pipeline]
+        A --> C[Logging Pipeline]
+        A --> D[Tracing Pipeline]
+        A --> E[Health Checks]
+    end
+
+    subgraph "Storage & Analysis"
+        B --> F[Prometheus]
+        C --> G[Elasticsearch]
+        D --> H[Jaeger]
+        E --> I[Status Aggregator]
+    end
+
+    subgraph "Visualization"
+        F & G & H & I --> J[Grafana]
+        J --> K[Alert Manager]
+        J --> L[Dashboard Service]
+    end
 ```
 
-##### Implementation Details
-
-1. **Metrics Service**
+#### 5.2 Unified Metrics Service
 
 ```python
-from prometheus_client import Counter, Histogram, Gauge
-from typing import Dict, Optional
+from typing import Dict, Optional, List
+from prometheus_client import Counter, Histogram, Gauge, Summary
+from dataclasses import dataclass
 
-class MetricsService:
+@dataclass
+class MetricDefinition:
+    name: str
+    type: str
+    description: str
+    labels: List[str]
+    buckets: Optional[List[float]] = None
+
+class UnifiedMetricsService:
     def __init__(self):
-        self.request_counter = Counter('http_requests_total', 'Total HTTP requests')
-        self.response_time = Histogram('http_response_time_seconds', 'Response time in seconds')
-        self.active_connections = Gauge('active_connections', 'Number of active connections')
+        self._metrics: Dict[str, Any] = {}
+        self._initialize_core_metrics()
 
-    async def record_request(self, method: str, path: str, status_code: int) -> None:
-        # Record request metrics
-        pass
+    def _initialize_core_metrics(self):
+        # System metrics
+        self.system_metrics = {
+            'cpu_usage': Gauge('system_cpu_usage', 'CPU usage percentage'),
+            'memory_usage': Gauge('system_memory_usage', 'Memory usage in bytes'),
+            'disk_usage': Gauge('system_disk_usage', 'Disk usage in bytes'),
+        }
 
-    async def track_response_time(self, operation: str, duration: float) -> None:
-        # Track operation duration
-        pass
+        # Application metrics
+        self.app_metrics = {
+            'request_duration': Histogram(
+                'request_duration_seconds',
+                'Request duration in seconds',
+                buckets=[0.1, 0.5, 1.0, 2.0, 5.0]
+            ),
+            'request_count': Counter(
+                'request_total',
+                'Total request count',
+                ['method', 'endpoint', 'status']
+            ),
+            'active_connections': Gauge(
+                'active_connections',
+                'Number of active connections'
+            )
+        }
 
-    async def update_connections(self, count: int) -> None:
-        # Update connection count
+        # Business metrics
+        self.business_metrics = {
+            'transaction_value': Summary(
+                'transaction_value_dollars',
+                'Transaction value in dollars'
+            ),
+            'active_users': Gauge(
+                'active_users',
+                'Number of active users'
+            )
+        }
+
+    async def record_metric(self, metric_name: str, value: float, labels: Optional[Dict] = None) -> None:
+        if metric_name not in self._metrics:
+            raise ValueError(f"Unknown metric: {metric_name}")
+
+        metric = self._metrics[metric_name]
+        if labels:
+            metric.labels(**labels).observe(value)
+        else:
+            metric.observe(value)
+
+    async def get_metrics_snapshot(self) -> Dict:
+        # Implementation for getting current metrics snapshot
         pass
 ```
 
-2. **Logging Service**
+#### 5.3 Enhanced Logging Service
 
 ```python
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 from elasticsearch import AsyncElasticsearch
 import structlog
+from datetime import datetime
 
-class LoggingService:
+class EnhancedLoggingService:
     def __init__(self, es_client: AsyncElasticsearch):
         self.es = es_client
         self.logger = structlog.get_logger()
+        self._initialize_indices()
 
-    async def log_event(self, level: str, event: str, **kwargs) -> None:
-        # Structured logging implementation
+    async def _initialize_indices(self):
+        # Create necessary indices with proper mappings
         pass
 
-    async def query_logs(self, query: Dict, time_range: Dict) -> List[Dict]:
-        # Log querying implementation
+    async def log_event(self,
+                       level: str,
+                       event: str,
+                       context: Dict[str, Any],
+                       trace_id: Optional[str] = None) -> None:
+        log_entry = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "level": level,
+            "event": event,
+            "context": context,
+            "trace_id": trace_id,
+            "service": self.service_name,
+            "environment": self.environment
+        }
+
+        # Store in Elasticsearch
+        await self.es.index(
+            index=f"logs-{datetime.utcnow():%Y.%m.%d}",
+            document=log_entry
+        )
+
+    async def query_logs(self,
+                        query: Dict,
+                        time_range: Dict,
+                        size: int = 100) -> List[Dict]:
+        # Implementation for querying logs
         pass
 
-    async def aggregate_logs(self, aggregation: Dict) -> Dict:
-        # Log aggregation implementation
+    async def create_log_summary(self,
+                               time_range: Dict,
+                               group_by: List[str]) -> Dict:
+        # Implementation for creating log summaries
         pass
 ```
 
-3. **Distributed Tracing**
+#### 5.4 Distributed Tracing Enhancement
 
 ```python
 from opentelemetry import trace
-from opentelemetry.trace import Span
-from typing import Optional, Dict
+from opentelemetry.trace import Span, SpanKind
+from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
+from typing import Optional, Dict, List
 
-class TracingService:
-    def __init__(self):
+class EnhancedTracingService:
+    def __init__(self, service_name: str):
+        self.service_name = service_name
         self.tracer = trace.get_tracer(__name__)
+        self.propagator = TraceContextTextMapPropagator()
 
-    async def start_span(self, name: str, context: Optional[Dict] = None) -> Span:
-        # Span creation logic
+    async def create_span(self,
+                         name: str,
+                         kind: SpanKind = SpanKind.INTERNAL,
+                         attributes: Optional[Dict] = None,
+                         parent_context: Optional[Dict] = None) -> Span:
+        # Enhanced span creation with more context
         pass
 
-    async def add_event(self, span: Span, name: str, attributes: Dict) -> None:
-        # Event recording logic
+    async def inject_context(self,
+                           headers: Dict[str, str],
+                           context: Optional[Dict] = None) -> Dict[str, str]:
+        # Inject trace context into headers
         pass
 
-    async def end_span(self, span: Span, status: str) -> None:
-        # Span completion logic
+    async def extract_context(self, headers: Dict[str, str]) -> Optional[Dict]:
+        # Extract trace context from headers
+        pass
+
+    async def record_exception(self,
+                             span: Span,
+                             exception: Exception,
+                             attributes: Optional[Dict] = None) -> None:
+        # Record exception details in span
+        pass
+```
+
+#### 5.5 Health Check System
+
+```python
+from typing import Dict, List, Optional
+from enum import Enum
+from dataclasses import dataclass
+from datetime import datetime
+
+class HealthStatus(Enum):
+    HEALTHY = "healthy"
+    DEGRADED = "degraded"
+    UNHEALTHY = "unhealthy"
+
+@dataclass
+class HealthCheck:
+    name: str
+    status: HealthStatus
+    details: Dict
+    timestamp: datetime
+    dependencies: List[str]
+
+class HealthCheckService:
+    def __init__(self):
+        self.checks: Dict[str, callable] = {}
+        self._register_core_checks()
+
+    async def _register_core_checks(self):
+        # Register basic health checks
+        pass
+
+    async def register_check(self,
+                           name: str,
+                           check_func: callable,
+                           dependencies: List[str] = None) -> None:
+        # Register new health check
+        pass
+
+    async def run_checks(self,
+                        include_dependencies: bool = True) -> Dict[str, HealthCheck]:
+        # Run all registered health checks
+        pass
+
+    async def get_health_status(self) -> HealthStatus:
+        # Get overall system health status
+        pass
+```
+
+#### 5.6 Alert Management
+
+```python
+from typing import Dict, List, Optional
+from enum import Enum
+from datetime import datetime, timedelta
+
+class AlertSeverity(Enum):
+    INFO = "info"
+    WARNING = "warning"
+    ERROR = "error"
+    CRITICAL = "critical"
+
+class AlertManager:
+    def __init__(self, notification_service):
+        self.notification_service = notification_service
+        self.alert_rules: Dict[str, Dict] = {}
+        self.alert_history: List[Dict] = []
+
+    async def add_alert_rule(self,
+                           name: str,
+                           condition: callable,
+                           severity: AlertSeverity,
+                           notification_channels: List[str]) -> None:
+        # Add new alert rule
+        pass
+
+    async def evaluate_rules(self) -> List[Dict]:
+        # Evaluate all alert rules
+        pass
+
+    async def send_alert(self,
+                        alert: Dict,
+                        channels: List[str]) -> None:
+        # Send alert through notification channels
+        pass
+
+    async def get_alert_history(self,
+                              time_range: Optional[timedelta] = None,
+                              severity: Optional[AlertSeverity] = None) -> List[Dict]:
+        # Get alert history with filtering
         pass
 ```
 
 ### Phase 6: Deployment Automation
 
-#### 6.1 CI/CD Pipeline
+#### 6.1 Infrastructure as Code
+
+```python
+from typing import Dict, Optional
+from pulumi import ResourceOptions
+from pulumi_kubernetes import Provider, apps, core
+
+class InfrastructureManager:
+    def __init__(self, cluster_config: Dict[str, Any]):
+        self.provider = Provider("k8s-provider", kubeconfig=cluster_config["kubeconfig"])
+        self.namespace = core.v1.Namespace("datapunk-namespace")
+
+    async def provision_environment(self, env_name: str, config: Dict) -> Dict[str, Any]:
+        """Provisions complete environment with networking, storage, and compute"""
+        # Environment provisioning implementation
+        pass
+
+    async def setup_monitoring(self, config: Dict) -> None:
+        """Configures monitoring stack (Prometheus, Grafana, AlertManager)"""
+        # Monitoring setup implementation
+        pass
+
+    async def configure_networking(self, network_config: Dict) -> None:
+        """Sets up service mesh, ingress, and network policies"""
+        # Network configuration implementation
+        pass
+```
+
+#### 6.2 Deployment Pipeline
 
 ```mermaid
 graph TD
-    A[CI/CD Pipeline] --> B[Code Analysis]
-    A --> C[Testing]
-    A --> D[Build]
-    B --> E[Static Analysis]
-    C --> F[Unit Tests]
-    C --> G[Integration Tests]
-    D --> H[Container Build]
-    D --> I[Artifact Storage]
+    A[Source Code] --> B[Build Phase]
+    B --> C[Test Phase]
+    C --> D[Security Scan]
+    D --> E[Artifact Creation]
+    E --> F[Deployment]
+
+    subgraph "Security Checks"
+        D --> D1[SAST]
+        D --> D2[Container Scan]
+        D --> D3[Dependency Audit]
+    end
+
+    subgraph "Deployment Steps"
+        F --> F1[Canary]
+        F --> F2[Blue/Green]
+        F --> F3[Rolling Update]
+    end
 ```
 
-##### Implementation Components
-
-1. **Pipeline Configuration**
-
-```yaml
-name: Datapunk CI/CD
-
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.9"
-      - name: Run Tests
-        run: |
-          python -m pip install poetry
-          poetry install
-          poetry run pytest
-```
-
-2. **Deployment Automation**
+#### 6.3 Deployment Manager
 
 ```python
 from typing import Dict, List, Optional
 from kubernetes import client, config
-from jinja2 import Environment, FileSystemLoader
+from datetime import datetime
 
 class DeploymentManager:
-    def __init__(self):
-        config.load_kube_config()
+    def __init__(self, k8s_config: Dict):
         self.k8s_apps = client.AppsV1Api()
         self.k8s_core = client.CoreV1Api()
+        self.deployment_history: List[Dict] = []
 
-    async def deploy_service(self, service_name: str, image: str, config: Dict) -> bool:
-        # Service deployment logic
+    async def deploy_service(
+        self,
+        service_name: str,
+        image: str,
+        config: Dict,
+        strategy: str = "rolling"
+    ) -> bool:
+        """Deploys service with specified strategy"""
+        # Deployment implementation
         pass
 
-    async def scale_service(self, service_name: str, replicas: int) -> bool:
-        # Service scaling logic
+    async def rollback_deployment(
+        self,
+        service_name: str,
+        revision: str
+    ) -> bool:
+        """Handles deployment rollbacks"""
+        # Rollback implementation
         pass
 
-    async def rollback_deployment(self, service_name: str, revision: str) -> bool:
-        # Rollback logic
+    async def health_check(
+        self,
+        service_name: str,
+        timeout: int = 300
+    ) -> bool:
+        """Verifies deployment health"""
+        # Health check implementation
+        pass
+```
+
+#### 6.4 Security Integration
+
+```python
+from typing import Dict, List
+from dataclasses import dataclass
+from datetime import datetime
+
+@dataclass
+class SecurityScan:
+    scan_id: str
+    timestamp: datetime
+    findings: List[Dict]
+    severity_counts: Dict[str, int]
+
+class SecurityPipeline:
+    def __init__(self, config: Dict):
+        self.scanners = self._initialize_scanners(config)
+        self.policy_engine = self._setup_policy_engine()
+
+    async def run_security_checks(
+        self,
+        artifact_path: str,
+        scan_type: str
+    ) -> SecurityScan:
+        """Executes security scans on deployment artifacts"""
+        # Security scanning implementation
+        pass
+
+    async def validate_compliance(
+        self,
+        scan_results: SecurityScan
+    ) -> bool:
+        """Validates scan results against security policies"""
+        # Compliance validation implementation
+        pass
+```
+
+#### 6.5 Monitoring Integration
+
+```python
+from typing import Dict, Optional
+from prometheus_client import Counter, Histogram
+from opentelemetry import trace
+
+class DeploymentMonitor:
+    def __init__(self):
+        self.deployment_duration = Histogram(
+            'deployment_duration_seconds',
+            'Time taken for deployments',
+            ['service', 'environment']
+        )
+        self.deployment_status = Counter(
+            'deployment_status_total',
+            'Deployment outcomes',
+            ['service', 'status']
+        )
+
+    async def track_deployment(
+        self,
+        deployment_id: str,
+        metrics: Dict
+    ) -> None:
+        """Records deployment metrics"""
+        # Metric recording implementation
+        pass
+
+    async def alert_on_failure(
+        self,
+        deployment_id: str,
+        error: str
+    ) -> None:
+        """Handles deployment failure alerts"""
+        # Alert handling implementation
+        pass
+```
+
+#### 6.6 Configuration Management
+
+```python
+from typing import Dict, Optional
+from dataclasses import dataclass
+
+@dataclass
+class ConfigurationSet:
+    environment: str
+    service_name: str
+    config_values: Dict
+    secrets: Dict
+    version: str
+
+class ConfigManager:
+    def __init__(self, vault_client, config_store):
+        self.vault = vault_client
+        self.store = config_store
+
+    async def load_configuration(
+        self,
+        service: str,
+        environment: str
+    ) -> ConfigurationSet:
+        """Loads service configuration for deployment"""
+        # Configuration loading implementation
+        pass
+
+    async def validate_configuration(
+        self,
+        config: ConfigurationSet
+    ) -> bool:
+        """Validates configuration against schema"""
+        # Configuration validation implementation
+        pass
+```
+
+#### 6.7 Artifact Management
+
+```python
+from typing import Optional, BinaryIO
+from azure.storage.blob import BlobServiceClient
+
+class ArtifactManager:
+    def __init__(self, storage_config: Dict[str, str]):
+        self.blob_service = BlobServiceClient.from_connection_string(
+            storage_config["connection_string"]
+        )
+
+    async def store_artifact(
+        self,
+        artifact_path: str,
+        metadata: Dict[str, str]
+    ) -> str:
+        """Stores deployment artifacts"""
+        # Artifact storage implementation
+        pass
+
+    async def retrieve_artifact(
+        self,
+        artifact_id: str
+    ) -> Optional[BinaryIO]:
+        """Retrieves deployment artifacts"""
+        # Artifact retrieval implementation
         pass
 ```
 
@@ -1771,9 +2488,7 @@ graph TD
     D --> G[State Store]
 ```
 
-##### Core Components
-
-1. **Stream Processor**
+#### 7.2 Stream Processor
 
 ```python
 from typing import Any, Callable, Dict, List
