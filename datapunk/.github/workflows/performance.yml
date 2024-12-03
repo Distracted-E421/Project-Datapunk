@@ -1,0 +1,124 @@
+name: Performance Testing
+
+on:
+  pull_request:
+    types: [labeled]
+    branches: [main, develop]
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  performance:
+    if: github.event.label.name == 'performance-test' || github.event_name == 'workflow_dispatch'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        component: [lake, forge, nexus, cortex, stream]
+
+    services:
+      redis:
+        image: redis:6
+        ports:
+          - 6379:6379
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+      rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+          - 5672:5672
+          - 15672:15672
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install k6
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            curl -L https://github.com/grafana/k6/releases/download/v0.45.0/k6-v0.45.0-linux-amd64.tar.gz | tar xz
+            sudo mv k6-v0.45.0-linux-amd64/k6 /usr/local/bin
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            choco install k6
+          fi
+        shell: bash
+
+      - name: Install dependencies
+        working-directory: datapunk/containers/${{ matrix.component }}
+        run: |
+          python -m pip install poetry
+          poetry install --with test
+
+      - name: Start service
+        working-directory: datapunk/containers/${{ matrix.component }}
+        run: |
+          poetry run python -m ${{ matrix.component }} &
+          sleep 10  # Wait for service to start
+
+      - name: Run basic load test
+        run: |
+          k6 run datapunk/tests/performance/${{ matrix.component }}/load_test.js \
+            --duration 30s \
+            --vus 10
+
+      - name: Run quick stress test
+        run: |
+          k6 run datapunk/tests/performance/${{ matrix.component }}/stress_test.js \
+            --duration 1m \
+            --vus 20
+
+      - name: Generate performance report
+        run: |
+          python datapunk/tests/performance/generate_report.py \
+            --component ${{ matrix.component }} \
+            --results-dir k6-results \
+            --os ${{ matrix.os }}
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results-${{ matrix.os }}-${{ matrix.component }}
+          path: k6-results/
+
+      - name: Compare with baseline
+        run: |
+          python datapunk/tests/performance/compare_baseline.py \
+            --component ${{ matrix.component }} \
+            --results-dir k6-results \
+            --os ${{ matrix.os }} \
+            --threshold 15  # 15% degradation threshold for local testing
+
+      - name: Generate system requirements
+        run: |
+          python datapunk/tests/performance/generate_requirements.py \
+            --component ${{ matrix.component }} \
+            --results-dir k6-results \
+            --os ${{ matrix.os }}
+
+      - name: Upload system requirements
+        uses: actions/upload-artifact@v3
+        with:
+          name: system-requirements-${{ matrix.os }}-${{ matrix.component }}
+          path: system-requirements.md
+
+      - name: Notify on performance issues
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+          text: |
+            ⚠️ Performance issues detected in ${{ matrix.component }} on ${{ matrix.os }}!
+            This may affect desktop/small server deployments.
+            Check the results: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
