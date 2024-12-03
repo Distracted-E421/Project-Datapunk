@@ -1,0 +1,184 @@
+name: Local Environment Setup
+
+on:
+  workflow_dispatch:
+    inputs:
+      os:
+        description: "Target OS"
+        required: true
+        default: "windows"
+        type: choice
+        options:
+          - windows
+          - linux
+      memory:
+        description: "Available RAM (GB)"
+        required: true
+        default: "8"
+        type: string
+      cores:
+        description: "Available CPU cores"
+        required: true
+        default: "4"
+        type: string
+      storage:
+        description: "Available storage (GB)"
+        required: true
+        default: "100"
+        type: string
+
+jobs:
+  validate:
+    runs-on: ${{ inputs.os == 'windows' && 'windows-latest' || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Check system requirements
+        run: |
+          python scripts/check_system_requirements.py \
+            --os ${{ inputs.os }} \
+            --memory ${{ inputs.memory }} \
+            --cores ${{ inputs.cores }} \
+            --storage ${{ inputs.storage }}
+
+      - name: Generate configuration
+        run: |
+          python scripts/generate_local_config.py \
+            --os ${{ inputs.os }} \
+            --memory ${{ inputs.memory }} \
+            --cores ${{ inputs.cores }} \
+            --storage ${{ inputs.storage }} \
+            --output-dir config
+
+      - name: Validate dependencies
+        run: |
+          python scripts/validate_dependencies.py \
+            --os ${{ inputs.os }} \
+            --config-dir config
+
+      - name: Generate setup script
+        run: |
+          python scripts/generate_setup_script.py \
+            --os ${{ inputs.os }} \
+            --config-dir config \
+            --output-dir scripts
+
+      - name: Upload configuration
+        uses: actions/upload-artifact@v3
+        with:
+          name: local-config-${{ inputs.os }}
+          path: |
+            config/
+            scripts/
+
+  test_setup:
+    needs: validate
+    runs-on: ${{ inputs.os == 'windows' && 'windows-latest' || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download configuration
+        uses: actions/download-artifact@v3
+        with:
+          name: local-config-${{ inputs.os }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install poetry
+          poetry install --with test
+
+      - name: Run setup tests
+        run: |
+          python scripts/test_local_setup.py \
+            --os ${{ inputs.os }} \
+            --config-dir config
+
+      - name: Test database setup
+        run: |
+          python scripts/test_database_setup.py \
+            --os ${{ inputs.os }} \
+            --config-dir config
+
+      - name: Test cache setup
+        run: |
+          python scripts/test_cache_setup.py \
+            --os ${{ inputs.os }} \
+            --config-dir config
+
+      - name: Test message queue setup
+        run: |
+          python scripts/test_queue_setup.py \
+            --os ${{ inputs.os }} \
+            --config-dir config
+
+      - name: Generate setup report
+        run: |
+          python scripts/generate_setup_report.py \
+            --os ${{ inputs.os }} \
+            --config-dir config \
+            --output-dir reports
+
+      - name: Upload setup report
+        uses: actions/upload-artifact@v3
+        with:
+          name: setup-report-${{ inputs.os }}
+          path: reports/
+
+  generate_docs:
+    needs: test_setup
+    runs-on: ${{ inputs.os == 'windows' && 'windows-latest' || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Generate setup guide
+        run: |
+          python scripts/generate_setup_guide.py \
+            --os ${{ inputs.os }} \
+            --config-dir local-config-${{ inputs.os }}/config \
+            --report-dir setup-report-${{ inputs.os }} \
+            --output-dir guides
+
+      - name: Generate troubleshooting guide
+        run: |
+          python scripts/generate_troubleshooting_guide.py \
+            --os ${{ inputs.os }} \
+            --config-dir local-config-${{ inputs.os }}/config \
+            --output-dir guides
+
+      - name: Generate maintenance guide
+        run: |
+          python scripts/generate_maintenance_guide.py \
+            --os ${{ inputs.os }} \
+            --config-dir local-config-${{ inputs.os }}/config \
+            --output-dir guides
+
+      - name: Package guides
+        run: |
+          python scripts/package_local_guides.py \
+            --os ${{ inputs.os }} \
+            --guides-dir guides \
+            --output-dir packages
+
+      - name: Upload guides
+        uses: actions/upload-artifact@v3
+        with:
+          name: local-guides-${{ inputs.os }}
+          path: packages/
