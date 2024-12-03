@@ -1,0 +1,29 @@
+name: Dependency Review
+on:
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3
+        with:
+          fail-on-severity: high
+
+      - name: Python Dependency Check
+        run: |
+          for component in datapunk/lib/shared datapunk/containers/*; do
+            if [ -f "$component/pyproject.toml" ]; then
+              cd $component
+              poetry export -f requirements.txt | safety check --stdin
+              cd -
+            fi
+          done
