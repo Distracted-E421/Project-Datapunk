@@ -1,0 +1,281 @@
+name: Container Management
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "Operation type"
+        required: true
+        type: choice
+        options:
+          - build
+          - migrate
+          - backup
+          - cleanup
+          - health-check
+      component:
+        description: "Target component"
+        required: true
+        type: choice
+        options:
+          - all
+          - lake
+          - forge
+          - nexus
+          - cortex
+          - stream
+      docker_runtime:
+        description: "Docker runtime"
+        required: true
+        type: choice
+        options:
+          - docker-desktop
+          - wsl2
+          - podman
+        default: "docker-desktop"
+
+jobs:
+  prepare:
+    runs-on: windows-latest
+    outputs:
+      components: ${{ steps.set-components.outputs.list }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set components list
+        id: set-components
+        run: |
+          if [ "${{ inputs.component }}" = "all" ]; then
+            echo "list=['lake', 'forge', 'nexus', 'cortex', 'stream']" >> $GITHUB_OUTPUT
+          else
+            echo "list=['${{ inputs.component }}']" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
+      - name: Check Docker runtime
+        run: |
+          python scripts/check_docker_runtime.py `
+            --runtime "${{ inputs.docker_runtime }}" `
+            --output-file runtime_info.json
+
+      - name: Validate environment
+        run: |
+          python scripts/validate_container_env.py `
+            --runtime-info runtime_info.json `
+            --output-file env_validation.json
+
+      - name: Upload validation info
+        uses: actions/upload-artifact@v3
+        with:
+          name: container-validation
+          path: |
+            runtime_info.json
+            env_validation.json
+
+  build:
+    needs: prepare
+    if: inputs.operation == 'build'
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        component: ${{ fromJson(needs.prepare.outputs.components) }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download validation info
+        uses: actions/download-artifact@v3
+        with:
+          name: container-validation
+
+      - name: Setup Docker runtime
+        run: |
+          python scripts/setup_docker_runtime.py `
+            --runtime "${{ inputs.docker_runtime }}" `
+            --runtime-info runtime_info.json
+
+      - name: Build container
+        run: |
+          python scripts/build_container.py `
+            --component ${{ matrix.component }} `
+            --runtime "${{ inputs.docker_runtime }}" `
+            --env-file env_validation.json
+
+      - name: Test container
+        run: |
+          python scripts/test_container.py `
+            --component ${{ matrix.component }} `
+            --runtime "${{ inputs.docker_runtime }}"
+
+      - name: Save container
+        run: |
+          python scripts/save_container.py `
+            --component ${{ matrix.component }} `
+            --runtime "${{ inputs.docker_runtime }}" `
+            --output-dir containers
+
+      - name: Upload container artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: container-${{ matrix.component }}
+          path: containers/
+
+  migrate:
+    needs: prepare
+    if: inputs.operation == 'migrate'
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        component: ${{ fromJson(needs.prepare.outputs.components) }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download validation info
+        uses: actions/download-artifact@v3
+        with:
+          name: container-validation
+
+      - name: Setup source runtime
+        run: |
+          python scripts/setup_docker_runtime.py `
+            --runtime "${{ inputs.docker_runtime }}" `
+            --runtime-info runtime_info.json
+
+      - name: Export container data
+        run: |
+          python scripts/export_container_data.py `
+            --component ${{ matrix.component }} `
+            --runtime "${{ inputs.docker_runtime }}" `
+            --output-dir migrations
+
+      - name: Migrate container
+        run: |
+          python scripts/migrate_container.py `
+            --component ${{ matrix.component }} `
+            --runtime "${{ inputs.docker_runtime }}" `
+            --data-dir migrations
+
+      - name: Verify migration
+        run: |
+          python scripts/verify_container_migration.py `
+            --component ${{ matrix.component }} `
+            --runtime "${{ inputs.docker_runtime }}" `
+            --data-dir migrations
+
+  backup:
+    needs: prepare
+    if: inputs.operation == 'backup'
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        component: ${{ fromJson(needs.prepare.outputs.components) }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download validation info
+        uses: actions/download-artifact@v3
+        with:
+          name: container-validation
+
+      - name: Create backup plan
+        run: |
+          python scripts/create_container_backup_plan.py `
+            --component ${{ matrix.component }} `
+            --runtime "${{ inputs.docker_runtime }}" `
+            --output-file backup_plan.json
+
+      - name: Backup container
+        run: |
+          python scripts/backup_container.py `
+            --component ${{ matrix.component }} `
+            --runtime "${{ inputs.docker_runtime }}" `
+            --plan-file backup_plan.json `
+            --output-dir backups
+
+      - name: Verify backup
+        run: |
+          python scripts/verify_container_backup.py `
+            --component ${{ matrix.component }} `
+            --backup-dir backups
+
+      - name: Upload backup
+        uses: actions/upload-artifact@v3
+        with:
+          name: backup-${{ matrix.component }}
+          path: backups/
+
+  cleanup:
+    needs: prepare
+    if: inputs.operation == 'cleanup'
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        component: ${{ fromJson(needs.prepare.outputs.components) }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download validation info
+        uses: actions/download-artifact@v3
+        with:
+          name: container-validation
+
+      - name: Analyze container resources
+        run: |
+          python scripts/analyze_container_resources.py `
+            --component ${{ matrix.component }} `
+            --runtime "${{ inputs.docker_runtime }}" `
+            --output-file resource_analysis.json
+
+      - name: Clean unused resources
+        run: |
+          python scripts/clean_container_resources.py `
+            --component ${{ matrix.component }} `
+            --runtime "${{ inputs.docker_runtime }}" `
+            --analysis-file resource_analysis.json
+
+      - name: Optimize storage
+        run: |
+          python scripts/optimize_container_storage.py `
+            --component ${{ matrix.component }} `
+            --runtime "${{ inputs.docker_runtime }}"
+
+  health-check:
+    needs: prepare
+    if: inputs.operation == 'health-check'
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        component: ${{ fromJson(needs.prepare.outputs.components) }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download validation info
+        uses: actions/download-artifact@v3
+        with:
+          name: container-validation
+
+      - name: Check container health
+        run: |
+          python scripts/check_container_health.py `
+            --component ${{ matrix.component }} `
+            --runtime "${{ inputs.docker_runtime }}" `
+            --output-file health_check.json
+
+      - name: Monitor resource usage
+        run: |
+          python scripts/monitor_container_resources.py `
+            --component ${{ matrix.component }} `
+            --runtime "${{ inputs.docker_runtime }}" `
+            --duration 300
+
+      - name: Generate health report
+        run: |
+          python scripts/generate_container_health_report.py `
+            --component ${{ matrix.component }} `
+            --health-file health_check.json `
+            --output-file health_report.md
+
+      - name: Upload health report
+        uses: actions/upload-artifact@v3
+        with:
+          name: health-report-${{ matrix.component }}
+          path: health_report.md
