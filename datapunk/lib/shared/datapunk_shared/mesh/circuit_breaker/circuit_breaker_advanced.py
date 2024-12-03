@@ -46,6 +46,7 @@ from .context_retry import (
     AdaptiveRetryStrategy
 )
 from .health_aware import HealthAwareBreaker, HealthConfig
+from .discovery_integration import ServiceDiscoveryIntegration, DiscoveryConfig
 
 if TYPE_CHECKING:
     from datapunk_shared.monitoring import MetricsClient
@@ -77,7 +78,8 @@ class AdvancedCircuitBreaker(CircuitBreaker):
                  reset_timeout: float = 60.0,
                  timeout_config: Optional[TimeoutConfig] = None,
                  features: Optional[Dict[str, FeatureConfig]] = None,
-                 health_config: Optional[HealthConfig] = None):
+                 health_config: Optional[HealthConfig] = None,
+                 discovery_config: Optional[DiscoveryConfig] = None):
         """
         Initialize advanced circuit breaker.
         
@@ -174,6 +176,10 @@ class AdvancedCircuitBreaker(CircuitBreaker):
         )
         self.health_manager = HealthAwareBreaker(
             config=health_config,
+            metrics_client=metrics
+        )
+        self.discovery_manager = ServiceDiscoveryIntegration(
+            config=discovery_config,
             metrics_client=metrics
         )
         
@@ -560,3 +566,214 @@ class AdvancedCircuitBreaker(CircuitBreaker):
     ) -> ServiceHealth:
         """Check health status of a service"""
         return await self.health_manager.check_health(service_id)
+
+    async def start(self) -> None:
+        """Start background tasks"""
+        await self.discovery_manager.start()
+
+    async def stop(self) -> None:
+        """Stop background tasks"""
+        await self.discovery_manager.stop()
+
+    async def call(
+        self,
+        func: Callable[..., Awaitable[Any]],
+        *args: Any,
+        service_id: Optional[str] = None,
+        instance_id: Optional[str] = None,
+        retry_context: Optional[Dict[str, Any]] = None,
+        metadata_requirements: Optional[Dict[str, Any]] = None,
+        **kwargs: Any
+    ) -> Any:
+        """
+        Execute function with circuit breaker protection and service discovery.
+        
+        Args:
+            func: Async function to execute
+            *args: Function arguments
+            service_id: Optional service identifier for discovery
+            instance_id: Optional specific instance ID to use
+            retry_context: Optional context for retry decisions
+            metadata_requirements: Optional metadata requirements for instance selection
+            **kwargs: Function keyword arguments
+            
+        Returns:
+            Function result
+            
+        Raises:
+            CircuitBreakerError: If circuit is open
+            Exception: If function execution fails
+        """
+        if self.state == CircuitBreakerState.OPEN:
+            if not await self._should_attempt_recovery():
+                raise CircuitBreakerError("Circuit breaker is open")
+                
+            self.state = CircuitBreakerState.HALF_OPEN
+            
+        # Check service health if ID provided
+        if service_id:
+            if not await self.health_manager.should_allow_request(
+                service_id,
+                retry_context.get("priority") if retry_context else None
+            ):
+                raise CircuitBreakerError(f"Service {service_id} is unhealthy")
+                
+            # Get instance if not specified
+            if not instance_id:
+                instance = await self.discovery_manager.get_instance(
+                    service_id,
+                    metadata_requirements
+                )
+                if not instance:
+                    raise CircuitBreakerError(f"No available instances for service {service_id}")
+                instance_id = instance.instance_id
+            
+        # Create retry context if not provided
+        if retry_context is None:
+            retry_context = {}
+            
+        attempt = 1
+        start_time = datetime.utcnow()
+        connection = None
+        
+        while True:
+            try:
+                # Get connection if using discovery
+                if service_id and instance_id:
+                    connection = await self.discovery_manager.get_connection(
+                        service_id,
+                        instance_id
+                    )
+                    if not connection:
+                        raise CircuitBreakerError("Failed to get connection")
+                    
+                    # Add connection to kwargs
+                    kwargs["connection"] = connection
+                
+                # Check for predicted failures
+                if await self.failure_predictor.predict_failure():
+                    self.logger.warning("Failure predicted, applying preventive measures")
+                    await self._handle_predicted_failure()
+                
+                # Get adaptive timeout
+                timeout = await self.timeout_manager.get_timeout()
+                
+                # Execute with timeout
+                result = await asyncio.wait_for(
+                    func(*args, **kwargs),
+                    timeout=timeout
+                )
+                
+                # Record success metrics
+                elapsed_ms = (datetime.utcnow() - start_time).total_seconds() * 1000
+                if service_id:
+                    self.health_manager.record_request(
+                        service_id,
+                        elapsed_ms,
+                        is_error=False
+                    )
+                    
+                    # Update instance health
+                    if instance_id:
+                        await self.discovery_manager.update_instance_health(
+                            service_id,
+                            instance_id,
+                            1.0  # Success score
+                        )
+                
+                # Handle success
+                await self._handle_success()
+                return result
+                
+            except Exception as e:
+                elapsed_ms = (datetime.utcnow() - start_time).total_seconds() * 1000
+                
+                # Record error metrics
+                if service_id:
+                    self.health_manager.record_request(
+                        service_id,
+                        elapsed_ms,
+                        is_error=True
+                    )
+                    
+                    # Update instance health
+                    if instance_id:
+                        await self.discovery_manager.update_instance_health(
+                            service_id,
+                            instance_id,
+                            0.0  # Error score
+                        )
+                
+                # Create retry context
+                context = RetryContext(
+                    error_type=type(e),
+                    error_message=str(e),
+                    attempt_number=attempt,
+                    elapsed_time_ms=elapsed_ms,
+                    resource_path=retry_context.get("resource_path", ""),
+                    method=retry_context.get("method", ""),
+                    priority=retry_context.get("priority"),
+                    metadata=retry_context.get("metadata")
+                )
+                
+                # Check if we should retry
+                should_retry, delay = await self.retry_manager.should_retry(context)
+                
+                if should_retry:
+                    attempt += 1
+                    # Release connection if using discovery
+                    if connection:
+                        await self.discovery_manager.release_connection(
+                            service_id,
+                            instance_id,
+                            connection
+                        )
+                        connection = None
+                    await asyncio.sleep(delay / 1000)  # Convert ms to seconds
+                    continue
+                    
+                # Handle failure if we shouldn't retry
+                await self._handle_failure(e)
+                raise
+                
+            finally:
+                # Always release connection if using discovery
+                if connection:
+                    await self.discovery_manager.release_connection(
+                        service_id,
+                        instance_id,
+                        connection
+                    )
+
+    def register_instance(
+        self,
+        service_id: str,
+        instance: ServiceInstance
+    ) -> None:
+        """Register a service instance"""
+        await self.discovery_manager.register_instance(service_id, instance)
+
+    def deregister_instance(
+        self,
+        service_id: str,
+        instance_id: str
+    ) -> None:
+        """Deregister a service instance"""
+        await self.discovery_manager.deregister_instance(service_id, instance_id)
+
+    async def get_metrics(self) -> Dict[str, Any]:
+        """Get current circuit breaker metrics"""
+        metrics = {
+            "state": self.state,
+            "failure_count": self.failure_count,
+            "last_failure": self.last_failure_time.isoformat() if self.last_failure_time else None,
+            "last_success": self.last_success_time.isoformat() if self.last_success_time else None,
+        }
+        
+        # Add metrics from components
+        metrics.update(await self.timeout_manager.get_metrics())
+        metrics.update(await self.recovery_manager.get_metrics())
+        metrics.update(await self.failure_predictor.get_metrics())
+        metrics.update(self.retry_manager.get_retry_metrics())
+        
+        return metrics
