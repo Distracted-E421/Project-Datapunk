@@ -1,0 +1,232 @@
+name: Storage Migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_type:
+        description: "Source storage type"
+        required: true
+        type: choice
+        options:
+          - local
+          - network
+          - external
+          - container-volume
+      source_path:
+        description: "Source path"
+        required: true
+        type: string
+      target_type:
+        description: "Target storage type"
+        required: true
+        type: choice
+        options:
+          - local
+          - network
+          - external
+          - container-volume
+      target_path:
+        description: "Target path"
+        required: true
+        type: string
+      migration_mode:
+        description: "Migration mode"
+        required: true
+        type: choice
+        options:
+          - full
+          - incremental
+          - differential
+      verify_data:
+        description: "Verify after migration"
+        type: boolean
+        default: true
+
+jobs:
+  analyze:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Analyze source storage
+        run: |
+          python scripts/analyze_storage.py `
+            --storage-type "${{ inputs.source_type }}" `
+            --path "${{ inputs.source_path }}" `
+            --output-file source_analysis.json
+
+      - name: Analyze target storage
+        run: |
+          python scripts/analyze_storage.py `
+            --storage-type "${{ inputs.target_type }}" `
+            --path "${{ inputs.target_path }}" `
+            --output-file target_analysis.json
+
+      - name: Generate migration plan
+        run: |
+          python scripts/generate_migration_plan.py `
+            --source-analysis source_analysis.json `
+            --target-analysis target_analysis.json `
+            --mode "${{ inputs.migration_mode }}" `
+            --output-file migration_plan.json
+
+      - name: Upload analysis
+        uses: actions/upload-artifact@v3
+        with:
+          name: storage-analysis
+          path: |
+            source_analysis.json
+            target_analysis.json
+            migration_plan.json
+
+  prepare:
+    needs: analyze
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download analysis
+        uses: actions/download-artifact@v3
+        with:
+          name: storage-analysis
+
+      - name: Prepare source storage
+        run: |
+          python scripts/prepare_storage.py `
+            --storage-type "${{ inputs.source_type }}" `
+            --path "${{ inputs.source_path }}" `
+            --analysis-file source_analysis.json `
+            --role source
+
+      - name: Prepare target storage
+        run: |
+          python scripts/prepare_storage.py `
+            --storage-type "${{ inputs.target_type }}" `
+            --path "${{ inputs.target_path }}" `
+            --analysis-file target_analysis.json `
+            --role target
+
+      - name: Setup migration environment
+        run: |
+          python scripts/setup_migration_env.py `
+            --source-type "${{ inputs.source_type }}" `
+            --target-type "${{ inputs.target_type }}" `
+            --plan-file migration_plan.json
+
+  migrate:
+    needs: prepare
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download analysis
+        uses: actions/download-artifact@v3
+        with:
+          name: storage-analysis
+
+      - name: Initialize migration
+        run: |
+          python scripts/init_migration.py `
+            --plan-file migration_plan.json `
+            --output-dir migration_status
+
+      - name: Migrate data
+        run: |
+          python scripts/migrate_data.py `
+            --source-type "${{ inputs.source_type }}" `
+            --source-path "${{ inputs.source_path }}" `
+            --target-type "${{ inputs.target_type }}" `
+            --target-path "${{ inputs.target_path }}" `
+            --plan-file migration_plan.json `
+            --status-dir migration_status
+
+      - name: Update references
+        run: |
+          python scripts/update_storage_refs.py `
+            --source-type "${{ inputs.source_type }}" `
+            --source-path "${{ inputs.source_path }}" `
+            --target-type "${{ inputs.target_type }}" `
+            --target-path "${{ inputs.target_path }}" `
+            --plan-file migration_plan.json
+
+      - name: Upload migration status
+        uses: actions/upload-artifact@v3
+        with:
+          name: migration-status
+          path: migration_status/
+
+  verify:
+    needs: migrate
+    if: inputs.verify_data
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Verify data integrity
+        run: |
+          python scripts/verify_migration_data.py `
+            --source-type "${{ inputs.source_type }}" `
+            --source-path "${{ inputs.source_path }}" `
+            --target-type "${{ inputs.target_type }}" `
+            --target-path "${{ inputs.target_path }}" `
+            --plan-file storage-analysis/migration_plan.json `
+            --status-dir migration-status
+
+      - name: Verify performance
+        run: |
+          python scripts/verify_storage_performance.py `
+            --storage-type "${{ inputs.target_type }}" `
+            --path "${{ inputs.target_path }}" `
+            --output-file performance_report.json
+
+      - name: Generate verification report
+        run: |
+          python scripts/generate_verification_report.py `
+            --performance-file performance_report.json `
+            --status-dir migration-status `
+            --output-file verification_report.md
+
+      - name: Upload verification report
+        uses: actions/upload-artifact@v3
+        with:
+          name: verification-report
+          path: |
+            verification_report.md
+            performance_report.json
+
+  cleanup:
+    needs: verify
+    if: always()
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Cleanup temporary data
+        run: |
+          python scripts/cleanup_migration.py `
+            --source-type "${{ inputs.source_type }}" `
+            --source-path "${{ inputs.source_path }}" `
+            --target-type "${{ inputs.target_type }}" `
+            --target-path "${{ inputs.target_path }}" `
+            --plan-file storage-analysis/migration_plan.json `
+            --status-dir migration-status
+
+      - name: Generate migration report
+        run: |
+          python scripts/generate_migration_report.py `
+            --plan-file storage-analysis/migration_plan.json `
+            --status-dir migration-status `
+            --verification-report verification-report/verification_report.md `
+            --output-file migration_report.md
+
+      - name: Upload final report
+        uses: actions/upload-artifact@v3
+        with:
+          name: migration-report
+          path: migration_report.md
