@@ -8,6 +8,7 @@ import json
 import statistics
 from threading import Lock
 from collections import defaultdict
+import numpy as np
 
 class MetricType(Enum):
     COUNTER = "counter"
@@ -48,12 +49,50 @@ class Alert:
     resolved: bool = False
     resolved_at: Optional[datetime] = None
 
+@dataclass
+class HealthCheck:
+    name: str
+    check_function: Callable[[], bool]
+    interval: timedelta
+    timeout: float
+    dependencies: Optional[List[str]] = None
+    description: Optional[str] = None
+
+@dataclass
+class HealthStatus:
+    name: str
+    status: bool
+    last_check: datetime
+    last_success: Optional[datetime]
+    last_failure: Optional[datetime]
+    consecutive_failures: int
+    error_message: Optional[str] = None
+
+class AggregationMethod(Enum):
+    SUM = "sum"
+    AVG = "avg"
+    MIN = "min"
+    MAX = "max"
+    COUNT = "count"
+    P95 = "p95"
+    P99 = "p99"
+
+@dataclass
+class MetricAggregation:
+    name: str
+    source_metric: str
+    method: AggregationMethod
+    interval: timedelta
+    labels: Optional[Dict[str, str]] = None
+    filter_expr: Optional[str] = None
+
 class MonitoringSystem:
     def __init__(
         self,
         retention_period: timedelta = timedelta(days=7),
         alert_check_interval: float = 60.0,
-        cleanup_interval: float = 3600.0
+        cleanup_interval: float = 3600.0,
+        aggregation_interval: float = 300.0  # 5 minutes
     ):
         self.metrics: Dict[str, MetricDefinition] = {}
         self.metric_values: Dict[str, Dict[str, List[tuple]]] = defaultdict(lambda: defaultdict(list))
@@ -68,13 +107,20 @@ class MonitoringSystem:
         self._alert_callbacks: List[Callable[[Alert], None]] = []
         self._running = False
         self._tasks: List[asyncio.Task] = []
+        self.health_checks: Dict[str, HealthCheck] = {}
+        self.health_status: Dict[str, HealthStatus] = {}
+        self.aggregations: Dict[str, MetricAggregation] = {}
+        self.aggregated_values: Dict[str, Dict[str, List[tuple]]] = defaultdict(lambda: defaultdict(list))
+        self.aggregation_interval = aggregation_interval
 
     async def start(self) -> None:
         """Start the monitoring system."""
         self._running = True
         self._tasks = [
             asyncio.create_task(self._check_alerts()),
-            asyncio.create_task(self._cleanup_old_data())
+            asyncio.create_task(self._cleanup_old_data()),
+            asyncio.create_task(self._run_health_checks()),
+            asyncio.create_task(self._run_aggregations())
         ]
 
     async def stop(self) -> None:
@@ -272,6 +318,226 @@ class MonitoringSystem:
         for alert in resolved:
             self.active_alerts.remove(alert)
 
+    def register_health_check(self, check: HealthCheck) -> None:
+        """Register a new health check."""
+        with self._lock:
+            if check.name in self.health_checks:
+                raise ValueError(f"Health check {check.name} already registered")
+            
+            # Validate dependencies
+            if check.dependencies:
+                missing_deps = [
+                    dep for dep in check.dependencies 
+                    if dep not in self.health_checks
+                ]
+                if missing_deps:
+                    raise ValueError(f"Missing dependencies: {missing_deps}")
+            
+            self.health_checks[check.name] = check
+            self.health_status[check.name] = HealthStatus(
+                name=check.name,
+                status=True,
+                last_check=datetime.now(),
+                last_success=datetime.now(),
+                last_failure=None,
+                consecutive_failures=0
+            )
+
+    def register_aggregation(self, aggregation: MetricAggregation) -> None:
+        """Register a new metric aggregation."""
+        with self._lock:
+            if aggregation.name in self.aggregations:
+                raise ValueError(f"Aggregation {aggregation.name} already registered")
+            if aggregation.source_metric not in self.metrics:
+                raise ValueError(f"Source metric {aggregation.source_metric} not registered")
+            
+            self.aggregations[aggregation.name] = aggregation
+
+    def get_health_status(
+        self,
+        check_names: Optional[List[str]] = None
+    ) -> Dict[str, HealthStatus]:
+        """Get health status for specified checks or all checks."""
+        with self._lock:
+            if not check_names:
+                return dict(self.health_status)
+            return {
+                name: status 
+                for name, status in self.health_status.items()
+                if name in check_names
+            }
+
+    def get_aggregated_values(
+        self,
+        aggregation_name: str,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None
+    ) -> List[tuple]:
+        """Get aggregated values for a specific aggregation."""
+        with self._lock:
+            if aggregation_name not in self.aggregations:
+                raise ValueError(f"Aggregation {aggregation_name} not registered")
+
+            values = []
+            for label_key, stored_values in self.aggregated_values[aggregation_name].items():
+                filtered_values = [
+                    (ts, val) for ts, val in stored_values
+                    if (not start_time or ts >= start_time) and
+                       (not end_time or ts <= end_time)
+                ]
+                values.extend(filtered_values)
+
+            return sorted(values, key=lambda x: x[0])
+
+    async def _run_health_checks(self) -> None:
+        """Run health checks periodically."""
+        while self._running:
+            try:
+                checks_to_run = []
+                current_time = datetime.now()
+                
+                with self._lock:
+                    for name, check in self.health_checks.items():
+                        status = self.health_status[name]
+                        if current_time - status.last_check >= check.interval:
+                            checks_to_run.append((name, check))
+
+                for name, check in checks_to_run:
+                    await self._run_single_health_check(name, check)
+                
+                # Find shortest interval for next check
+                next_check = min(
+                    (
+                        check.interval - (current_time - self.health_status[name].last_check)
+                        for name, check in self.health_checks.items()
+                    ),
+                    default=timedelta(minutes=1)
+                )
+                
+                await asyncio.sleep(max(0.1, next_check.total_seconds()))
+            except Exception as e:
+                self.logger.error(f"Error running health checks: {str(e)}")
+                await asyncio.sleep(60)
+
+    async def _run_single_health_check(
+        self,
+        name: str,
+        check: HealthCheck
+    ) -> None:
+        """Run a single health check."""
+        try:
+            # Check dependencies first
+            if check.dependencies:
+                for dep in check.dependencies:
+                    if not self.health_status[dep].status:
+                        raise ValueError(f"Dependency {dep} is unhealthy")
+
+            # Run the check with timeout
+            try:
+                async with asyncio.timeout(check.timeout):
+                    status = await asyncio.to_thread(check.check_function)
+            except asyncio.TimeoutError:
+                raise TimeoutError(f"Health check {name} timed out")
+
+            with self._lock:
+                current_status = self.health_status[name]
+                if status:
+                    self.health_status[name] = HealthStatus(
+                        name=name,
+                        status=True,
+                        last_check=datetime.now(),
+                        last_success=datetime.now(),
+                        last_failure=current_status.last_failure,
+                        consecutive_failures=0
+                    )
+                else:
+                    self.health_status[name] = HealthStatus(
+                        name=name,
+                        status=False,
+                        last_check=datetime.now(),
+                        last_success=current_status.last_success,
+                        last_failure=datetime.now(),
+                        consecutive_failures=current_status.consecutive_failures + 1,
+                        error_message="Check returned False"
+                    )
+
+        except Exception as e:
+            with self._lock:
+                current_status = self.health_status[name]
+                self.health_status[name] = HealthStatus(
+                    name=name,
+                    status=False,
+                    last_check=datetime.now(),
+                    last_success=current_status.last_success,
+                    last_failure=datetime.now(),
+                    consecutive_failures=current_status.consecutive_failures + 1,
+                    error_message=str(e)
+                )
+
+    async def _run_aggregations(self) -> None:
+        """Run metric aggregations periodically."""
+        while self._running:
+            try:
+                current_time = datetime.now()
+                
+                with self._lock:
+                    for agg_name, aggregation in self.aggregations.items():
+                        self._compute_aggregation(aggregation, current_time)
+                
+                await asyncio.sleep(self.aggregation_interval)
+            except Exception as e:
+                self.logger.error(f"Error running aggregations: {str(e)}")
+                await asyncio.sleep(60)
+
+    def _compute_aggregation(
+        self,
+        aggregation: MetricAggregation,
+        current_time: datetime
+    ) -> None:
+        """Compute a single metric aggregation."""
+        try:
+            # Get source metric values
+            start_time = current_time - aggregation.interval
+            values = self.get_metric_values(
+                aggregation.source_metric,
+                start_time=start_time,
+                end_time=current_time,
+                labels=aggregation.labels
+            )
+
+            if not values:
+                return
+
+            # Extract just the values
+            metric_values = [v[1] for v in values]
+
+            # Compute aggregation
+            if aggregation.method == AggregationMethod.SUM:
+                result = sum(metric_values)
+            elif aggregation.method == AggregationMethod.AVG:
+                result = statistics.mean(metric_values)
+            elif aggregation.method == AggregationMethod.MIN:
+                result = min(metric_values)
+            elif aggregation.method == AggregationMethod.MAX:
+                result = max(metric_values)
+            elif aggregation.method == AggregationMethod.COUNT:
+                result = len(metric_values)
+            elif aggregation.method == AggregationMethod.P95:
+                result = np.percentile(metric_values, 95)
+            elif aggregation.method == AggregationMethod.P99:
+                result = np.percentile(metric_values, 99)
+            else:
+                raise ValueError(f"Unknown aggregation method: {aggregation.method}")
+
+            # Store result
+            label_key = json.dumps(aggregation.labels, sort_keys=True) if aggregation.labels else "default"
+            self.aggregated_values[aggregation.name][label_key].append(
+                (current_time, result)
+            )
+
+        except Exception as e:
+            self.logger.error(f"Error computing aggregation {aggregation.name}: {str(e)}")
+
     async def _cleanup_old_data(self) -> None:
         """Periodically clean up old metric data and alerts."""
         while self._running:
@@ -286,7 +552,15 @@ class MonitoringSystem:
                                 (ts, val) for ts, val in self.metric_values[metric_name][label_key]
                                 if ts > cutoff_time
                             ]
-                            
+                    
+                    # Clean up aggregated values
+                    for agg_name in self.aggregated_values:
+                        for label_key in list(self.aggregated_values[agg_name].keys()):
+                            self.aggregated_values[agg_name][label_key] = [
+                                (ts, val) for ts, val in self.aggregated_values[agg_name][label_key]
+                                if ts > cutoff_time
+                            ]
+                    
                     # Clean up alert history
                     self.alert_history = [
                         alert for alert in self.alert_history
