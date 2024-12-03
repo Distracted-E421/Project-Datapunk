@@ -13,8 +13,8 @@ Key features:
 - Cache-based state sharing
 - Multiple recovery patterns
 - Fallback chain support
-
-See sys-arch.mmd Reliability/CircuitBreaker for implementation details.
+- Request prioritization
+- Resource reservation
 """
 
 from typing import Optional, Dict, Any, TYPE_CHECKING, List, Callable
@@ -30,6 +30,11 @@ from .recovery_patterns import (
     PartialRecoveryPattern,
     AdaptiveRecoveryPattern
 )
+from .request_priority import (
+    RequestPriority,
+    PriorityConfig,
+    PriorityManager
+)
 from datapunk_shared.exceptions import CircuitBreakerError
 
 if TYPE_CHECKING:
@@ -43,9 +48,9 @@ class AdvancedCircuitBreaker(CircuitBreaker):
     Enhanced circuit breaker with distributed state management.
     
     Extends basic circuit breaker with cache-based state sharing,
-    advanced failure detection, and multiple recovery patterns.
-    Designed for high-availability environments with multiple
-    service instances.
+    advanced failure detection, multiple recovery patterns, and
+    request prioritization. Designed for high-availability
+    environments with multiple service instances.
     """
     
     def __init__(self,
@@ -57,7 +62,8 @@ class AdvancedCircuitBreaker(CircuitBreaker):
                  half_open_timeout: int = 5,
                  strategy: Optional['CircuitBreakerStrategy'] = None,
                  recovery_pattern: Optional[RecoveryPattern] = None,
-                 feature_priorities: Optional[Dict[str, int]] = None):
+                 feature_priorities: Optional[Dict[str, int]] = None,
+                 priority_config: Optional[PriorityConfig] = None):
         """
         Initialize advanced circuit breaker.
         
@@ -70,6 +76,7 @@ class AdvancedCircuitBreaker(CircuitBreaker):
             strategy: Custom circuit breaker strategy
             recovery_pattern: Custom recovery pattern
             feature_priorities: Feature priorities for partial recovery
+            priority_config: Request priority configuration
         """
         super().__init__(service_name, metrics)
         self.cache = cache
@@ -99,6 +106,12 @@ class AdvancedCircuitBreaker(CircuitBreaker):
                 metrics=metrics
             )
             
+        # Initialize priority management
+        self.priority_manager = PriorityManager(
+            priority_config or PriorityConfig(),
+            metrics
+        )
+            
         # Initialize fallback chain
         self.fallback_chain = FallbackChain(cache, metrics)
         self._fallbacks: List[Callable] = []
@@ -110,21 +123,33 @@ class AdvancedCircuitBreaker(CircuitBreaker):
     async def execute_with_fallback(self,
                                   func: Callable,
                                   *args,
+                                  priority: RequestPriority = RequestPriority.NORMAL,
                                   cache_key: Optional[str] = None,
+                                  timeout_ms: Optional[int] = None,
                                   **kwargs):
         """
         Execute function with circuit breaking and fallbacks.
         
         Provides full protection with:
         1. Circuit breaker state checks
-        2. Recovery pattern management
-        3. Fallback chain execution
-        4. Metric collection
+        2. Priority-based admission control
+        3. Recovery pattern management
+        4. Fallback chain execution
+        5. Metric collection
         """
-        if not await self.allow_request():
-            raise CircuitBreakerError("Circuit is open")
+        # Check priority admission
+        if not await self.priority_manager.start_request(
+            priority,
+            timeout_ms
+        ):
+            raise CircuitBreakerError(
+                f"Request rejected (priority: {priority.name})"
+            )
             
         try:
+            if not await self.allow_request():
+                raise CircuitBreakerError("Circuit is open")
+                
             result = await self.fallback_chain.execute(
                 func,
                 *args,
@@ -149,6 +174,10 @@ class AdvancedCircuitBreaker(CircuitBreaker):
         except Exception as e:
             await self.record_failure()
             raise
+            
+        finally:
+            # Always complete request tracking
+            await self.priority_manager.finish_request(priority)
             
     async def allow_request(self) -> bool:
         """
@@ -218,6 +247,11 @@ class AdvancedCircuitBreaker(CircuitBreaker):
             await self._transition_state(CircuitState.OPEN)
             await self.strategy.reset_recovery()
             
+            # Adjust priority threshold during outage
+            await self.priority_manager.adjust_min_priority(
+                RequestPriority.HIGH.value
+            )
+            
     async def _calculate_error_rate(self) -> float:
         """Calculate current error rate for strategy decisions."""
         total = self.success_count + self.failure_count
@@ -254,6 +288,15 @@ class AdvancedCircuitBreaker(CircuitBreaker):
                     "new_state": new_state.value
                 }
             )
+            
+            # Adjust priority thresholds based on state
+            if new_state == CircuitState.OPEN:
+                await self.priority_manager.adjust_min_priority(
+                    RequestPriority.HIGH.value
+                )
+            elif new_state == CircuitState.CLOSED:
+                await self.priority_manager.adjust_min_priority(0)
+                
         except Exception as e:
             self.logger.error("Failed to update circuit state", error=str(e))
             
