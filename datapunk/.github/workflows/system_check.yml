@@ -1,0 +1,179 @@
+name: System Requirements Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      os:
+        description: "Target OS"
+        required: true
+        default: "windows"
+        type: choice
+        options:
+          - windows
+          - linux
+      check_type:
+        description: "Check type"
+        required: true
+        type: choice
+        options:
+          - basic
+          - full
+          - performance
+          - compatibility
+
+jobs:
+  basic_check:
+    if: inputs.check_type == 'basic' || inputs.check_type == 'full'
+    runs-on: ${{ inputs.os == 'windows' && 'windows-latest' || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check Python version
+        run: |
+          python scripts/check_python_version.py \
+            --required-version "3.11" \
+            --os ${{ inputs.os }}
+
+      - name: Check disk space
+        run: |
+          python scripts/check_disk_space.py \
+            --min-space 50 \
+            --os ${{ inputs.os }}
+
+      - name: Check memory
+        run: |
+          python scripts/check_memory.py \
+            --min-memory 4 \
+            --os ${{ inputs.os }}
+
+      - name: Check CPU
+        run: |
+          python scripts/check_cpu.py \
+            --min-cores 2 \
+            --os ${{ inputs.os }}
+
+      - name: Generate basic report
+        run: |
+          python scripts/generate_basic_report.py \
+            --os ${{ inputs.os }} \
+            --output-dir reports
+
+  performance_check:
+    if: inputs.check_type == 'performance' || inputs.check_type == 'full'
+    runs-on: ${{ inputs.os == 'windows' && 'windows-latest' || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check disk speed
+        run: |
+          python scripts/check_disk_speed.py \
+            --min-read 100 \
+            --min-write 50 \
+            --os ${{ inputs.os }}
+
+      - name: Check memory speed
+        run: |
+          python scripts/check_memory_speed.py \
+            --min-bandwidth 5000 \
+            --os ${{ inputs.os }}
+
+      - name: Check network speed
+        run: |
+          python scripts/check_network_speed.py \
+            --min-bandwidth 10 \
+            --os ${{ inputs.os }}
+
+      - name: Check database performance
+        run: |
+          python scripts/check_database_performance.py \
+            --min-iops 1000 \
+            --os ${{ inputs.os }}
+
+      - name: Generate performance report
+        run: |
+          python scripts/generate_performance_report.py \
+            --os ${{ inputs.os }} \
+            --output-dir reports
+
+  compatibility_check:
+    if: inputs.check_type == 'compatibility' || inputs.check_type == 'full'
+    runs-on: ${{ inputs.os == 'windows' && 'windows-latest' || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check Python packages
+        run: |
+          python scripts/check_package_compatibility.py \
+            --os ${{ inputs.os }}
+
+      - name: Check system libraries
+        run: |
+          python scripts/check_system_libraries.py \
+            --os ${{ inputs.os }}
+
+      - name: Check database compatibility
+        run: |
+          python scripts/check_database_compatibility.py \
+            --os ${{ inputs.os }}
+
+      - name: Check network compatibility
+        run: |
+          python scripts/check_network_compatibility.py \
+            --os ${{ inputs.os }}
+
+      - name: Generate compatibility report
+        run: |
+          python scripts/generate_compatibility_report.py \
+            --os ${{ inputs.os }} \
+            --output-dir reports
+
+  generate_report:
+    needs: [basic_check, performance_check, compatibility_check]
+    if: always()
+    runs-on: ${{ inputs.os == 'windows' && 'windows-latest' || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Collect reports
+        run: |
+          python scripts/collect_system_reports.py \
+            --os ${{ inputs.os }} \
+            --reports-dir reports \
+            --output-dir final_report
+
+      - name: Generate recommendations
+        run: |
+          python scripts/generate_system_recommendations.py \
+            --os ${{ inputs.os }} \
+            --report-dir final_report \
+            --output-dir recommendations
+
+      - name: Generate optimization guide
+        run: |
+          python scripts/generate_optimization_guide.py \
+            --os ${{ inputs.os }} \
+            --report-dir final_report \
+            --output-dir guides
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: system-check-reports-${{ inputs.os }}
+          path: |
+            final_report/
+            recommendations/
+            guides/
+
+      - name: Generate summary
+        run: |
+          python scripts/generate_system_summary.py \
+            --os ${{ inputs.os }} \
+            --report-dir final_report \
+            --recommendations-dir recommendations \
+            --output-file summary.md
+
+      - name: Upload summary
+        uses: actions/upload-artifact@v3
+        with:
+          name: system-check-summary-${{ inputs.os }}
+          path: summary.md
