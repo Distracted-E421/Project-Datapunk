@@ -39,6 +39,12 @@ from datapunk_shared.exceptions import CircuitBreakerError
 from .failure_prediction import FailurePredictor, PredictionMetric
 from .adaptive_timeout import AdaptiveTimeout, TimeoutConfig
 from .partial_recovery import PartialRecoveryManager, FeatureConfig
+from .context_retry import (
+    ContextRetryManager,
+    RetryContext,
+    RetryPolicy,
+    AdaptiveRetryStrategy
+)
 
 if TYPE_CHECKING:
     from datapunk_shared.monitoring import MetricsClient
@@ -145,6 +151,25 @@ class AdvancedCircuitBreaker(CircuitBreaker):
         self.error_count = 0
         self.last_metrics_update = datetime.utcnow()
         self.metrics_update_interval = timedelta(seconds=10)
+        
+        # State management
+        self.state = CircuitState.CLOSED
+        self.failure_count = 0
+        self.last_failure_time: Optional[datetime] = None
+        self.last_success_time: Optional[datetime] = None
+        
+        # Enhanced components
+        self.failure_predictor = FailurePredictor()
+        self.timeout_manager = AdaptiveTimeout(
+            config=timeout_config,
+            metrics_client=metrics
+        )
+        self.recovery_manager = PartialRecoveryManager()
+        self.retry_manager = ContextRetryManager(
+            policy=retry_policy,
+            strategy=AdaptiveRetryStrategy(),
+            metrics_client=metrics
+        )
         
     def add_fallback(self, handler: Callable):
         """Add fallback handler for degraded operation"""
