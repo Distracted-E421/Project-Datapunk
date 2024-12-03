@@ -14,8 +14,10 @@ def test_mock_datetime(mock_now):
 @pytest.mark.asyncio
 async def test_http_client(aiohttp_client):
     """Verify HTTP client fixture works."""
-    client = await aiohttp_client
-    assert client is not None
+    assert aiohttp_client is not None
+    # Test a basic request
+    resp = await aiohttp_client.get('/')
+    assert resp.status == 404  # Default response for undefined route
 
 def test_logger(test_logger):
     """Verify logger fixture works."""
