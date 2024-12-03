@@ -1,0 +1,87 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "datapunk/lib/shared/**"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "datapunk/lib/shared/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+        redis-version: [6]
+
+    services:
+      redis:
+        image: redis:${{ matrix.redis-version }}
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
+
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v3
+        with:
+          path: datapunk/lib/shared/.venv
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+      - name: Install dependencies
+        working-directory: datapunk/lib/shared
+        run: poetry install --with test
+
+      - name: Run Tests
+        working-directory: datapunk/lib/shared
+        run: |
+          poetry run pytest -v --cov=datapunk_shared --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: datapunk/lib/shared/coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
+
+      - name: Run security checks
+        working-directory: datapunk/lib/shared
+        run: |
+          poetry run bandit -r datapunk_shared/
+          poetry run safety check
+
+      - name: Type checking
+        working-directory: datapunk/lib/shared
+        run: poetry run mypy datapunk_shared/
+
+      - name: Lint
+        working-directory: datapunk/lib/shared
+        run: |
+          poetry run black --check datapunk_shared/
+          poetry run isort --check-only datapunk_shared/
+          poetry run pylint datapunk_shared/
