@@ -11,16 +11,25 @@ Key features:
 - Half-open state testing
 - Metric integration
 - Cache-based state sharing
+- Multiple recovery patterns
+- Fallback chain support
 
 See sys-arch.mmd Reliability/CircuitBreaker for implementation details.
 """
 
-from typing import Optional, Dict, Any, TYPE_CHECKING
+from typing import Optional, Dict, Any, TYPE_CHECKING, List, Callable
 import structlog
 from datetime import datetime, timedelta
 
 from .circuit_breaker import CircuitBreaker
 from .circuit_breaker_strategies import CircuitState, GradualRecoveryStrategy
+from .recovery_patterns import (
+    FallbackChain,
+    RecoveryPattern,
+    ExponentialBackoffPattern,
+    PartialRecoveryPattern,
+    AdaptiveRecoveryPattern
+)
 from datapunk_shared.exceptions import CircuitBreakerError
 
 if TYPE_CHECKING:
@@ -33,12 +42,10 @@ class AdvancedCircuitBreaker(CircuitBreaker):
     """
     Enhanced circuit breaker with distributed state management.
     
-    Extends basic circuit breaker with cache-based state sharing
-    and advanced failure detection. Designed for high-availability
-    environments with multiple service instances.
-    
-    TODO: Add support for custom failure detection strategies
-    TODO: Implement circuit state prediction
+    Extends basic circuit breaker with cache-based state sharing,
+    advanced failure detection, and multiple recovery patterns.
+    Designed for high-availability environments with multiple
+    service instances.
     """
     
     def __init__(self,
@@ -48,7 +55,9 @@ class AdvancedCircuitBreaker(CircuitBreaker):
                  failure_threshold: int = 5,
                  recovery_timeout: int = 30,
                  half_open_timeout: int = 5,
-                 strategy: Optional['CircuitBreakerStrategy'] = None):
+                 strategy: Optional['CircuitBreakerStrategy'] = None,
+                 recovery_pattern: Optional[RecoveryPattern] = None,
+                 feature_priorities: Optional[Dict[str, int]] = None):
         """
         Initialize advanced circuit breaker.
         
@@ -58,10 +67,9 @@ class AdvancedCircuitBreaker(CircuitBreaker):
         - half_open_timeout: 5s test window
         
         Args:
-            strategy: Custom circuit breaker strategy (defaults to GradualRecoveryStrategy)
-        
-        NOTE: These values should be adjusted based on specific
-        service characteristics and SLAs.
+            strategy: Custom circuit breaker strategy
+            recovery_pattern: Custom recovery pattern
+            feature_priorities: Feature priorities for partial recovery
         """
         super().__init__(service_name, metrics)
         self.cache = cache
@@ -78,29 +86,99 @@ class AdvancedCircuitBreaker(CircuitBreaker):
             error_threshold=0.1      # Max 10% errors during recovery
         )
         
+        # Initialize recovery pattern
+        if recovery_pattern:
+            self.recovery_pattern = recovery_pattern
+        elif feature_priorities:
+            self.recovery_pattern = PartialRecoveryPattern(
+                feature_priorities=feature_priorities,
+                metrics=metrics
+            )
+        else:
+            self.recovery_pattern = AdaptiveRecoveryPattern(
+                metrics=metrics
+            )
+            
+        # Initialize fallback chain
+        self.fallback_chain = FallbackChain(cache, metrics)
+        self._fallbacks: List[Callable] = []
+        
+    def add_fallback(self, handler: Callable):
+        """Add fallback handler for degraded operation"""
+        self.fallback_chain.add_fallback(handler)
+        
+    async def execute_with_fallback(self,
+                                  func: Callable,
+                                  *args,
+                                  cache_key: Optional[str] = None,
+                                  **kwargs):
+        """
+        Execute function with circuit breaking and fallbacks.
+        
+        Provides full protection with:
+        1. Circuit breaker state checks
+        2. Recovery pattern management
+        3. Fallback chain execution
+        4. Metric collection
+        """
+        if not await self.allow_request():
+            raise CircuitBreakerError("Circuit is open")
+            
+        try:
+            result = await self.fallback_chain.execute(
+                func,
+                *args,
+                cache_key=cache_key,
+                **kwargs
+            )
+            
+            if result.error:
+                await self.record_failure()
+                raise result.error
+                
+            if result.fallback_used:
+                await self.metrics.increment(
+                    "circuit_breaker_fallback_success",
+                    {"service": self.service_name}
+                )
+            else:
+                await self.record_success()
+                
+            return result.value
+            
+        except Exception as e:
+            await self.record_failure()
+            raise
+            
     async def allow_request(self) -> bool:
         """
         Check if request should be allowed through circuit.
         
         Implements:
         1. Basic circuit state checks
-        2. Gradual recovery rate limiting
+        2. Recovery pattern verification
         3. Distributed state management
         4. Metric collection
-        
-        Returns:
-            bool: True if request should be allowed
         """
         # Get current state from cache
         state = await self._get_cached_state()
         
         if state == CircuitState.OPEN:
-            await self.metrics.increment(
-                "circuit_breaker_rejections",
-                {"service": self.service_name}
+            # Check recovery pattern
+            should_attempt = await self.recovery_pattern.should_attempt_recovery(
+                self.failure_count,
+                self.last_failure_time
             )
-            return False
             
+            if should_attempt:
+                await self._transition_state(CircuitState.HALF_OPEN)
+            else:
+                await self.metrics.increment(
+                    "circuit_breaker_rejections",
+                    {"service": self.service_name}
+                )
+                return False
+                
         if state == CircuitState.HALF_OPEN:
             # Use strategy to determine request allowance
             allowed_rate = await self.strategy.get_allowed_request_rate()
@@ -121,13 +199,16 @@ class AdvancedCircuitBreaker(CircuitBreaker):
         await super().record_success()
         
         if self.state == CircuitState.HALF_OPEN:
-            if await self.strategy.should_close(self.success_count):
+            if await self.recovery_pattern.handle_success(self.success_count):
                 await self._transition_state(CircuitState.CLOSED)
                 await self.strategy.reset_recovery()
                 
     async def record_failure(self):
         """Record failed request and check for circuit opening."""
         await super().record_failure()
+        
+        # Update recovery pattern
+        await self.recovery_pattern.handle_failure(self.failure_count)
         
         # Check if circuit should open
         if await self.strategy.should_open(
@@ -163,6 +244,15 @@ class AdvancedCircuitBreaker(CircuitBreaker):
                 f"circuit:{self.service_name}:state",
                 new_state.value,
                 expire=self.recovery_timeout * 2
+            )
+            
+            # Record state change metric
+            await self.metrics.increment(
+                "circuit_breaker_state_change",
+                {
+                    "service": self.service_name,
+                    "new_state": new_state.value
+                }
             )
         except Exception as e:
             self.logger.error("Failed to update circuit state", error=str(e))
