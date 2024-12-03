@@ -1,0 +1,228 @@
+name: Hardware Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      check_type:
+        description: "Check type"
+        required: true
+        type: choice
+        options:
+          - full
+          - gpu
+          - cpu
+          - memory
+          - storage
+      generate_report:
+        description: "Generate detailed report"
+        type: boolean
+        default: true
+
+jobs:
+  gpu_check:
+    if: inputs.check_type == 'full' || inputs.check_type == 'gpu'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Detect GPU
+        run: |
+          python scripts/detect_gpu.py `
+            --output-file gpu_info.json
+
+      - name: Check NVIDIA GPU
+        if: success()
+        run: |
+          python scripts/check_nvidia_gpu.py `
+            --info-file gpu_info.json `
+            --min-vram 6 `
+            --min-cuda-version "11.0" `
+            --min-compute-capability "7.0"
+
+      - name: Check AMD GPU
+        if: success()
+        run: |
+          python scripts/check_amd_gpu.py `
+            --info-file gpu_info.json `
+            --min-vram 6 `
+            --min-rdna-version "2.0"
+
+      - name: Check Intel GPU
+        if: success()
+        run: |
+          python scripts/check_intel_gpu.py `
+            --info-file gpu_info.json `
+            --min-vram 4 `
+            --check-xe-support
+
+      - name: Analyze GPU Capabilities
+        run: |
+          python scripts/analyze_gpu_capabilities.py `
+            --info-file gpu_info.json `
+            --check-tensor-cores `
+            --check-ray-tracing `
+            --check-dlss `
+            --check-fsr
+
+      - name: Generate GPU Report
+        if: inputs.generate_report
+        run: |
+          python scripts/generate_gpu_report.py `
+            --info-file gpu_info.json `
+            --output-file gpu_report.md
+
+  cpu_check:
+    if: inputs.check_type == 'full' || inputs.check_type == 'cpu'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Detect CPU
+        run: |
+          python scripts/detect_cpu.py `
+            --output-file cpu_info.json
+
+      - name: Check CPU Features
+        run: |
+          python scripts/check_cpu_features.py `
+            --info-file cpu_info.json `
+            --check-avx `
+            --check-avx2 `
+            --check-avx512 `
+            --check-sse4 `
+            --check-aes `
+            --check-virtualization
+
+      - name: Check CPU Performance
+        run: |
+          python scripts/check_cpu_performance.py `
+            --info-file cpu_info.json `
+            --min-cores 4 `
+            --min-threads 8 `
+            --min-frequency 3.0 `
+            --check-turbo-boost
+
+      - name: Analyze CPU Architecture
+        run: |
+          python scripts/analyze_cpu_arch.py `
+            --info-file cpu_info.json `
+            --arch "x86_64" `
+            --check-instruction-sets
+
+      - name: Generate CPU Report
+        if: inputs.generate_report
+        run: |
+          python scripts/generate_cpu_report.py `
+            --info-file cpu_info.json `
+            --output-file cpu_report.md
+
+  memory_check:
+    if: inputs.check_type == 'full' || inputs.check_type == 'memory'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Detect Memory
+        run: |
+          python scripts/detect_memory.py `
+            --output-file memory_info.json
+
+      - name: Check Memory Configuration
+        run: |
+          python scripts/check_memory_config.py `
+            --info-file memory_info.json `
+            --min-total 16 `
+            --min-speed 2666 `
+            --check-ecc
+
+      - name: Check Memory Performance
+        run: |
+          python scripts/check_memory_performance.py `
+            --info-file memory_info.json `
+            --min-bandwidth 20000 `
+            --check-dual-channel
+
+      - name: Generate Memory Report
+        if: inputs.generate_report
+        run: |
+          python scripts/generate_memory_report.py `
+            --info-file memory_info.json `
+            --output-file memory_report.md
+
+  storage_check:
+    if: inputs.check_type == 'full' || inputs.check_type == 'storage'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Detect Storage
+        run: |
+          python scripts/detect_storage.py `
+            --output-file storage_info.json
+
+      - name: Check SSD
+        run: |
+          python scripts/check_ssd.py `
+            --info-file storage_info.json `
+            --min-size 100 `
+            --check-nvme `
+            --min-read-speed 1000 `
+            --min-write-speed 500
+
+      - name: Check Available Space
+        run: |
+          python scripts/check_available_space.py `
+            --info-file storage_info.json `
+            --min-free-space 50 `
+            --recommend-cleanup
+
+      - name: Analyze Storage Performance
+        run: |
+          python scripts/analyze_storage_performance.py `
+            --info-file storage_info.json `
+            --check-fragmentation `
+            --check-trim-support
+
+      - name: Generate Storage Report
+        if: inputs.generate_report
+        run: |
+          python scripts/generate_storage_report.py `
+            --info-file storage_info.json `
+            --output-file storage_report.md
+
+  generate_report:
+    needs: [gpu_check, cpu_check, memory_check, storage_check]
+    if: inputs.generate_report
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download Reports
+        uses: actions/download-artifact@v3
+
+      - name: Generate System Report
+        run: |
+          python scripts/generate_system_report.py `
+            --gpu-report gpu_report.md `
+            --cpu-report cpu_report.md `
+            --memory-report memory_report.md `
+            --storage-report storage_report.md `
+            --output-file system_report.md
+
+      - name: Generate Recommendations
+        run: |
+          python scripts/generate_hardware_recommendations.py `
+            --system-report system_report.md `
+            --output-file recommendations.md
+
+      - name: Upload Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: hardware-reports
+          path: |
+            system_report.md
+            recommendations.md
+            gpu_report.md
+            cpu_report.md
+            memory_report.md
+            storage_report.md
