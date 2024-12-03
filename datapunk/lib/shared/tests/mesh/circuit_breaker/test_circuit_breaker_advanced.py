@@ -20,6 +20,11 @@ from datapunk_shared.mesh.circuit_breaker.request_priority import (
 )
 from datapunk_shared.exceptions import CircuitBreakerError
 import asyncio
+from datapunk_shared.mesh.circuit_breaker.context_retry import (
+    RetryPolicy,
+    RetryContext,
+    AdaptiveRetryStrategy
+)
 
 @pytest.fixture
 def mock_cache():
@@ -63,6 +68,27 @@ def circuit_breaker(mock_cache, mock_metrics, mock_recovery_pattern, priority_co
         cache=mock_cache,
         recovery_pattern=mock_recovery_pattern,
         priority_config=priority_config
+    )
+
+@pytest.fixture
+def metrics_client():
+    return AsyncMock()
+
+@pytest.fixture
+def retry_policy():
+    return RetryPolicy(
+        max_attempts=3,
+        base_delay_ms=100.0,
+        max_delay_ms=1000.0
+    )
+
+@pytest.fixture
+def circuit_breaker(metrics_client, retry_policy):
+    return AdvancedCircuitBreaker(
+        failure_threshold=3,
+        recovery_timeout=0.1,
+        metrics_client=metrics_client,
+        retry_policy=retry_policy
     )
 
 class TestAdvancedCircuitBreaker:
@@ -605,3 +631,207 @@ class TestAdvancedCircuitBreakerPartialRecovery:
         manager = circuit_breaker_with_features.recovery_manager
         auth_status = manager.status["auth"]
         assert auth_status.error_count == 3
+
+@pytest.mark.asyncio
+class TestAdvancedCircuitBreakerContextAwareRetry:
+    @pytest.mark.asyncio
+    async def test_successful_execution(self, circuit_breaker):
+        async def success():
+            return "success"
+            
+        result = await circuit_breaker.call(success)
+        assert result == "success"
+        assert circuit_breaker.state == CircuitBreakerState.CLOSED
+        assert circuit_breaker.failure_count == 0
+
+    @pytest.mark.asyncio
+    async def test_retry_on_failure(self, circuit_breaker):
+        attempt = 0
+        
+        async def fail_then_succeed():
+            nonlocal attempt
+            attempt += 1
+            if attempt < 2:
+                raise TimeoutError("Timeout")
+            return "success"
+            
+        result = await circuit_breaker.call(
+            fail_then_succeed,
+            retry_context={
+                "method": "GET",
+                "resource_path": "/test",
+                "priority": "HIGH"
+            }
+        )
+        
+        assert result == "success"
+        assert attempt == 2
+        assert circuit_breaker.state == CircuitBreakerState.CLOSED
+
+    @pytest.mark.asyncio
+    async def test_circuit_opens_after_failures(self, circuit_breaker):
+        async def always_fail():
+            raise RuntimeError("Error")
+            
+        for _ in range(3):
+            with pytest.raises(RuntimeError):
+                await circuit_breaker.call(always_fail)
+                
+        assert circuit_breaker.state == CircuitBreakerState.OPEN
+        
+        with pytest.raises(CircuitBreakerError):
+            await circuit_breaker.call(always_fail)
+
+    @pytest.mark.asyncio
+    async def test_half_open_state_recovery(self, circuit_breaker):
+        # First, open the circuit
+        async def fail():
+            raise RuntimeError("Error")
+            
+        for _ in range(3):
+            with pytest.raises(RuntimeError):
+                await circuit_breaker.call(fail)
+                
+        assert circuit_breaker.state == CircuitBreakerState.OPEN
+        
+        # Wait for recovery timeout
+        await asyncio.sleep(0.2)
+        
+        # Successful call should close the circuit
+        async def success():
+            return "success"
+            
+        result = await circuit_breaker.call(success)
+        assert result == "success"
+        assert circuit_breaker.state == CircuitBreakerState.CLOSED
+
+    @pytest.mark.asyncio
+    async def test_retry_with_different_error_types(self, circuit_breaker):
+        attempts = []
+        
+        async def fail_with_different_errors():
+            attempt = len(attempts)
+            attempts.append(attempt)
+            
+            if attempt == 0:
+                raise TimeoutError("Timeout")
+            elif attempt == 1:
+                raise ConnectionError("Connection failed")
+            return "success"
+            
+        result = await circuit_breaker.call(
+            fail_with_different_errors,
+            retry_context={
+                "method": "POST",
+                "resource_path": "/test",
+                "priority": "MEDIUM"
+            }
+        )
+        
+        assert result == "success"
+        assert len(attempts) == 3
+
+    @pytest.mark.asyncio
+    async def test_retry_respects_priority(self, circuit_breaker):
+        attempts = []
+        
+        async def always_fail():
+            attempts.append(len(attempts))
+            raise TimeoutError("Timeout")
+            
+        # High priority should retry more times
+        with pytest.raises(TimeoutError):
+            await circuit_breaker.call(
+                always_fail,
+                retry_context={"priority": "HIGH"}
+            )
+            
+        high_priority_attempts = len(attempts)
+        attempts.clear()
+        
+        # Low priority should retry fewer times
+        with pytest.raises(TimeoutError):
+            await circuit_breaker.call(
+                always_fail,
+                retry_context={"priority": "LOW"}
+            )
+            
+        low_priority_attempts = len(attempts)
+        assert high_priority_attempts > low_priority_attempts
+
+    @pytest.mark.asyncio
+    async def test_metrics_recording(self, circuit_breaker, metrics_client):
+        async def success():
+            return "success"
+            
+        await circuit_breaker.call(success)
+        
+        assert metrics_client.increment.called
+        assert metrics_client.gauge.called
+        
+        # Test failure metrics
+        async def fail():
+            raise RuntimeError("Error")
+            
+        with pytest.raises(RuntimeError):
+            await circuit_breaker.call(fail)
+            
+        # Verify error-specific metrics were recorded
+        metrics_client.increment.assert_any_call(
+            "circuit_breaker_failure",
+            {"state": "closed", "error_type": "RuntimeError"}
+        )
+
+    @pytest.mark.asyncio
+    async def test_adaptive_timeout_integration(self, circuit_breaker):
+        slow_count = 0
+        
+        async def sometimes_slow():
+            nonlocal slow_count
+            if slow_count < 2:
+                await asyncio.sleep(0.2)
+                slow_count += 1
+            return "success"
+            
+        # First calls should timeout
+        with pytest.raises(asyncio.TimeoutError):
+            await circuit_breaker.call(sometimes_slow)
+            
+        # Subsequent calls should adapt timeout
+        result = await circuit_breaker.call(sometimes_slow)
+        assert result == "success"
+
+    @pytest.mark.asyncio
+    async def test_partial_recovery_integration(self, circuit_breaker):
+        failures = []
+        
+        async def fail_specific_feature():
+            attempt = len(failures)
+            failures.append(attempt)
+            
+            if attempt < 2:
+                raise RuntimeError("Feature A failed")
+            elif attempt < 4:
+                raise RuntimeError("Feature B failed")
+            return "success"
+            
+        # Should eventually succeed with partial recovery
+        result = await circuit_breaker.call(fail_specific_feature)
+        assert result == "success"
+        
+        # Verify recovery patterns were recorded
+        metrics = await circuit_breaker.get_metrics()
+        assert "partial_recovery" in metrics
+
+    @pytest.mark.asyncio
+    async def test_get_metrics(self, circuit_breaker):
+        async def success():
+            return "success"
+            
+        await circuit_breaker.call(success)
+        
+        metrics = await circuit_breaker.get_metrics()
+        assert "state" in metrics
+        assert "failure_count" in metrics
+        assert "last_success" in metrics
+        assert "retry_metrics" in metrics
