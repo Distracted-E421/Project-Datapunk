@@ -45,6 +45,7 @@ from .context_retry import (
     RetryPolicy,
     AdaptiveRetryStrategy
 )
+from .health_aware import HealthAwareBreaker, HealthConfig
 
 if TYPE_CHECKING:
     from datapunk_shared.monitoring import MetricsClient
@@ -75,7 +76,8 @@ class AdvancedCircuitBreaker(CircuitBreaker):
                  priority_config: Optional[PriorityConfig] = None,
                  reset_timeout: float = 60.0,
                  timeout_config: Optional[TimeoutConfig] = None,
-                 features: Optional[Dict[str, FeatureConfig]] = None):
+                 features: Optional[Dict[str, FeatureConfig]] = None,
+                 health_config: Optional[HealthConfig] = None):
         """
         Initialize advanced circuit breaker.
         
@@ -168,6 +170,10 @@ class AdvancedCircuitBreaker(CircuitBreaker):
         self.retry_manager = ContextRetryManager(
             policy=retry_policy,
             strategy=AdaptiveRetryStrategy(),
+            metrics_client=metrics
+        )
+        self.health_manager = HealthAwareBreaker(
+            config=health_config,
             metrics_client=metrics
         )
         
@@ -539,3 +545,18 @@ class AdvancedCircuitBreaker(CircuitBreaker):
             metrics.update(feature_metrics)
             
         return metrics
+
+    def add_critical_dependency(
+        self,
+        service_id: str,
+        dependency_id: str
+    ) -> None:
+        """Add critical dependency for health tracking"""
+        self.health_manager.add_critical_dependency(service_id, dependency_id)
+
+    async def check_service_health(
+        self,
+        service_id: str
+    ) -> ServiceHealth:
+        """Check health status of a service"""
+        return await self.health_manager.check_health(service_id)
