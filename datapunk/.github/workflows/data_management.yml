@@ -1,0 +1,226 @@
+name: Data Management
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "Operation type"
+        required: true
+        type: choice
+        options:
+          - backup
+          - restore
+          - migrate
+          - validate
+      source_path:
+        description: "Source data path"
+        required: true
+        type: string
+        default: 'C:\DatapunkData'
+      target_path:
+        description: "Target data path (for migration/restore)"
+        required: false
+        type: string
+      compression:
+        description: "Use compression"
+        type: boolean
+        default: true
+      validate:
+        description: "Validate after operation"
+        type: boolean
+        default: true
+
+jobs:
+  prepare:
+    runs-on: windows-latest # Windows-first focus
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check space requirements
+        run: |
+          python scripts/check_space_requirements.py `
+            --source-path "${{ inputs.source_path }}" `
+            --target-path "${{ inputs.target_path }}" `
+            --operation "${{ inputs.operation }}"
+
+      - name: Validate paths
+        run: |
+          python scripts/validate_data_paths.py `
+            --source-path "${{ inputs.source_path }}" `
+            --target-path "${{ inputs.target_path }}" `
+            --operation "${{ inputs.operation }}"
+
+      - name: Generate operation plan
+        run: |
+          python scripts/generate_data_operation_plan.py `
+            --operation "${{ inputs.operation }}" `
+            --source-path "${{ inputs.source_path }}" `
+            --target-path "${{ inputs.target_path }}" `
+            --compression ${{ inputs.compression }} `
+            --output-file operation_plan.json
+
+      - name: Upload operation plan
+        uses: actions/upload-artifact@v3
+        with:
+          name: operation-plan
+          path: operation_plan.json
+
+  backup:
+    needs: prepare
+    if: inputs.operation == 'backup'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download operation plan
+        uses: actions/download-artifact@v3
+        with:
+          name: operation-plan
+
+      - name: Create backup structure
+        run: |
+          python scripts/create_backup_structure.py `
+            --source-path "${{ inputs.source_path }}" `
+            --plan-file operation_plan.json
+
+      - name: Backup database
+        run: |
+          python scripts/backup_database.py `
+            --source-path "${{ inputs.source_path }}" `
+            --compression ${{ inputs.compression }}
+
+      - name: Backup file storage
+        run: |
+          python scripts/backup_files.py `
+            --source-path "${{ inputs.source_path }}" `
+            --compression ${{ inputs.compression }}
+
+      - name: Backup configuration
+        run: |
+          python scripts/backup_config.py `
+            --source-path "${{ inputs.source_path }}" `
+            --compression ${{ inputs.compression }}
+
+      - name: Generate backup manifest
+        run: |
+          python scripts/generate_backup_manifest.py `
+            --backup-path "${{ inputs.source_path }}_backup" `
+            --source-path "${{ inputs.source_path }}"
+
+  migrate:
+    needs: prepare
+    if: inputs.operation == 'migrate'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download operation plan
+        uses: actions/download-artifact@v3
+        with:
+          name: operation-plan
+
+      - name: Prepare migration
+        run: |
+          python scripts/prepare_migration.py `
+            --source-path "${{ inputs.source_path }}" `
+            --target-path "${{ inputs.target_path }}"
+
+      - name: Migrate database
+        run: |
+          python scripts/migrate_database.py `
+            --source-path "${{ inputs.source_path }}" `
+            --target-path "${{ inputs.target_path }}"
+
+      - name: Migrate files
+        run: |
+          python scripts/migrate_files.py `
+            --source-path "${{ inputs.source_path }}" `
+            --target-path "${{ inputs.target_path }}"
+
+      - name: Update configurations
+        run: |
+          python scripts/update_configs.py `
+            --source-path "${{ inputs.source_path }}" `
+            --target-path "${{ inputs.target_path }}"
+
+      - name: Verify migration
+        if: inputs.validate
+        run: |
+          python scripts/verify_migration.py `
+            --source-path "${{ inputs.source_path }}" `
+            --target-path "${{ inputs.target_path }}"
+
+  restore:
+    needs: prepare
+    if: inputs.operation == 'restore'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download operation plan
+        uses: actions/download-artifact@v3
+        with:
+          name: operation-plan
+
+      - name: Validate backup
+        run: |
+          python scripts/validate_backup.py `
+            --backup-path "${{ inputs.source_path }}"
+
+      - name: Restore database
+        run: |
+          python scripts/restore_database.py `
+            --backup-path "${{ inputs.source_path }}" `
+            --target-path "${{ inputs.target_path }}"
+
+      - name: Restore files
+        run: |
+          python scripts/restore_files.py `
+            --backup-path "${{ inputs.source_path }}" `
+            --target-path "${{ inputs.target_path }}"
+
+      - name: Restore configuration
+        run: |
+          python scripts/restore_config.py `
+            --backup-path "${{ inputs.source_path }}" `
+            --target-path "${{ inputs.target_path }}"
+
+      - name: Verify restore
+        if: inputs.validate
+        run: |
+          python scripts/verify_restore.py `
+            --backup-path "${{ inputs.source_path }}" `
+            --target-path "${{ inputs.target_path }}"
+
+  validate:
+    needs: [backup, migrate, restore]
+    if: always() && inputs.validate
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download operation plan
+        uses: actions/download-artifact@v3
+        with:
+          name: operation-plan
+
+      - name: Run data validation
+        run: |
+          python scripts/validate_data_integrity.py `
+            --operation "${{ inputs.operation }}" `
+            --source-path "${{ inputs.source_path }}" `
+            --target-path "${{ inputs.target_path }}"
+
+      - name: Generate validation report
+        run: |
+          python scripts/generate_validation_report.py `
+            --operation "${{ inputs.operation }}" `
+            --source-path "${{ inputs.source_path }}" `
+            --target-path "${{ inputs.target_path }}" `
+            --output-file validation_report.md
+
+      - name: Upload validation report
+        uses: actions/upload-artifact@v3
+        with:
+          name: validation-report
+          path: validation_report.md
