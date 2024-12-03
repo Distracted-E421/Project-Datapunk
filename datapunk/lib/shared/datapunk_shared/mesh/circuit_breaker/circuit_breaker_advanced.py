@@ -745,7 +745,7 @@ class AdvancedCircuitBreaker(CircuitBreaker):
                         connection
                     )
 
-    def register_instance(
+    async def register_instance(
         self,
         service_id: str,
         instance: ServiceInstance
@@ -753,7 +753,7 @@ class AdvancedCircuitBreaker(CircuitBreaker):
         """Register a service instance"""
         await self.discovery_manager.register_instance(service_id, instance)
 
-    def deregister_instance(
+    async def deregister_instance(
         self,
         service_id: str,
         instance_id: str
