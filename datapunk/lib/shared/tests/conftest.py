@@ -63,7 +63,7 @@ def assert_logs():
     """Helper to assert log messages."""
     log_messages = []
     
-    def _capture_log(event_dict):
+    def _capture_log(logger, method_name, event_dict):
         log_messages.append(event_dict)
         return event_dict
     
@@ -110,24 +110,38 @@ def mock_response():
 
 # Redis Fixtures
 
-@pytest.fixture(scope="session")
-def redis_proc(redis_proc_session):
-    """Start Redis server."""
-    return redis_proc_session
+class MockRedis:
+    """Mock Redis for testing."""
+    def __init__(self):
+        self.data = {}
+
+    async def set(self, key: str, value: str):
+        self.data[key] = value
+
+    async def get(self, key: str):
+        return self.data.get(key)
+
+    async def incr(self, key: str):
+        value = int(self.data.get(key, 0))
+        value += 1
+        self.data[key] = str(value)
+        return value
+
+    async def flushdb(self):
+        self.data.clear()
+
+    async def ping(self):
+        return True
+
+    async def aclose(self):
+        pass
 
 @pytest.fixture
-async def redis_client(redis_proc) -> AsyncGenerator[redis.Redis, None]:
-    """Create a Redis client connected to the test Redis server."""
-    client = redis.Redis(
-        host=redis_proc.host,
-        port=redis_proc.port,
-        decode_responses=True
-    )
-    try:
-        await client.ping()
-        yield client
-    finally:
-        await client.aclose()
+async def redis_client() -> AsyncGenerator[MockRedis, None]:
+    """Create a mock Redis client for testing."""
+    client = MockRedis()
+    yield client
+    await client.flushdb()
 
 # HTTP Client Fixtures
 
@@ -135,7 +149,7 @@ async def redis_client(redis_proc) -> AsyncGenerator[redis.Redis, None]:
 async def app():
     """Create base application for testing."""
     app = web.Application()
-    return app
+    yield app
 
 @pytest.fixture
 async def aiohttp_client(aiohttp_client, app):
