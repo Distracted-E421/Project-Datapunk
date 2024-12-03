@@ -251,7 +251,7 @@ class DependencyChain:
                     error=str(e)
                 )
                 await asyncio.sleep(1)  # Brief pause before retry
-                
+        
     async def _handle_service_failure(self,
                                     service_id: str,
                                     failure_info: Optional[Dict[str, Any]]):
@@ -419,4 +419,4 @@ class DependencyChain:
         for status in self.health_status_cache.values():
             metrics["health_summary"][status.value] += 1
             
-        return metrics 
+        return metrics
