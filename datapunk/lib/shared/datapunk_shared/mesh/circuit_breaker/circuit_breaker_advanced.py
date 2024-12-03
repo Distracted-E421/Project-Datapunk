@@ -36,6 +36,9 @@ from .request_priority import (
     PriorityManager
 )
 from datapunk_shared.exceptions import CircuitBreakerError
+from .failure_prediction import FailurePredictor, PredictionMetric
+from .adaptive_timeout import AdaptiveTimeout, TimeoutConfig
+from .partial_recovery import PartialRecoveryManager, FeatureConfig
 
 if TYPE_CHECKING:
     from datapunk_shared.monitoring import MetricsClient
@@ -63,7 +66,10 @@ class AdvancedCircuitBreaker(CircuitBreaker):
                  strategy: Optional['CircuitBreakerStrategy'] = None,
                  recovery_pattern: Optional[RecoveryPattern] = None,
                  feature_priorities: Optional[Dict[str, int]] = None,
-                 priority_config: Optional[PriorityConfig] = None):
+                 priority_config: Optional[PriorityConfig] = None,
+                 reset_timeout: float = 60.0,
+                 timeout_config: Optional[TimeoutConfig] = None,
+                 features: Optional[Dict[str, FeatureConfig]] = None):
         """
         Initialize advanced circuit breaker.
         
@@ -77,6 +83,8 @@ class AdvancedCircuitBreaker(CircuitBreaker):
             recovery_pattern: Custom recovery pattern
             feature_priorities: Feature priorities for partial recovery
             priority_config: Request priority configuration
+            reset_timeout: Circuit breaker reset timeout
+            timeout_config: Adaptive timeout configuration
         """
         super().__init__(service_name, metrics)
         self.cache = cache
@@ -115,6 +123,28 @@ class AdvancedCircuitBreaker(CircuitBreaker):
         # Initialize fallback chain
         self.fallback_chain = FallbackChain(cache, metrics)
         self._fallbacks: List[Callable] = []
+        
+        # Initialize failure predictor
+        self.failure_predictor = FailurePredictor(metrics)
+        
+        # Initialize adaptive timeout
+        self.timeout_manager = AdaptiveTimeout(
+            config=timeout_config,
+            metrics_client=metrics
+        )
+        
+        # Initialize partial recovery
+        self.recovery_manager = (
+            PartialRecoveryManager(features, metrics)
+            if features else None
+        )
+        
+        # Track metrics for prediction
+        self.request_start_time = None
+        self.request_count = 0
+        self.error_count = 0
+        self.last_metrics_update = datetime.utcnow()
+        self.metrics_update_interval = timedelta(seconds=10)
         
     def add_fallback(self, handler: Callable):
         """Add fallback handler for degraded operation"""
@@ -315,3 +345,172 @@ class AdvancedCircuitBreaker(CircuitBreaker):
         except Exception as e:
             self.logger.error("Failed to check recovery timeout", error=str(e))
             return True  # Fail open on cache errors
+        
+    async def _update_metrics(self):
+        """Update metrics for failure prediction"""
+        now = datetime.utcnow()
+        if now - self.last_metrics_update < self.metrics_update_interval:
+            return
+            
+        # Calculate error rate
+        total_requests = max(1, self.request_count)
+        error_rate = self.error_count / total_requests
+        await self.failure_predictor.record_metric(
+            PredictionMetric.ERROR_RATE,
+            error_rate
+        )
+        
+        # Reset counters
+        self.request_count = 0
+        self.error_count = 0
+        self.last_metrics_update = now
+        
+        # Update dynamic thresholds
+        await self.failure_predictor.update_thresholds()
+        
+    async def before_request(self,
+                           feature: Optional[str] = None):
+        """Called before each request"""
+        self.request_start_time = datetime.utcnow()
+        self.request_count += 1
+        
+        # Check circuit state
+        if self.state == CircuitState.OPEN:
+            if self.strategy.should_attempt_reset(self):
+                self.state = CircuitState.HALF_OPEN
+                if self.metrics:
+                    await self.metrics.increment(
+                        "circuit_breaker_state_change",
+                        {"from": "open", "to": "half_open"}
+                    )
+                    
+                # Start partial recovery if configured
+                if self.recovery_manager:
+                    await self.recovery_manager.start_recovery()
+            else:
+                raise CircuitBreakerError("Circuit is OPEN")
+                
+        # Check feature availability
+        if (feature and self.recovery_manager and
+            not self.recovery_manager.is_feature_available(feature)):
+            raise CircuitBreakerError(
+                f"Feature {feature} is not available"
+            )
+                
+        # Check failure prediction
+        will_fail, confidence = await self.failure_predictor.predict_failure()
+        if will_fail and confidence > 0.8:  # High confidence threshold
+            self.logger.warning("Failure predicted",
+                              confidence=confidence)
+            if self.state == CircuitState.CLOSED:
+                self.state = CircuitState.OPEN
+                if self.metrics:
+                    await self.metrics.increment(
+                        "circuit_breaker_state_change",
+                        {"from": "closed", "to": "open",
+                         "reason": "predicted_failure"}
+                    )
+                raise CircuitBreakerError(
+                    "Circuit opened due to predicted failure"
+                )
+                
+        # Get current timeout value
+        timeout = await self.timeout_manager.get_timeout()
+        return timeout
+
+    async def after_request(self,
+                          feature: Optional[str] = None):
+        """Called after successful request"""
+        if self.request_start_time:
+            latency = (datetime.utcnow() - 
+                      self.request_start_time).total_seconds() * 1000
+                      
+            # Record response time for both systems
+            await self.failure_predictor.record_metric(
+                PredictionMetric.LATENCY,
+                latency
+            )
+            await self.timeout_manager.record_response_time(
+                latency,
+                is_success=True
+            )
+            
+            # Record feature success if applicable
+            if feature and self.recovery_manager:
+                await self.recovery_manager.record_result(
+                    feature,
+                    success=True
+                )
+        
+        if self.state == CircuitState.HALF_OPEN:
+            self.state = CircuitState.CLOSED
+            self.failure_count = 0
+            self.last_failure_time = None
+            if self.metrics:
+                await self.metrics.increment(
+                    "circuit_breaker_state_change",
+                    {"from": "half_open", "to": "closed"}
+                )
+                
+        await self._update_metrics()
+
+    async def on_failure(self,
+                        exception: Exception,
+                        feature: Optional[str] = None):
+        """Called when request fails"""
+        self.error_count += 1
+        self.failure_count += 1
+        self.last_failure_time = datetime.utcnow()
+        
+        # Record timeout failure if applicable
+        if isinstance(exception, TimeoutError):
+            current_timeout = await self.timeout_manager.get_timeout()
+            await self.timeout_manager.record_response_time(
+                current_timeout * 1.1,  # Slightly higher than timeout
+                is_success=False
+            )
+            
+        # Record feature failure if applicable
+        if feature and self.recovery_manager:
+            await self.recovery_manager.record_result(
+                feature,
+                success=False
+            )
+        
+        if (self.state == CircuitState.CLOSED and
+            self.failure_count >= self.failure_threshold):
+            self.state = CircuitState.OPEN
+            if self.metrics:
+                await self.metrics.increment(
+                    "circuit_breaker_state_change",
+                    {"from": "closed", "to": "open",
+                     "reason": "failure_threshold"}
+                )
+        elif self.state == CircuitState.HALF_OPEN:
+            self.state = CircuitState.OPEN
+            if self.metrics:
+                await self.metrics.increment(
+                    "circuit_breaker_state_change",
+                    {"from": "half_open", "to": "open",
+                     "reason": "test_failed"}
+                )
+                
+        await self._update_metrics()
+
+    async def get_metrics(self) -> Dict[str, Any]:
+        """Get combined metrics from all systems"""
+        metrics = await super().get_metrics()
+        
+        # Add timeout metrics
+        timeout_metrics = self.timeout_manager.get_timeout_metrics()
+        metrics.update({
+            f"timeout_{k}": v
+            for k, v in timeout_metrics.items()
+        })
+        
+        # Add feature metrics if applicable
+        if self.recovery_manager:
+            feature_metrics = self.recovery_manager.get_feature_metrics()
+            metrics.update(feature_metrics)
+            
+        return metrics
