@@ -1,0 +1,149 @@
+name: Documentation
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "docs/**"
+      - "datapunk/lib/shared/**/*.py"
+      - "datapunk/containers/**/*.py"
+      - "mkdocs.yml"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "docs/**"
+      - "datapunk/lib/shared/**/*.py"
+      - "datapunk/containers/**/*.py"
+      - "mkdocs.yml"
+  workflow_dispatch:
+
+jobs:
+  docs:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install mkdocs-material mkdocstrings[python] mkdocs-gen-files mkdocs-literate-nav mkdocs-section-index mkdocs-git-revision-date-localized-plugin
+
+      - name: Install Datapunk
+        run: |
+          cd datapunk/lib/shared
+          pip install -e .
+
+      - name: Generate API documentation
+        run: |
+          python docs/scripts/generate_api_docs.py
+
+      - name: Generate deployment guides
+        run: |
+          python docs/scripts/generate_deployment_guides.py \
+            --os ${{ matrix.os }} \
+            --output-dir docs/deployment
+
+      - name: Generate system requirements
+        run: |
+          python docs/scripts/generate_requirements.py \
+            --os ${{ matrix.os }} \
+            --output-dir docs/requirements
+
+      - name: Generate troubleshooting guide
+        run: |
+          python docs/scripts/generate_troubleshooting.py \
+            --os ${{ matrix.os }} \
+            --output-dir docs/troubleshooting
+
+      - name: Build documentation
+        run: mkdocs build --strict
+
+      - name: Check links
+        run: |
+          pip install linkchecker
+          linkchecker site/
+
+      - name: Generate offline documentation
+        run: |
+          python docs/scripts/create_offline_docs.py \
+            --input-dir site \
+            --output-dir offline_docs \
+            --os ${{ matrix.os }}
+
+      - name: Upload documentation artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: documentation-${{ matrix.os }}
+          path: |
+            site/
+            offline_docs/
+            docs/deployment/
+            docs/requirements/
+            docs/troubleshooting/
+
+      - name: Check for broken internal links
+        run: |
+          python docs/scripts/check_internal_links.py --docs-dir site/
+
+      - name: Generate local setup guides
+        run: |
+          python docs/scripts/generate_local_setup.py \
+            --os ${{ matrix.os }} \
+            --output-dir docs/local_setup
+
+      - name: Generate backup/restore guides
+        run: |
+          python docs/scripts/generate_backup_guides.py \
+            --os ${{ matrix.os }} \
+            --output-dir docs/maintenance
+
+      - name: Generate performance tuning guides
+        run: |
+          python docs/scripts/generate_tuning_guides.py \
+            --os ${{ matrix.os }} \
+            --output-dir docs/performance
+
+      - name: Package documentation for offline use
+        run: |
+          python docs/scripts/package_offline_docs.py \
+            --input-dir offline_docs \
+            --os ${{ matrix.os }}
+
+      - name: Upload offline package
+        uses: actions/upload-artifact@v3
+        with:
+          name: offline-docs-${{ matrix.os }}
+          path: offline_docs_package/
+
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.os == 'ubuntu-latest'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          force_orphan: true
+          commit_message: "docs: update documentation"
+
+      - name: Notify on documentation errors
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+          text: |
+            📚 Documentation build failed for ${{ matrix.os }}!
+            This affects the deployment guides and offline documentation.
+            Check the results: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
