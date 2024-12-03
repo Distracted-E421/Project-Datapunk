@@ -7,8 +7,14 @@ from src.infrastructure.monitoring_system import (
     MetricType,
     AlertRule,
     AlertSeverity,
-    Alert
+    Alert,
+    HealthCheck,
+    HealthStatus,
+    AggregationMethod,
+    MetricAggregation
 )
+import statistics
+import numpy as np
 
 class TestMonitoringSystem(unittest.TestCase):
     def setUp(self):
@@ -224,6 +230,180 @@ class TestMonitoringSystem(unittest.TestCase):
         values = self.monitoring.get_metric_values("test_metric")
         self.assertEqual(len(values), 1)
         self.assertEqual(values[0][1], 44.0)
+
+    async def test_health_check_registration(self):
+        """Test health check registration and execution."""
+        # Create health check
+        check_results = {'status': True}
+        def test_check():
+            return check_results['status']
+
+        check = HealthCheck(
+            name="test_check",
+            check_function=test_check,
+            interval=timedelta(seconds=1),
+            timeout=1.0,
+            description="Test health check"
+        )
+        
+        # Register check
+        self.monitoring.register_health_check(check)
+        self.assertIn("test_check", self.monitoring.health_checks)
+        
+        # Test initial status
+        status = self.monitoring.get_health_status(["test_check"])
+        self.assertTrue(status["test_check"].status)
+        
+        # Test failed check
+        check_results['status'] = False
+        await self.monitoring._run_single_health_check("test_check", check)
+        status = self.monitoring.get_health_status(["test_check"])
+        self.assertFalse(status["test_check"].status)
+        self.assertEqual(status["test_check"].consecutive_failures, 1)
+
+    async def test_health_check_dependencies(self):
+        """Test health check dependency handling."""
+        def check_func():
+            return True
+
+        # Create dependent checks
+        base_check = HealthCheck(
+            name="base_check",
+            check_function=check_func,
+            interval=timedelta(seconds=1),
+            timeout=1.0
+        )
+        
+        dependent_check = HealthCheck(
+            name="dependent_check",
+            check_function=check_func,
+            interval=timedelta(seconds=1),
+            timeout=1.0,
+            dependencies=["base_check"]
+        )
+        
+        # Test dependency validation
+        with self.assertRaises(ValueError):
+            self.monitoring.register_health_check(dependent_check)
+        
+        # Register checks in correct order
+        self.monitoring.register_health_check(base_check)
+        self.monitoring.register_health_check(dependent_check)
+        
+        # Test dependency failure
+        self.monitoring.health_status["base_check"] = HealthStatus(
+            name="base_check",
+            status=False,
+            last_check=datetime.now(),
+            last_success=None,
+            last_failure=datetime.now(),
+            consecutive_failures=1
+        )
+        
+        await self.monitoring._run_single_health_check("dependent_check", dependent_check)
+        status = self.monitoring.get_health_status(["dependent_check"])
+        self.assertFalse(status["dependent_check"].status)
+        self.assertIn("Dependency", status["dependent_check"].error_message)
+
+    def test_metric_aggregation(self):
+        """Test metric aggregation registration and computation."""
+        # Register test metric
+        metric = MetricDefinition(
+            name="test_metric",
+            type=MetricType.GAUGE,
+            description="Test metric",
+            labels={"service"}
+        )
+        self.monitoring.register_metric(metric)
+        
+        # Create aggregation
+        aggregation = MetricAggregation(
+            name="test_aggregation",
+            source_metric="test_metric",
+            method=AggregationMethod.AVG,
+            interval=timedelta(minutes=5),
+            labels={"service": "test"}
+        )
+        
+        # Register aggregation
+        self.monitoring.register_aggregation(aggregation)
+        self.assertIn("test_aggregation", self.monitoring.aggregations)
+        
+        # Record some values
+        labels = {"service": "test"}
+        self.monitoring.record_metric("test_metric", 10.0, labels)
+        self.monitoring.record_metric("test_metric", 20.0, labels)
+        self.monitoring.record_metric("test_metric", 30.0, labels)
+        
+        # Compute aggregation
+        self.monitoring._compute_aggregation(aggregation, datetime.now())
+        
+        # Check results
+        values = self.monitoring.get_aggregated_values("test_aggregation")
+        self.assertEqual(len(values), 1)
+        self.assertEqual(values[0][1], 20.0)  # Average of 10, 20, 30
+
+    def test_aggregation_methods(self):
+        """Test different aggregation methods."""
+        # Register test metric
+        metric = MetricDefinition(
+            name="test_metric",
+            type=MetricType.GAUGE,
+            description="Test metric",
+            labels=set()
+        )
+        self.monitoring.register_metric(metric)
+        
+        # Record test values
+        values = [10.0, 20.0, 30.0, 40.0, 50.0]
+        for value in values:
+            self.monitoring.record_metric("test_metric", value, {})
+        
+        # Test each aggregation method
+        methods = {
+            AggregationMethod.SUM: sum(values),
+            AggregationMethod.AVG: statistics.mean(values),
+            AggregationMethod.MIN: min(values),
+            AggregationMethod.MAX: max(values),
+            AggregationMethod.COUNT: len(values),
+            AggregationMethod.P95: np.percentile(values, 95),
+            AggregationMethod.P99: np.percentile(values, 99)
+        }
+        
+        for method, expected in methods.items():
+            aggregation = MetricAggregation(
+                name=f"test_{method.value}",
+                source_metric="test_metric",
+                method=method,
+                interval=timedelta(minutes=5)
+            )
+            
+            self.monitoring.register_aggregation(aggregation)
+            self.monitoring._compute_aggregation(aggregation, datetime.now())
+            
+            values = self.monitoring.get_aggregated_values(f"test_{method.value}")
+            self.assertEqual(len(values), 1)
+            self.assertAlmostEqual(values[0][1], expected, places=2)
+
+    async def test_health_check_timeout(self):
+        """Test health check timeout handling."""
+        async def slow_check():
+            await asyncio.sleep(2)
+            return True
+
+        check = HealthCheck(
+            name="slow_check",
+            check_function=slow_check,
+            interval=timedelta(seconds=1),
+            timeout=0.1
+        )
+        
+        self.monitoring.register_health_check(check)
+        await self.monitoring._run_single_health_check("slow_check", check)
+        
+        status = self.monitoring.get_health_status(["slow_check"])
+        self.assertFalse(status["slow_check"].status)
+        self.assertIn("timed out", status["slow_check"].error_message)
 
 if __name__ == '__main__':
     unittest.main() 
