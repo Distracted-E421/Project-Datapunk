@@ -5,7 +5,7 @@ import os
 import aiohttp
 from datetime import datetime
 from unittest.mock import patch, MagicMock
-from src.infrastructure.tracer import (
+from datapunk.lib.tracing.tracer import (
     SpanKind, SpanContext, Span
 )
 from src.infrastructure.trace_exporter import (

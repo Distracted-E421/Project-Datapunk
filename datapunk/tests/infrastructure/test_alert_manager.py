@@ -1,7 +1,7 @@
 import pytest
 import asyncio
 from datetime import datetime, timedelta
-from src.infrastructure.alert_manager import (
+from datapunk.lib.monitoring.alert_manager import (
     AlertSeverity, AlertStatus, AlertRule, Alert,
     NotificationChannel, AlertManager
 )

@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, timedelta
 import numpy as np
-from src.infrastructure.resource_predictor import (
+from datapunk.lib.resource.resource_predictor import (
     ResourcePredictor,
     ResourceMetrics,
     ResourcePrediction

@@ -2,7 +2,7 @@ import pytest
 import asyncio
 import json
 from datetime import datetime, timedelta
-from src.infrastructure.tracer import (
+from datapunk.lib.tracing.tracer import (
     SpanKind, SpanContext, Span, Sampler,
     SpanProcessor, Tracer, AsyncTracer
 )

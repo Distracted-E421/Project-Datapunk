@@ -2,7 +2,7 @@ import pytest
 import asyncio
 import json
 from datetime import datetime, timedelta
-from src.infrastructure.metric_collector import (
+from datapunk.lib.monitoring.metric_collector import (
     MetricType, AggregationType, MetricValue, MetricDefinition,
     MetricAggregator, MetricStorage, MetricCollector
 )

@@ -1,7 +1,7 @@
 import unittest
 import time
 from unittest.mock import patch, MagicMock
-from src.infrastructure.resource_manager import ResourceManager, ResourceThresholds, ResourceMetrics
+from datapunk.lib.resource.resource_manager import ResourceManager, ResourceThresholds, ResourceMetrics
 
 class TestResourceManager(unittest.TestCase):
     def setUp(self):

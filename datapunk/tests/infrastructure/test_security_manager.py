@@ -1,6 +1,6 @@
 import unittest
 from datetime import datetime, timedelta
-from src.infrastructure.security_manager import (
+from datapunk.lib.security.security_manager import (
     SecurityManager,
     SecurityPolicy,
     SecurityLevel,

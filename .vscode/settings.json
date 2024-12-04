@@ -23,5 +23,7 @@
   "workbench.preferredLightColorTheme": "Tyrell Corporation",
   "editor.maxTokenizationLineLength": 300000,
   "editor.experimental.asyncTokenizationVerification": false,
-  "editor.experimental.asyncTokenizationLogging": true
+  "editor.experimental.asyncTokenizationLogging": true,
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.autoImportCompletions": true
 }

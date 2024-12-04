@@ -1,7 +1,7 @@
 import pytest
 import asyncio
 from datetime import datetime
-from src.infrastructure.health_check import (
+from datapunk.lib.monitoring.health_check import (
     HealthStatus, HealthCheckResult, HealthCheck, HealthCheckManager
 )
 

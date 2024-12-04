@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 from unittest.mock import patch, MagicMock
 from aiohttp import ClientSession
-from src.infrastructure.load_tester import (
+from datapunk.lib.resource.load_tester import (
     LoadTester,
     LoadPattern,
     RequestMetrics,

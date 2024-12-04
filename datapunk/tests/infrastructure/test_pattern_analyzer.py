@@ -4,7 +4,7 @@ import tempfile
 import os
 import json
 import numpy as np
-from src.infrastructure.pattern_analyzer import (
+from datapunk.lib.resource.pattern_analyzer import (
     PatternAnalyzer,
     ServiceMetric,
     PatternType

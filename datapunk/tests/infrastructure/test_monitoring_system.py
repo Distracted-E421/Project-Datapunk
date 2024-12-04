@@ -1,7 +1,7 @@
 import unittest
 import asyncio
 from datetime import datetime, timedelta
-from src.infrastructure.monitoring_system import (
+from datapunk.lib.monitoring.monitoring_system import (
     MonitoringSystem,
     MetricDefinition,
     MetricType,
