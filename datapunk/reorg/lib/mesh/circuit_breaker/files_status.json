@@ -1,0 +1,110 @@
+{
+  "__init__.py": {
+    "read": true,
+    "chunks_read": [1],
+    "total_lines": 1,
+    "documented": true
+  },
+  "adaptive_backoff.py": {
+    "read": true,
+    "chunks_read": [1, 250],
+    "total_lines": null,
+    "documented": true
+  },
+  "adaptive_timeout.py": {
+    "read": true,
+    "chunks_read": [1, 232],
+    "total_lines": null,
+    "documented": true
+  },
+  "circuit_breaker_advanced.py": {
+    "read": true,
+    "chunks_read": [1, 217],
+    "total_lines": null,
+    "documented": true
+  },
+  "circuit_breaker_manager.py": {
+    "read": true,
+    "chunks_read": [1, 48],
+    "total_lines": null,
+    "documented": true
+  },
+  "circuit_breaker_metrics.py": {
+    "read": true,
+    "chunks_read": [1, 146],
+    "total_lines": null,
+    "documented": true
+  },
+  "circuit_breaker_strategies.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "circuit_breaker.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "dependency_aware_strategy.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "dependency_chain.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "discovery_integration.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "failure_prediction.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "health_aware.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "metrics_collector.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "partial_recovery.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "rate_limiting_strategy.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "recovery_patterns.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "request_priority.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  }
+}
