@@ -21,7 +21,7 @@
     "read": true,
     "chunks_read": [1, 250, 251, 500, 501, 504],
     "total_lines": 504,
-    "documented": false
+    "documented": true
   },
   "resolution.py": {
     "read": false,
