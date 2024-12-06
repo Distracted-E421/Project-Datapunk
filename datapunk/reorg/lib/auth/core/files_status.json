@@ -60,15 +60,15 @@
     "documented": true
   },
   "types.py": {
-    "read": false,
-    "chunks_read": [],
+    "read": true,
+    "chunks_read": [1, 159],
     "total_lines": 159,
-    "documented": false
+    "documented": true
   },
   "validation.py": {
-    "read": false,
-    "chunks_read": [],
+    "read": true,
+    "chunks_read": [1, 107],
     "total_lines": 107,
-    "documented": false
+    "documented": true
   }
 }
