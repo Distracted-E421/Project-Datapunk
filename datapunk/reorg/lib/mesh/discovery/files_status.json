@@ -27,12 +27,12 @@
     "read": true,
     "chunks_read": [1, 250, 251, 407],
     "total_lines": 407,
-    "documented": false
+    "documented": true
   },
   "sync.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [1, 250, 251, 331],
+    "total_lines": 331,
+    "documented": true
   }
 }
