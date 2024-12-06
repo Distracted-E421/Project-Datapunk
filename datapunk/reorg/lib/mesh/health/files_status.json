@@ -1,0 +1,86 @@
+{
+  "__init__.py": {
+    "read": true,
+    "chunks_read": [1, 2],
+    "total_lines": 2,
+    "documented": true
+  },
+  "checks.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 357],
+    "total_lines": 357,
+    "documented": true
+  },
+  "health_aggregator.py": {
+    "read": true,
+    "chunks_read": [1, 182],
+    "total_lines": 182,
+    "documented": true
+  },
+  "health_aware_balancer.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 255],
+    "total_lines": 255,
+    "documented": true
+  },
+  "health_aware_metrics.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 265],
+    "total_lines": 265,
+    "documented": true
+  },
+  "health_aware_strategies.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 284],
+    "total_lines": 284,
+    "documented": true
+  },
+  "health_check_extended.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 354],
+    "total_lines": 354,
+    "documented": false
+  },
+  "health_check.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "health_check_types.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "health_checks.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "health_metrics.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "health_trend_analyzer.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "monitoring.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "reporting.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  }
+}
