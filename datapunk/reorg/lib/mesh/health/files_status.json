@@ -48,9 +48,9 @@
     "documented": true
   },
   "health_check_types.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
+    "read": true,
+    "chunks_read": [1, 250, 251, 288],
+    "total_lines": 288,
     "documented": false
   },
   "health_checks.py": {
