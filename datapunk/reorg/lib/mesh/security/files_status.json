@@ -1,0 +1,20 @@
+{
+  "encryption.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 367],
+    "total_lines": 367,
+    "documented": true
+  },
+  "mtls.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 363],
+    "total_lines": 363,
+    "documented": true
+  },
+  "validation.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 360],
+    "total_lines": 360,
+    "documented": true
+  }
+}
