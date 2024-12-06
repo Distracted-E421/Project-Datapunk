@@ -1,0 +1,14 @@
+{
+  "__init__.py": {
+    "read": true,
+    "chunks_read": [1, 108],
+    "total_lines": 108,
+    "documented": true
+  },
+  "auth_mesh.py": {
+    "read": true,
+    "chunks_read": [1, 378],
+    "total_lines": 378,
+    "documented": true
+  }
+}
