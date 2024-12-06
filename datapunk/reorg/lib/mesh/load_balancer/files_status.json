@@ -1,38 +1,38 @@
 {
   "balancer.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [1, 213],
+    "total_lines": 213,
+    "documented": true
   },
   "load_balancer_advanced.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [1, 250, 251, 267],
+    "total_lines": 267,
+    "documented": true
   },
   "load_balancer_metrics.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [1, 208],
+    "total_lines": 208,
+    "documented": true
   },
   "load_balancer_strategies.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [1, 239],
+    "total_lines": 239,
+    "documented": true
   },
   "load_balancer.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [1, 196],
+    "total_lines": 196,
+    "documented": true
   },
   "strategies.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [1, 250, 251, 356],
+    "total_lines": 356,
+    "documented": true
   }
 }
