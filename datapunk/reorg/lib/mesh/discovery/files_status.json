@@ -24,9 +24,9 @@
     "documented": true
   },
   "resolution.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
+    "read": true,
+    "chunks_read": [1, 250, 251, 407],
+    "total_lines": 407,
     "documented": false
   },
   "sync.py": {
