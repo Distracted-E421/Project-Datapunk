@@ -1,0 +1,8 @@
+{
+  "__init__.py": {
+    "read": true,
+    "chunks_read": [1, 2],
+    "total_lines": 2,
+    "documented": true
+  }
+}
