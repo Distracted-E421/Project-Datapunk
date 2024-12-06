@@ -27,13 +27,13 @@
     "read": true,
     "chunks_read": [[1, 220]],
     "total_lines": 220,
-    "documented": false
+    "documented": true
   },
   "auth/security_audit.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [[1, 160]],
+    "total_lines": 160,
+    "documented": true
   },
   "auth/service_auth.py": {
     "read": false,
