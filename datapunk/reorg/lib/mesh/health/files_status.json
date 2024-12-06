@@ -72,15 +72,15 @@
     "documented": true
   },
   "monitoring.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [1, 250, 251, 374],
+    "total_lines": 374,
+    "documented": true
   },
   "reporting.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [1, 196],
+    "total_lines": 196,
+    "documented": true
   }
 }
