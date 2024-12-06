@@ -1,0 +1,56 @@
+{
+  "__init__.py": {
+    "read": true,
+    "chunks_read": [1, 83],
+    "total_lines": 83,
+    "documented": true
+  },
+  "api_keys.py": {
+    "read": true,
+    "chunks_read": [1, 210],
+    "total_lines": 210,
+    "documented": true
+  },
+  "manager.py": {
+    "read": true,
+    "chunks_read": [1, 296],
+    "total_lines": 296,
+    "documented": true
+  },
+  "notifications.py": {
+    "read": true,
+    "chunks_read": [1, 150],
+    "total_lines": 150,
+    "documented": true
+  },
+  "policies_extended.py": {
+    "read": true,
+    "chunks_read": [1, 175],
+    "total_lines": 175,
+    "documented": true
+  },
+  "policies.py": {
+    "read": true,
+    "chunks_read": [1, 283],
+    "total_lines": 283,
+    "documented": true
+  },
+  "rotation.py": {
+    "read": true,
+    "chunks_read": [1, 296],
+    "total_lines": 296,
+    "documented": true
+  },
+  "types.py": {
+    "read": true,
+    "chunks_read": [1, 53],
+    "total_lines": 53,
+    "documented": true
+  },
+  "validation.py": {
+    "read": true,
+    "chunks_read": [1, 163],
+    "total_lines": 163,
+    "documented": true
+  }
+}
