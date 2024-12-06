@@ -39,13 +39,13 @@
     "read": true,
     "chunks_read": [1, 250, 251, 354],
     "total_lines": 354,
-    "documented": false
+    "documented": true
   },
   "health_check.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [1, 250, 251, 290],
+    "total_lines": 290,
+    "documented": true
   },
   "health_check_types.py": {
     "read": false,
