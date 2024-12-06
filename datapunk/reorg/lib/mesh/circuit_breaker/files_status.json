@@ -48,10 +48,10 @@
     "documented": true
   },
   "dependency_aware_strategy.py": {
-    "read": false,
-    "chunks_read": [],
+    "read": true,
+    "chunks_read": [1, 222],
     "total_lines": null,
-    "documented": false
+    "documented": true
   },
   "dependency_chain.py": {
     "read": false,
