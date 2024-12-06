@@ -1,0 +1,74 @@
+{
+  "__init__.py": {
+    "read": true,
+    "chunks_read": [1, 80],
+    "total_lines": 80,
+    "documented": true
+  },
+  "access_control.py": {
+    "read": true,
+    "chunks_read": [1, 260],
+    "total_lines": 260,
+    "documented": true
+  },
+  "config.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 442],
+    "total_lines": 442,
+    "documented": true
+  },
+  "error_handling.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 400],
+    "total_lines": 400,
+    "documented": true
+  },
+  "exceptions.py": {
+    "read": true,
+    "chunks_read": [1, 89],
+    "total_lines": 89,
+    "documented": true
+  },
+  "middleware.py": {
+    "read": true,
+    "chunks_read": [1, 53],
+    "total_lines": 53,
+    "documented": true
+  },
+  "rate_limiting.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 403],
+    "total_lines": 403,
+    "documented": true
+  },
+  "routes.py": {
+    "read": true,
+    "chunks_read": [1, 120],
+    "total_lines": 120,
+    "documented": true
+  },
+  "security.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 288],
+    "total_lines": 288,
+    "documented": true
+  },
+  "session.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": 496,
+    "documented": false
+  },
+  "types.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": 159,
+    "documented": false
+  },
+  "validation.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": 107,
+    "documented": false
+  }
+}
