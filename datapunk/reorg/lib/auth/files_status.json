@@ -1,0 +1,32 @@
+{
+  "__init__.py": {
+    "read": true,
+    "chunks_read": [1, 200],
+    "total_lines": 200,
+    "documented": true
+  },
+  "notification_channels.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 329],
+    "total_lines": 329,
+    "documented": true
+  },
+  "role_manager.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 389],
+    "total_lines": 389,
+    "documented": true
+  },
+  "routes.py": {
+    "read": true,
+    "chunks_read": [1, 161],
+    "total_lines": 161,
+    "documented": true
+  },
+  "types.py": {
+    "read": true,
+    "chunks_read": [1, 45],
+    "total_lines": 45,
+    "documented": true
+  }
+}
