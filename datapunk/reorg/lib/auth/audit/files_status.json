@@ -1,0 +1,32 @@
+{
+  "__init__.py": {
+    "read": true,
+    "chunks_read": [1, 66],
+    "total_lines": 66,
+    "documented": true
+  },
+  "audit_logger.py": {
+    "read": true,
+    "chunks_read": [1, 420],
+    "total_lines": 420,
+    "documented": true
+  },
+  "audit_retention.py": {
+    "read": true,
+    "chunks_read": [1, 158],
+    "total_lines": 158,
+    "documented": true
+  },
+  "audit.py": {
+    "read": true,
+    "chunks_read": [1, 107],
+    "total_lines": 107,
+    "documented": true
+  },
+  "types.py": {
+    "read": true,
+    "chunks_read": [1, 106],
+    "total_lines": 106,
+    "documented": true
+  }
+}
