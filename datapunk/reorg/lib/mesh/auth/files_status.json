@@ -36,15 +36,15 @@
     "documented": true
   },
   "auth/service_auth.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [[1, 200]],
+    "total_lines": 200,
+    "documented": true
   },
   "auth/threat_detection.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [[1, 243]],
+    "total_lines": 243,
+    "documented": true
   }
 }
