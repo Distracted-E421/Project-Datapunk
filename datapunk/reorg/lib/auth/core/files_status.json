@@ -54,10 +54,10 @@
     "documented": true
   },
   "session.py": {
-    "read": false,
-    "chunks_read": [],
+    "read": true,
+    "chunks_read": [1, 250, 251, 496],
     "total_lines": 496,
-    "documented": false
+    "documented": true
   },
   "types.py": {
     "read": false,
