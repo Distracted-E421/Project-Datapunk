@@ -1,0 +1,50 @@
+{
+  "__init__.py": {
+    "read": true,
+    "chunks_read": [1, 67],
+    "total_lines": 67,
+    "documented": true
+  },
+  "approval_chain.py": {
+    "read": true,
+    "chunks_read": [1, 276],
+    "total_lines": 276,
+    "documented": true
+  },
+  "approval_delegation.py": {
+    "read": true,
+    "chunks_read": [1, 294],
+    "total_lines": 294,
+    "documented": true
+  },
+  "delegation_audit.py": {
+    "read": true,
+    "chunks_read": [1, 326],
+    "total_lines": 326,
+    "documented": true
+  },
+  "policy_migration.py": {
+    "read": true,
+    "chunks_read": [1, 274],
+    "total_lines": 274,
+    "documented": true
+  },
+  "policy_notifications.py": {
+    "read": true,
+    "chunks_read": [1, 213],
+    "total_lines": 213,
+    "documented": true
+  },
+  "policy_rollback_validator.py": {
+    "read": true,
+    "chunks_read": [1, 296],
+    "total_lines": 296,
+    "documented": true
+  },
+  "types.py": {
+    "read": true,
+    "chunks_read": [1, 106],
+    "total_lines": 106,
+    "documented": true
+  }
+}
