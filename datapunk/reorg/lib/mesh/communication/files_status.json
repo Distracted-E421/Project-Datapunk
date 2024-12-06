@@ -1,0 +1,26 @@
+{
+  "grpc/client.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 393],
+    "total_lines": 393,
+    "documented": true
+  },
+  "grpc/server.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 433],
+    "total_lines": 433,
+    "documented": true
+  },
+  "rest/client.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 441],
+    "total_lines": 441,
+    "documented": true
+  },
+  "rest/server.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 336],
+    "total_lines": 336,
+    "documented": true
+  }
+}
