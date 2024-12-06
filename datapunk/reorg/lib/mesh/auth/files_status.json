@@ -1,0 +1,50 @@
+{
+  "auth/__init__.py": {
+    "read": true,
+    "chunks_read": [[1, 2]],
+    "total_lines": 2,
+    "documented": true
+  },
+  "auth/access_control.py": {
+    "read": true,
+    "chunks_read": [[1, 212]],
+    "total_lines": 212,
+    "documented": true
+  },
+  "auth/auth_discovery_integration.py": {
+    "read": true,
+    "chunks_read": [[1, 217]],
+    "total_lines": 217,
+    "documented": true
+  },
+  "auth/auth_metrics.py": {
+    "read": true,
+    "chunks_read": [[1, 207]],
+    "total_lines": 207,
+    "documented": true
+  },
+  "auth/rate_limiter.py": {
+    "read": true,
+    "chunks_read": [[1, 220]],
+    "total_lines": 220,
+    "documented": false
+  },
+  "auth/security_audit.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "auth/service_auth.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "auth/threat_detection.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  }
+}
