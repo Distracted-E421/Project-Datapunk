@@ -1,0 +1,26 @@
+{
+  "datapunk/lib/database/__init__.py": {
+    "read": true,
+    "chunks_read": [[1, 10]],
+    "total_lines": 10,
+    "documented": true
+  },
+  "datapunk/lib/database/migrations.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 444]
+    ],
+    "total_lines": 444,
+    "documented": true
+  },
+  "datapunk/lib/database/pool.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 416]
+    ],
+    "total_lines": 416,
+    "documented": true
+  }
+}
