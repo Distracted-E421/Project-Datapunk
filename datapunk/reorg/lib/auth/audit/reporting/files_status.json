@@ -1,0 +1,53 @@
+{
+  "datapunk/lib/auth/audit/reporting/__init__.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 80 }],
+    "total_lines": 80,
+    "documented": true
+  },
+  "datapunk/lib/auth/audit/reporting/audit_reports_extended.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 219 }],
+    "total_lines": 219,
+    "documented": true
+  },
+  "datapunk/lib/auth/audit/reporting/generator.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 398 }
+    ],
+    "total_lines": 398,
+    "documented": true
+  },
+  "datapunk/lib/auth/audit/reporting/template_cache.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 254 }
+    ],
+    "total_lines": 254,
+    "documented": true
+  },
+  "datapunk/lib/auth/audit/reporting/template_cache_utils.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 345 }
+    ],
+    "total_lines": 345,
+    "documented": true
+  },
+  "datapunk/lib/auth/audit/reporting/template_validator.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 208 }],
+    "total_lines": 208,
+    "documented": true
+  },
+  "datapunk/lib/auth/audit/reporting/templates.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  }
+}
