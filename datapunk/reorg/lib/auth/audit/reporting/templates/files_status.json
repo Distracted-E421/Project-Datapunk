@@ -1,0 +1,32 @@
+{
+  "datapunk/lib/auth/audit/reporting/templates/base.j2": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 46 }],
+    "total_lines": 46,
+    "documented": true
+  },
+  "datapunk/lib/auth/audit/reporting/templates/compliance_matrix.j2": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 62 }],
+    "total_lines": 62,
+    "documented": true
+  },
+  "datapunk/lib/auth/audit/reporting/templates/metrics_dashboard.j2": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 45 }],
+    "total_lines": 45,
+    "documented": true
+  },
+  "datapunk/lib/auth/audit/reporting/templates/overview.j2": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 40 }],
+    "total_lines": 40,
+    "documented": true
+  },
+  "datapunk/lib/auth/audit/reporting/templates/security_incidents.j2": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 48 }],
+    "total_lines": 48,
+    "documented": true
+  }
+}
