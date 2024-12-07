@@ -3,72 +3,87 @@
     "read": true,
     "chunks_read": [[1, 45]],
     "total_lines": 45,
-    "documented": false
+    "documented": true
   },
   "datapunk/reorg/lib/cache.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [
+      [1, 150],
+      [151, 161]
+    ],
+    "total_lines": 161,
+    "documented": true
   },
   "datapunk/reorg/lib/config.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [[1, 50]],
+    "total_lines": 50,
+    "documented": true
   },
   "datapunk/reorg/lib/database.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [[1, 148]],
+    "total_lines": 148,
+    "documented": true
   },
   "datapunk/reorg/lib/exceptions.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [
+      [1, 150],
+      [151, 277]
+    ],
+    "total_lines": 277,
+    "documented": true
   },
   "datapunk/reorg/lib/health.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [[1, 50]],
+    "total_lines": 50,
+    "documented": true
   },
   "datapunk/reorg/lib/logging.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [[1, 97]],
+    "total_lines": 97,
+    "documented": true
   },
   "datapunk/reorg/lib/messaging.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [
+      [1, 150],
+      [151, 173]
+    ],
+    "total_lines": 173,
+    "documented": true
   },
   "datapunk/reorg/lib/metrics.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [[1, 135]],
+    "total_lines": 135,
+    "documented": true
   },
   "datapunk/reorg/lib/pyproject.toml": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [[1, 151]],
+    "total_lines": 151,
+    "documented": true
   },
   "datapunk/reorg/lib/service.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [
+      [1, 150],
+      [151, 200]
+    ],
+    "total_lines": 200,
+    "documented": true
   },
   "datapunk/reorg/lib/tracing.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [
+      [1, 150],
+      [151, 244]
+    ],
+    "total_lines": 244,
+    "documented": true
   }
 }
