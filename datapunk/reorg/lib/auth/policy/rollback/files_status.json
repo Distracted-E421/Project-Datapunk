@@ -1,0 +1,26 @@
+{
+  "datapunk/lib/auth/policy/rollback/__init__.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 33 }],
+    "total_lines": 33,
+    "documented": true
+  },
+  "datapunk/lib/auth/policy/rollback/manager.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 222 }],
+    "total_lines": 222,
+    "documented": true
+  },
+  "datapunk/lib/auth/policy/rollback/types.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 96 }],
+    "total_lines": 96,
+    "documented": true
+  },
+  "datapunk/lib/auth/policy/rollback/validation.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  }
+}
