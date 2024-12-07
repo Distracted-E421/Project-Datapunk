@@ -1,0 +1,38 @@
+{
+  "datapunk/lib/error/__init__.py": {
+    "read": true,
+    "chunks_read": [[1, 12]],
+    "total_lines": 12,
+    "documented": true
+  },
+  "datapunk/lib/error/decorators.py": {
+    "read": true,
+    "chunks_read": [[1, 106]],
+    "total_lines": 106,
+    "documented": false
+  },
+  "datapunk/lib/error/error_handler.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "datapunk/lib/error/error_types.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "datapunk/lib/error/handlers.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "datapunk/lib/error/recovery_strategies.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  }
+}
