@@ -1,0 +1,35 @@
+{
+  "datapunk/lib/resource/load_tester.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 461]
+    ],
+    "total_lines": 461,
+    "documented": true
+  },
+  "datapunk/lib/resource/pattern_analyzer.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 253]
+    ],
+    "total_lines": 253,
+    "documented": true
+  },
+  "datapunk/lib/resource/resource_manager.py": {
+    "read": true,
+    "chunks_read": [[1, 146]],
+    "total_lines": 146,
+    "documented": true
+  },
+  "datapunk/lib/resource/resource_predictor.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 264]
+    ],
+    "total_lines": 264,
+    "documented": true
+  }
+}
