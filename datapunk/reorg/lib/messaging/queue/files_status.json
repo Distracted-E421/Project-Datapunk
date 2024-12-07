@@ -1,0 +1,17 @@
+{
+  "datapunk/lib/messaging/queue/__init__.py": {
+    "read": true,
+    "chunks_read": [[1, 2]],
+    "total_lines": 2,
+    "documented": true
+  },
+  "datapunk/lib/messaging/queue/manager.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 483]
+    ],
+    "total_lines": 483,
+    "documented": true
+  }
+}
