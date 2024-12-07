@@ -33,9 +33,9 @@
     "documented": true
   },
   "datapunk/lib/error/recovery_strategies.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [[1, 179]],
+    "total_lines": 179,
+    "documented": true
   }
 }
