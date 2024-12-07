@@ -1,0 +1,24 @@
+{
+  "datapunk/reorg/lib/validation/__init__.py": {
+    "read": true,
+    "chunks_read": [[1, 2]],
+    "total_lines": 2,
+    "documented": true
+  },
+  "datapunk/reorg/lib/validation/schema.py": {
+    "read": true,
+    "chunks_read": [[1, 110]],
+    "total_lines": 110,
+    "documented": true
+  },
+  "datapunk/reorg/lib/validation/validator.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 150],
+      [151, 300],
+      [301, 325]
+    ],
+    "total_lines": 325,
+    "documented": true
+  }
+}
