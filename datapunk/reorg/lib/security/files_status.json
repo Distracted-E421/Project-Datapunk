@@ -1,0 +1,53 @@
+{
+  "datapunk/lib/security/__init__.py": {
+    "read": true,
+    "chunks_read": [[1, 2]],
+    "total_lines": 2,
+    "documented": true
+  },
+  "datapunk/lib/security/cert_revocation.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 150],
+      [151, 158]
+    ],
+    "total_lines": 158,
+    "documented": true
+  },
+  "datapunk/lib/security/cert_rotation.py": {
+    "read": true,
+    "chunks_read": [[1, 139]],
+    "total_lines": 139,
+    "documented": true
+  },
+  "datapunk/lib/security/middleware.py": {
+    "read": true,
+    "chunks_read": [[1, 101]],
+    "total_lines": 101,
+    "documented": true
+  },
+  "datapunk/lib/security/mtls.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 150],
+      [151, 240]
+    ],
+    "total_lines": 240,
+    "documented": true
+  },
+  "datapunk/lib/security/rate_limit.py": {
+    "read": true,
+    "chunks_read": [[1, 89]],
+    "total_lines": 89,
+    "documented": true
+  },
+  "datapunk/lib/security/security_manager.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 150],
+      [151, 273]
+    ],
+    "total_lines": 273,
+    "documented": true
+  }
+}
