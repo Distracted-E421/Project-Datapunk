@@ -1,0 +1,26 @@
+{
+  "datapunk/lib/auth/policy/enforcement/__init__.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "datapunk/lib/auth/policy/enforcement/middleware.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 166 }],
+    "total_lines": 166,
+    "documented": true
+  },
+  "datapunk/lib/auth/policy/enforcement/rules.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 191 }],
+    "total_lines": 191,
+    "documented": true
+  },
+  "datapunk/lib/auth/policy/enforcement/types.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 82 }],
+    "total_lines": 82,
+    "documented": true
+  }
+}
