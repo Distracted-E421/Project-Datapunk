@@ -1,38 +1,48 @@
 {
   "datapunk/lib/processing/__init__.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [[1, 2]],
+    "total_lines": 2,
+    "documented": true
   },
   "datapunk/lib/processing/etl.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 307]
+    ],
+    "total_lines": 307,
+    "documented": true
   },
   "datapunk/lib/processing/transformers.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 500],
+      [501, 522]
+    ],
+    "total_lines": 522,
+    "documented": true
   },
   "datapunk/lib/processing/templates/base.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [[1, 122]],
+    "total_lines": 122,
+    "documented": true
   },
   "datapunk/lib/processing/templates/data_validation.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 276]
+    ],
+    "total_lines": 276,
+    "documented": true
   },
   "datapunk/lib/processing/templates/streaming.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [[1, 230]],
+    "total_lines": 230,
+    "documented": true
   }
 }
