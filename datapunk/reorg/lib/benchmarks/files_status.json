@@ -1,0 +1,14 @@
+{
+  "datapunk/lib/benchmarks/__init__.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 26 }],
+    "total_lines": 26,
+    "documented": true
+  },
+  "datapunk/lib/benchmarks/reporter.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 209 }],
+    "total_lines": 209,
+    "documented": true
+  }
+}
