@@ -9,12 +9,15 @@
     "read": true,
     "chunks_read": [{ "start": 1, "end": 124 }],
     "total_lines": 124,
-    "documented": false
+    "documented": true
   },
   "datapunk/lib/auth/audit/compliance/standards.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 365 }
+    ],
+    "total_lines": 365,
+    "documented": true
   }
 }
