@@ -1,0 +1,35 @@
+{
+  "datapunk/lib/messaging/patterns/__init__.py": {
+    "read": true,
+    "chunks_read": [[1, 2]],
+    "total_lines": 2,
+    "documented": true
+  },
+  "datapunk/lib/messaging/patterns/batch.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 328]
+    ],
+    "total_lines": 328,
+    "documented": true
+  },
+  "datapunk/lib/messaging/patterns/dlq.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 396]
+    ],
+    "total_lines": 396,
+    "documented": true
+  },
+  "datapunk/lib/messaging/patterns/retry.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 258]
+    ],
+    "total_lines": 258,
+    "documented": true
+  }
+}
