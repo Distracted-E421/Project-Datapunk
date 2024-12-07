@@ -9,25 +9,28 @@
     "read": true,
     "chunks_read": [[1, 106]],
     "total_lines": 106,
-    "documented": false
+    "documented": true
   },
   "datapunk/lib/error/error_handler.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 282]
+    ],
+    "total_lines": 282,
+    "documented": true
   },
   "datapunk/lib/error/error_types.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [[1, 139]],
+    "total_lines": 139,
+    "documented": true
   },
   "datapunk/lib/error/handlers.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [[1, 249]],
+    "total_lines": 249,
+    "documented": true
   },
   "datapunk/lib/error/recovery_strategies.py": {
     "read": false,
