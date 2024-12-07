@@ -1,0 +1,14 @@
+{
+  "datapunk/lib/utils/__init__.py": {
+    "read": true,
+    "chunks_read": [[1, 1]],
+    "total_lines": 1,
+    "documented": true
+  },
+  "datapunk/lib/utils/retry.py": {
+    "read": true,
+    "chunks_read": [[1, 117]],
+    "total_lines": 117,
+    "documented": true
+  }
+}
