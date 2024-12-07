@@ -1,0 +1,38 @@
+{
+  "config/volumes.yml": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 53 }],
+    "total_lines": 53,
+    "documented": true
+  },
+  "config/prometheus/prometheus.yml": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 49 }],
+    "total_lines": 49,
+    "documented": true
+  },
+  "config/mesh/service-mesh.yml": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 93 }],
+    "total_lines": 93,
+    "documented": true
+  },
+  "config/consul/config.json": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 24 }],
+    "total_lines": 24,
+    "documented": true
+  },
+  "config/consul/README.md": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 84 }],
+    "total_lines": 84,
+    "documented": true
+  },
+  "config/certs/mtls-config.yaml": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 47 }],
+    "total_lines": 47,
+    "documented": true
+  }
+}
