@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 
 from .config.storage_config import StorageConfig
 from .mesh.mesh_integrator import MeshIntegrator
-from .storage.index.strategies.partitioning.base.manager import GridPartitionManager
+from .storage.index.strategies.partitioning.base.base_manager import GridPartitionManager
 from .ingestion.core import IngestionCore
 from .ingestion.monitoring import IngestionMonitor
 from .query.federation.manager import FederationManager
