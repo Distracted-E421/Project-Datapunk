@@ -1,7 +1,7 @@
 from typing import List, Tuple
 import quadkey
 from shapely.geometry import Polygon
-from .base import GridSystem
+from .base_grid import GridSystem
 
 class QuadkeyGrid(GridSystem):
     """Quadkey-based grid system (Microsoft Bing Maps)"""
