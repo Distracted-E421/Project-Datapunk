@@ -303,10 +303,14 @@
   },
   "datapunk/containers/lake/src/query/federation/executor.py": {
     "read": true,
-    "chunks_read": [
-        {"start": 1, "end": 194}
-    ],
+    "chunks_read": [{ "start": 1, "end": 194 }],
     "total_lines": 194,
+    "documented": false
+  },
+  "datapunk/containers/lake/src/query/federation/manager.py": {
+    "read": true,
+    "chunks_read": [[1, 185]],
+    "total_lines": 185,
     "documented": false
   }
 }
