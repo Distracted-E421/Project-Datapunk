@@ -1,7 +1,7 @@
 from typing import List, Tuple
 import pygeohash as pgh
 from shapely.geometry import Polygon
-from .base import GridSystem
+from .base_grid import GridSystem
 
 class GeohashGrid(GridSystem):
     """Geohash-based grid system"""
