@@ -5,7 +5,7 @@ from datetime import datetime
 import logging
 
 from ..mesh.mesh_integrator import MeshIntegrator
-from ..storage.index.strategies.partitioning.base.manager import GridPartitionManager
+from ..storage.index.strategies.partitioning.base.base_manager import GridPartitionManager
 
 logger = logging.getLogger(__name__)
 
