@@ -1,9 +1,9 @@
-from .strategy import TimePartitionStrategy
+from .time_strategy import TimePartitionStrategy
 from .retention import RetentionPolicy
 from .rollup import TimeRollup
-from .optimizer import TemporalQueryOptimizer
-from .analysis import TimeSeriesAnalyzer
-from .indexing import TemporalIndex, TemporalIndexManager
+from .time_optimizer import TemporalQueryOptimizer
+from .time_analysis import TimeSeriesAnalyzer
+from .time_indexing import TemporalIndex, TemporalIndexManager
 from .forecasting import TimeSeriesForecaster
 from .materialized import MaterializedView, MaterializedViewManager
 
