@@ -1,7 +1,7 @@
 from typing import List, Tuple
 import h3
 from shapely.geometry import Polygon
-from .base import GridSystem
+from .base_grid import GridSystem
 
 class H3Grid(GridSystem):
     """H3-based hexagonal grid system"""
