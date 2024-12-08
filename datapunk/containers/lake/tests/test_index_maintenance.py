@@ -6,7 +6,7 @@ from ..src.storage.index.advisor import IndexAdvisor
 from ..src.storage.index.maintenance import IndexMaintenanceManager, IndexUsageStats
 from ..src.storage.index.composite import CompositeIndex
 from ..src.query.optimizer.index_aware import IndexAwareOptimizer, IndexAccessPath
-from ..src.query.parser.core import QueryNode, QueryType
+from ..src.query.parser.query_parser_core import QueryNode, QueryType
 
 class MockIndex(Index):
     """Mock index for testing."""

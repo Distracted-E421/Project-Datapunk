@@ -6,8 +6,8 @@ import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
-from .monitoring import FederationMonitor, QueryMetrics
-from .alerting import AlertManager, AlertSeverity, AlertType
+from .query_fed_monitoring import FederationMonitor, QueryMetrics
+from .fed_alerting import AlertManager, AlertSeverity, AlertType
 
 class FederationVisualizer:
     """Visualizes federation monitoring and profiling data."""

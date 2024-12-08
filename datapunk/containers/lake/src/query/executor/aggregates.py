@@ -2,8 +2,8 @@ from typing import Any, Dict, List, Optional, Union
 from abc import ABC, abstractmethod
 import math
 import statistics
-from .core import ExecutionOperator
-from ..parser.core import QueryNode
+from .query_exec_core import ExecutionOperator
+from ..parser.query_parser_core import QueryNode
 
 class AggregateFunction(ABC):
     """Base class for aggregate functions."""

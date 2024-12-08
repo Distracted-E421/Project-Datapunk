@@ -14,18 +14,18 @@ from .mesh.mesh_integrator import MeshIntegrator
 from .storage.index.strategies.partitioning.base.base_manager import GridPartitionManager
 from .ingestion.core import IngestionCore
 from .ingestion.monitoring import IngestionMonitor
-from .query.federation.manager import FederationManager
-from .query.federation.monitoring import FederationMonitor
-from .query.federation.visualization import FederationVisualizer
+from .query.federation.query_fed_manager import FederationManager
+from .query.federation.query_fed_monitoring import FederationMonitor
+from .query.federation.fed_visualization import FederationVisualizer
 from .storage.stores import TimeSeriesStore, SpatialStore, VectorStore
 from .storage.cache import CacheManager
 from .storage.quorum import QuorumManager
-from .query.parser.sql import SQLParser
-from .query.parser.nosql import NoSQLParser
-from .query.validation.sql import SQLValidator
-from .query.validation.nosql import NoSQLValidator
-from .query.optimizer.core import QueryOptimizer
-from .query.executor.core import QueryExecutor
+from .query.parser.query_parser_sql import SQLParser
+from .query.parser.query_parser_nosql import NoSQLParser
+from .query.validation.validation_sql import SQLValidator
+from .query.validation.validation_nosql import NoSQLValidator
+from .query.optimizer.optimizer_core import QueryOptimizer
+from .query.executor.query_exec_core import QueryExecutor
 from .query.executor.streaming import StreamingExecutor
 from .processing.validator import DataValidator
 

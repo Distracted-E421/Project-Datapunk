@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional, Set
 from dataclasses import dataclass
-from ..planner import DataSource, DataSourceType
+from ..fed_planner import DataSource, DataSourceType
 
 @dataclass
 class AdapterMetrics:

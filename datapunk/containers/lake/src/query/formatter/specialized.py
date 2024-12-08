@@ -3,7 +3,7 @@ import json
 import numpy as np
 from datetime import datetime, date
 import pandas as pd
-from .core import ResultFormatter
+from .formatter_core import ResultFormatter
 
 class TimeSeriesFormatter(ResultFormatter):
     """Formats time series data with specialized visualizations."""

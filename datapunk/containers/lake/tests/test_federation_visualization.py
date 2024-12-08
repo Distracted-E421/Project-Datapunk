@@ -1,13 +1,13 @@
 import pytest
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
-from ..src.query.federation.visualization import FederationVisualizer
-from ..src.query.federation.monitoring import (
+from ..src.query.federation.fed_visualization import FederationVisualizer
+from ..src.query.federation.query_fed_monitoring import (
     FederationMonitor,
     QueryMetrics,
     SourceMetrics
 )
-from ..src.query.federation.alerting import (
+from ..src.query.federation.fed_alerting import (
     AlertManager,
     Alert,
     AlertSeverity,

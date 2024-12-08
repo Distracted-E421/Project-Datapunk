@@ -1,7 +1,7 @@
 from typing import Any, Dict, Iterator, List, Optional, Tuple
 from abc import ABC, abstractmethod
-from .core import ExecutionOperator
-from ..parser.core import QueryNode
+from .query_exec_core import ExecutionOperator
+from ..parser.query_parser_core import QueryNode
 
 class WindowFunction(ABC):
     """Base class for window functions."""

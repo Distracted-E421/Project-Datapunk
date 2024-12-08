@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional, Any, Set, Tuple
 from dataclasses import dataclass
-from ..parser.core import QueryPlan, QueryNode
-from .core import DataSourceStats
+from ..parser.query_parser_core import QueryPlan, QueryNode
+from .query_fed_core import DataSourceStats
 
 @dataclass
 class SubQuery:

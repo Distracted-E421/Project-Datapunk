@@ -1,7 +1,7 @@
 import pytest
 import asyncio
 from datetime import datetime, timedelta
-from ..src.query.federation.alerting import (
+from ..src.query.federation.fed_alerting import (
     AlertManager,
     AlertRule,
     Alert,

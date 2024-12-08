@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime
-from ..src.query.formatter.core import (
+from ..src.query.formatter.formatter_core import (
     FormatStyle,
     FormatOptions,
     QueryFormatter,

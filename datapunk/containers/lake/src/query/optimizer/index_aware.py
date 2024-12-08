@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
-from ..parser.core import QueryNode, QueryType
+from ..parser.query_parser_core import QueryNode, QueryType
 from ...storage.index.core import Index, IndexType
 from ...storage.index.maintenance import IndexMaintenanceManager
 

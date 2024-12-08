@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Set, Union
-from ..parser.core import QueryPlan, QueryNode
-from ..optimizer.core import QueryOptimizer, OptimizationRule
+from ..parser.query_parser_core import QueryPlan, QueryNode
+from ..optimizer.optimizer_core import QueryOptimizer, OptimizationRule
 from datetime import datetime
 import asyncio
 import logging

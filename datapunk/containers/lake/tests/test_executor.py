@@ -1,11 +1,11 @@
 import unittest
 from typing import Dict, List, Any
-from ..src.query.executor.core import (
+from ..src.query.executor.query_exec_core import (
     ExecutionContext, ExecutionEngine, ExecutionOperator,
     TableScanOperator, FilterOperator, JoinOperator,
     ProjectOperator, AggregateOperator
 )
-from ..src.query.parser.core import QueryNode, QueryPlan
+from ..src.query.parser.query_parser_core import QueryNode, QueryPlan
 from ..src.storage.cache import CacheManager
 
 class MockCacheManager(CacheManager):

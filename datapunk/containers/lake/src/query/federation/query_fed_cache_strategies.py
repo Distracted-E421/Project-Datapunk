@@ -6,7 +6,7 @@ from sklearn.cluster import DBSCAN
 from sklearn.preprocessing import StandardScaler
 import asyncio
 import logging
-from .core import QueryPlan
+from .query_fed_core import QueryPlan
 
 @dataclass
 class CacheEntry:

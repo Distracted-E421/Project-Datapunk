@@ -1,8 +1,8 @@
 from typing import Any, Dict, List, Optional, Set, Union
 from dataclasses import dataclass
 from enum import Enum, auto
-from .sql_advanced import AdvancedSQLParser
-from .core import QueryNode, QueryPlan
+from .query_parser_sql_advanced import AdvancedSQLParser
+from .query_parser_core import QueryNode, QueryPlan
 
 @dataclass
 class PivotSpec:

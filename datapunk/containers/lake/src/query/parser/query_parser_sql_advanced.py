@@ -1,8 +1,8 @@
 from typing import Any, Dict, List, Optional, Set, Union
 from dataclasses import dataclass
 from enum import Enum, auto
-from .core import QueryNode, QueryPlan
-from .sql import SQLParser
+from .query_parser_core import QueryNode, QueryPlan
+from .query_parser_sql import SQLParser
 
 class WindowFrameType(Enum):
     """Types of window frames."""

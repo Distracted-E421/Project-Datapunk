@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Iterator, List, Optional
-from ..parser.core import QueryPlan, QueryNode
+from ..parser.query_parser_core import QueryPlan, QueryNode
 from ...storage.cache import CacheManager
 
 class ExecutionContext:

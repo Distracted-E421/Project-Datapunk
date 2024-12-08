@@ -3,13 +3,13 @@ from dataclasses import dataclass
 from enum import Enum
 import pandas as pd
 import numpy as np
-from .planner import DataSourceType
-from .executor import QueryResult
+from .fed_planner import DataSourceType
+from .query_fed_executor import QueryResult
 from datetime import datetime
 import asyncio
 import logging
-from ..parser.core import QueryPlan, QueryNode
-from .splitter import SubQuery
+from ..parser.query_parser_core import QueryPlan, QueryNode
+from .fed_splitter import SubQuery
 
 class MergeStrategy(Enum):
     """Available merge strategies."""

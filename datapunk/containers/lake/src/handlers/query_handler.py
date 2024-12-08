@@ -4,12 +4,12 @@ from pydantic import BaseModel
 import logging
 from datetime import datetime
 
-from ..query.parser.sql import SQLParser
-from ..query.parser.nosql import NoSQLParser
-from ..query.validation.sql import SQLValidator
-from ..query.validation.nosql import NoSQLValidator
-from ..query.optimizer.core import QueryOptimizer
-from ..query.executor.core import QueryExecutor
+from ..query.parser.query_parser_sql import SQLParser
+from ..query.parser.query_parser_nosql import NoSQLParser
+from ..query.validation.validation_sql import SQLValidator
+from ..query.validation.validation_nosql import NoSQLValidator
+from ..query.optimizer.optimizer_core import QueryOptimizer
+from ..query.executor.query_exec_core import QueryExecutor
 from ..query.executor.streaming import StreamingExecutor
 
 logger = logging.getLogger(__name__)

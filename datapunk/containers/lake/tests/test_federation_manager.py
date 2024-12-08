@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 from datetime import datetime
 from typing import Dict, Any
 
-from ..src.query.federation.manager import FederationManager, FederationMetrics
+from ..src.query.federation.query_fed_manager import FederationManager, FederationMetrics
 from ..src.query.optimizer.executor_bridge import OptimizerExecutorBridge, OptimizedPlan, ExecutionStrategy
 
 @pytest.fixture

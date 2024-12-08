@@ -2,8 +2,8 @@ from typing import Dict, List, Optional, Any, Set
 from datetime import datetime
 import asyncio
 import logging
-from ..adapters_extended import EnhancedAdapter, AdapterCapabilities
-from ...parser.core import QueryPlan
+from ..fed_adapters_extended import EnhancedAdapter, AdapterCapabilities
+from ...parser.query_parser_core import QueryPlan
 
 class TimeSeriesAdapter(EnhancedAdapter):
     """Adapter optimized for time series data sources."""

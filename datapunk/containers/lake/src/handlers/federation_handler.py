@@ -3,9 +3,9 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 import logging
 
-from ..query.federation.manager import FederationManager
-from ..query.federation.monitoring import FederationMonitor
-from ..query.federation.visualization import FederationVisualizer
+from ..query.federation.query_fed_manager import FederationManager
+from ..query.federation.query_fed_monitoring import FederationMonitor
+from ..query.federation.fed_visualization import FederationVisualizer
 
 logger = logging.getLogger(__name__)
 

@@ -1,9 +1,9 @@
 from typing import Any, Dict, Iterator, List, Optional, Tuple
 from abc import ABC, abstractmethod
 import time
-from .core import ExecutionOperator, ExecutionContext
+from .query_exec_core import ExecutionOperator, ExecutionContext
 from .joins import HashJoinOperator, MergeJoinOperator
-from ..parser.core import QueryNode, QueryPlan
+from ..parser.query_parser_core import QueryNode, QueryPlan
 
 class Statistics:
     """Maintains runtime statistics for adaptive execution."""

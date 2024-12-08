@@ -2,8 +2,8 @@ from typing import Dict, List, Optional, Any, Iterator
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import asyncio
 from dataclasses import dataclass
-from .planner import SubQuery, DataSource
-from ..executor.core import QueryExecutor
+from .fed_planner import SubQuery, DataSource
+from ..executor.query_exec_core import QueryExecutor
 from ...storage.cache import CacheManager
 
 @dataclass

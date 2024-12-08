@@ -1,5 +1,5 @@
 from typing import Any, Dict, List, Optional, Set
-from .core import (
+from .query_parser_core import (
     Parser,
     Lexer,
     Node,

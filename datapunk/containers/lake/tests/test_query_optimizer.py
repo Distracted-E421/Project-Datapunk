@@ -1,8 +1,8 @@
 import unittest
 from typing import List
-from ..src.query.optimizer.core import QueryOptimizer, CostBasedOptimizer, OptimizationRule
-from ..src.query.optimizer.rules import PushDownPredicates, JoinReordering, ColumnPruning
-from ..src.query.parser.core import QueryPlan, QueryNode
+from ..src.query.optimizer.optimizer_core import QueryOptimizer, CostBasedOptimizer, OptimizationRule
+from ..src.query.optimizer.optimizer_rules import PushDownPredicates, JoinReordering, ColumnPruning
+from ..src.query.parser.query_parser_core import QueryPlan, QueryNode
 
 class MockRule(OptimizationRule):
     """Mock optimization rule for testing."""

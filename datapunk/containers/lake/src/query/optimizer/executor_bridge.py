@@ -2,14 +2,14 @@ from typing import Dict, List, Optional, Union, Any
 from dataclasses import dataclass
 from enum import Enum
 
-from .core import QueryOptimizer
-from .rules import OptimizationRules
+from .optimizer_core import QueryOptimizer
+from .optimizer_rules import OptimizationRules
 from .index_aware import IndexAwareOptimizer
 from ..executor import (
-    core as executor_core,
     parallel,
     adaptive,
     caching,
+    query_exec_core as executor_core,
     streaming,
     monitoring
 )

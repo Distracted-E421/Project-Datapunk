@@ -1,6 +1,6 @@
 import unittest
 from typing import Dict, List, Any
-from ..src.query.executor.core import ExecutionContext
+from ..src.query.executor.query_exec_core import ExecutionContext
 from ..src.query.executor.joins import (
     HashJoinOperator, MergeJoinOperator, 
     IndexNestedLoopJoinOperator, PartitionedHashJoinOperator
@@ -11,7 +11,7 @@ from ..src.query.executor.parallel import (
     ParallelContext, ParallelTableScan, 
     ParallelHashJoin, ParallelAggregation
 )
-from ..src.query.parser.core import QueryNode, QueryPlan
+from ..src.query.parser.query_parser_core import QueryNode, QueryPlan
 from ..src.storage.cache import CacheManager
 
 class MockCacheManager(CacheManager):

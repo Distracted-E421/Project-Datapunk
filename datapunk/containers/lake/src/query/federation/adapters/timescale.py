@@ -3,7 +3,7 @@ import sqlalchemy as sa
 from sqlalchemy.sql import text
 from datetime import datetime, timedelta
 from .postgres import PostgresAdapter
-from .base import DataSourceType, QueryError
+from .fed_adapter_base import DataSourceType, QueryError
 
 class TimescaleAdapter(PostgresAdapter):
     """Adapter for TimescaleDB with time series optimizations."""

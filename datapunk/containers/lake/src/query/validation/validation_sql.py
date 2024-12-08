@@ -2,7 +2,7 @@ from typing import Dict, List, Set, Any, Optional
 from sqlparse import parse as sql_parse
 from sqlparse.sql import TokenList, Token, Identifier, Function
 import sqlparse
-from .core import (
+from .query_validation_core import (
     ValidationRule,
     ValidationResult,
     ValidationLevel,

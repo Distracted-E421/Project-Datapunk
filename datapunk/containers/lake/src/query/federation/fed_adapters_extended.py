@@ -4,9 +4,9 @@ from datetime import datetime
 import asyncio
 import logging
 from elasticsearch import Elasticsearch
-from .adapters import DataSourceAdapter, AdapterMetrics
-from .core import DataSourceStats
-from ..parser.core import QueryPlan, QueryNode
+from .fed_adapters import DataSourceAdapter, AdapterMetrics
+from .query_fed_core import DataSourceStats
+from ..parser.query_parser_core import QueryPlan, QueryNode
 
 @dataclass
 class AdapterCapabilities:

@@ -311,6 +311,24 @@
     "read": true,
     "chunks_read": [[1, 185]],
     "total_lines": 185,
-    "documented": false
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/merger.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 417],
+    "total_lines": 417,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/monitoring.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 417],
+    "total_lines": 417,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/planner.py": {
+    "read": true,
+    "chunks_read": [1, 213, 214, 354],
+    "total_lines": 354,
+    "documented": true
   }
 }

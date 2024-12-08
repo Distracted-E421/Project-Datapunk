@@ -1,12 +1,12 @@
 import pytest
 from typing import Dict, Any
-from ..src.query.validation.core import (
+from ..src.query.validation.query_validation_core import (
     ValidationLevel,
     ValidationCategory,
     ValidationResult,
     QueryValidator
 )
-from ..src.query.validation.sql import (
+from ..src.query.validation.validation_sql import (
     SQLTableExistsRule,
     SQLColumnExistsRule,
     SQLTypeCompatibilityRule,

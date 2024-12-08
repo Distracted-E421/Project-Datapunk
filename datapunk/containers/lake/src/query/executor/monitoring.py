@@ -4,8 +4,8 @@ import time
 import psutil
 import logging
 from datetime import datetime, timedelta
-from .core import ExecutionOperator, ExecutionContext
-from ..parser.core import QueryNode, QueryPlan
+from .query_exec_core import ExecutionOperator, ExecutionContext
+from ..parser.query_parser_core import QueryNode, QueryPlan
 
 class PerformanceMetrics:
     """Container for performance metrics."""

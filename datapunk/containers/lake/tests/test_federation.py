@@ -1,14 +1,14 @@
 import unittest
 from typing import Dict, List, Any, Set
 import asyncio
-from ..src.query.federation.planner import (
+from ..src.query.federation.fed_planner import (
     DataSource, DataSourceType, SubQuery, DistributedQueryPlanner
 )
-from ..src.query.federation.executor import (
+from ..src.query.federation.query_fed_executor import (
     FederatedQueryExecutor, QueryResult
 )
-from ..src.query.parser.core import QueryNode, QueryType
-from ..src.query.executor.core import QueryExecutor
+from ..src.query.parser.query_parser_core import QueryNode, QueryType
+from ..src.query.executor.query_exec_core import QueryExecutor
 
 class MockQueryExecutor(QueryExecutor):
     """Mock executor for testing."""

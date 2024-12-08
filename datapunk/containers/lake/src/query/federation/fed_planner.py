@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
 from enum import Enum
-from ..parser.core import QueryNode, QueryType
+from ..parser.query_parser_core import QueryNode, QueryType
 from ..optimizer.index_aware import IndexAwareOptimizer
 
 class DataSourceType(Enum):

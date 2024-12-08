@@ -5,8 +5,8 @@ import hashlib
 import logging
 from datetime import datetime, timedelta
 from enum import Enum, auto
-from .core import ExecutionOperator, ExecutionContext
-from ..parser.core import QueryNode, QueryPlan
+from .query_exec_core import ExecutionOperator, ExecutionContext
+from ..parser.query_parser_core import QueryNode, QueryPlan
 
 class AccessLevel(Enum):
     """Possible access levels for data."""

@@ -1,6 +1,6 @@
 from typing import List, Optional, Set
-from .core import OptimizationRule
-from ..parser.core import QueryPlan, QueryNode
+from .optimizer_core import OptimizationRule
+from ..parser.query_parser_core import QueryPlan, QueryNode
 
 class PushDownPredicates(OptimizationRule):
     """Optimization rule that pushes predicates down the query tree."""

@@ -1,6 +1,6 @@
 from typing import Dict, List, Set, Any, Optional
 import json
-from .core import (
+from .query_validation_core import (
     ValidationRule,
     ValidationResult,
     ValidationLevel,

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
-from ..parser.core import QueryPlan, QueryNode
+from ..parser.query_parser_core import QueryPlan, QueryNode
 
 class OptimizationRule(ABC):
     """Base class for optimization rules that can be applied to query plans."""

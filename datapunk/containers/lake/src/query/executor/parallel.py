@@ -3,8 +3,8 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 import multiprocessing
 from queue import Queue
 from threading import Lock
-from .core import ExecutionOperator, ExecutionContext
-from ..parser.core import QueryNode
+from .query_exec_core import ExecutionOperator, ExecutionContext
+from ..parser.query_parser_core import QueryNode
 
 class ParallelContext(ExecutionContext):
     """Extended context for parallel execution."""

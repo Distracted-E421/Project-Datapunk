@@ -4,7 +4,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.sql import text
 from psycopg2.extras import Json, DictCursor
-from .base import (
+from .fed_adapter_base import (
     DataSourceAdapter,
     DataSourceType,
     AdapterMetrics,

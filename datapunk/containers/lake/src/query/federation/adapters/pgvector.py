@@ -2,7 +2,7 @@ from typing import Dict, List, Any, Set, Optional, Union
 import numpy as np
 from sqlalchemy.sql import text
 from .postgres import PostgresAdapter
-from .base import DataSourceType, QueryError
+from .fed_adapter_base import DataSourceType, QueryError
 
 class PgVectorAdapter(PostgresAdapter):
     """Adapter for PostgreSQL with pgvector extension for vector operations."""

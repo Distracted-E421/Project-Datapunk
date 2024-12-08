@@ -1,8 +1,8 @@
 import pytest
 from typing import Dict, Any
-from ..src.query.parser.sql_extensions import ExtendedSQLParser, PivotSpec, UnpivotSpec, PatternSpec
-from ..src.query.parser.nosql_extensions import ExtendedNoSQLParser, MapReduceSpec, TimeSeriesSpec
-from ..src.query.parser.core import QueryPlan
+from ..src.query.parser.query_parser_sql_extensions import ExtendedSQLParser, PivotSpec, UnpivotSpec, PatternSpec
+from ..src.query.parser.query_parser_nosql_extensions import ExtendedNoSQLParser, MapReduceSpec, TimeSeriesSpec
+from ..src.query.parser.query_parser_core import QueryPlan
 
 class TestSQLExtensions:
     """Test cases for extended SQL parser features."""

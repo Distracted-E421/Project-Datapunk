@@ -3,8 +3,8 @@ from abc import ABC, abstractmethod
 import asyncio
 from collections import deque
 from datetime import datetime, timedelta
-from .core import ExecutionOperator, ExecutionContext
-from ..parser.core import QueryNode, QueryPlan
+from .query_exec_core import ExecutionOperator, ExecutionContext
+from ..parser.query_parser_core import QueryNode, QueryPlan
 
 class StreamBuffer:
     """Buffer for streaming data."""

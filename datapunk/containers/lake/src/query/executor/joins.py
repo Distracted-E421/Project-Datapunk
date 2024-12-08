@@ -1,6 +1,6 @@
 from typing import Any, Dict, Iterator, List, Optional, Set
-from .core import ExecutionOperator
-from ..parser.core import QueryNode
+from .query_exec_core import ExecutionOperator
+from ..parser.query_parser_core import QueryNode
 
 class HashJoinOperator(ExecutionOperator):
     """Operator that implements hash join algorithm."""

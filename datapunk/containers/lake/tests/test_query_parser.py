@@ -1,5 +1,5 @@
 import pytest
-from ..src.query.parser.core import (
+from ..src.query.parser.query_parser_core import (
     Token,
     TokenType,
     QueryContext,
@@ -7,8 +7,8 @@ from ..src.query.parser.core import (
     SyntaxError,
     ValidationError
 )
-from ..src.query.parser.sql import SQLParser
-from ..src.query.parser.nosql import NoSQLParser
+from ..src.query.parser.query_parser_sql import SQLParser
+from ..src.query.parser.query_parser_nosql import NoSQLParser
 
 @pytest.fixture
 def sql_parser():
@@ -205,7 +205,7 @@ class TestNoSQLParser:
 
 def test_parser_factory():
     """Test parser factory"""
-    from ..src.query.parser.core import ParserFactory
+    from ..src.query.parser.query_parser_core import ParserFactory
     
     sql_parser = ParserFactory.create_parser("sql")
     assert isinstance(sql_parser, SQLParser)
@@ -218,7 +218,7 @@ def test_parser_factory():
 
 def test_parser_registry():
     """Test parser registry"""
-    from ..src.query.parser.core import ParserRegistry
+    from ..src.query.parser.query_parser_core import ParserRegistry
     
     # Test built-in parsers
     sql_parser = ParserRegistry.get_parser("sql")

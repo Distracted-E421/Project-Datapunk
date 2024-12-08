@@ -3,8 +3,8 @@ import hashlib
 import json
 import time
 from datetime import datetime, timedelta
-from .core import ExecutionOperator, ExecutionContext
-from ..parser.core import QueryNode, QueryPlan
+from .query_exec_core import ExecutionOperator, ExecutionContext
+from ..parser.query_parser_core import QueryNode, QueryPlan
 
 class QueryCache:
     """Cache for query results."""

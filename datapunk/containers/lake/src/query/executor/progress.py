@@ -3,8 +3,8 @@ from abc import ABC, abstractmethod
 import time
 from datetime import datetime, timedelta
 from enum import Enum, auto
-from .core import ExecutionOperator, ExecutionContext
-from ..parser.core import QueryNode, QueryPlan
+from .query_exec_core import ExecutionOperator, ExecutionContext
+from ..parser.query_parser_core import QueryNode, QueryPlan
 
 class ProgressState(Enum):
     """Possible states for query progress."""

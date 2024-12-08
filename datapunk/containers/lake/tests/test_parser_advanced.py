@@ -1,9 +1,9 @@
 import unittest
 from typing import Dict, Any
-from ..src.query.parser.sql_advanced import (
+from ..src.query.parser.query_parser_sql_advanced import (
     AdvancedSQLParser, WindowFrame, WindowFrameType, WindowSpec
 )
-from ..src.query.parser.nosql_advanced import (
+from ..src.query.parser.query_parser_nosql_advanced import (
     AdvancedNoSQLParser, AggregationStage, GeoPoint, GeoShape
 )
 

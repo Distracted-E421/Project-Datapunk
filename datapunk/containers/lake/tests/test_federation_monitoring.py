@@ -1,13 +1,13 @@
 import pytest
 import asyncio
 from datetime import datetime, timedelta
-from ..src.query.federation.monitoring import (
+from ..src.query.federation.query_fed_monitoring import (
     FederationMonitor,
     QueryProfiler,
     QueryMetrics,
     SourceMetrics
 )
-from ..src.query.federation.core import QueryPlan
+from ..src.query.federation.query_fed_core import QueryPlan
 
 @pytest.fixture
 def monitor():

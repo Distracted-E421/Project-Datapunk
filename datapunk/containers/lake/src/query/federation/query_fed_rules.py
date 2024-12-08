@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional, Any, Set, Tuple
 from dataclasses import dataclass
-from ..optimizer.core import OptimizationRule, QueryPlan
-from .core import DataSourceStats, FederationCost
+from ..optimizer.optimizer_core import OptimizationRule, QueryPlan
+from .query_fed_core import DataSourceStats, FederationCost
 
 @dataclass
 class RuleMetrics:

@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import asyncio
 import logging
 import numpy as np
-from .core import QueryPlan
+from .query_fed_core import QueryPlan
 
 @dataclass
 class QueryMetrics:

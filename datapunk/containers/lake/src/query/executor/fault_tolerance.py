@@ -6,8 +6,8 @@ import pickle
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
-from .core import ExecutionOperator, ExecutionContext
-from ..parser.core import QueryNode, QueryPlan
+from .query_exec_core import ExecutionOperator, ExecutionContext
+from ..parser.query_parser_core import QueryNode, QueryPlan
 
 class CheckpointManager:
     """Manages operator checkpoints for fault tolerance."""

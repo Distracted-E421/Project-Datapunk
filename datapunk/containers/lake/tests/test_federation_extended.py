@@ -3,23 +3,23 @@ import pandas as pd
 import numpy as np
 from typing import Dict, Any
 from elasticsearch import Elasticsearch
-from ..src.query.federation.adapters_extended import (
+from ..src.query.federation.fed_adapters_extended import (
     PostgreSQLAdapter,
     ElasticsearchAdapter
 )
-from ..src.query.federation.splitter import (
+from ..src.query.federation.fed_splitter import (
     QuerySplitter,
     SplitPoint,
     SplitCost
 )
-from ..src.query.federation.merger import (
+from ..src.query.federation.fed_merger import (
     QueryMerger,
     HashMergeStrategy,
     SortMergeStrategy,
     StreamingMergeStrategy,
     AggregationMergeStrategy
 )
-from ..src.query.parser.core import QueryNode, QueryPlan
+from ..src.query.parser.query_parser_core import QueryNode, QueryPlan
 
 @pytest.fixture
 def sample_data():

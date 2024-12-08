@@ -2,7 +2,7 @@ import time
 from typing import Dict, List, Any, Set, Optional
 import sqlalchemy as sa
 from sqlalchemy.sql import text
-from .base import (
+from .fed_adapter_base import (
     DataSourceAdapter,
     DataSourceType,
     AdapterMetrics,

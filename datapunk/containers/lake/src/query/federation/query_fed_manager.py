@@ -2,13 +2,13 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from datetime import datetime
 
-from .visualization import QueryVisualization
-from .alerting import AlertManager
-from .monitoring import FederationMonitor
-from .core import FederationCore
-from .adapters import DataSourceAdapter
-from .merger import ResultMerger
-from .splitter import QuerySplitter
+from .fed_visualization import QueryVisualization
+from .fed_alerting import AlertManager
+from .query_fed_monitoring import FederationMonitor
+from .query_fed_core import FederationCore
+from .fed_adapters import DataSourceAdapter
+from .fed_merger import ResultMerger
+from .fed_splitter import QuerySplitter
 from ..optimizer.executor_bridge import OptimizerExecutorBridge, OptimizedPlan
 
 @dataclass

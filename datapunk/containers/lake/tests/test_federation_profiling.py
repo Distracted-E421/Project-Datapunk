@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any
 from unittest.mock import MagicMock, patch
 import time
-from ..src.query.federation.profiling import (
+from ..src.query.federation.querry_fed_profiling import (
     OperationProfile,
     ProfileCollector,
     DetailedProfiler,

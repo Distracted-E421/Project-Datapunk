@@ -1,8 +1,8 @@
 from typing import Any, Dict, List, Optional, Set, Union
 from dataclasses import dataclass
 from enum import Enum, auto
-from .core import QueryNode, QueryPlan
-from .nosql import NoSQLParser
+from .query_parser_core import QueryNode, QueryPlan
+from .query_parser_nosql import NoSQLParser
 
 class AggregationStage(Enum):
     """MongoDB-style aggregation pipeline stages."""

@@ -166,10 +166,10 @@ class ParserFactory:
         context = context or QueryContext()
         
         if dialect.lower() == "sql":
-            from .sql import SQLParser
+            from .query_parser_sql import SQLParser
             return SQLParser(context)
         elif dialect.lower() == "nosql":
-            from .nosql import NoSQLParser
+            from .query_parser_nosql import NoSQLParser
             return NoSQLParser(context)
         else:
             raise ValueError(f"Unsupported dialect: {dialect}")
@@ -198,8 +198,8 @@ class ParserRegistry:
         return parser_class(context or QueryContext())
 
 # Register built-in parsers
-from .sql import SQLParser
-from .nosql import NoSQLParser
+from .query_parser_sql import SQLParser
+from .query_parser_nosql import NoSQLParser
 
 ParserRegistry.register("sql", SQLParser)
 ParserRegistry.register("nosql", NoSQLParser) 

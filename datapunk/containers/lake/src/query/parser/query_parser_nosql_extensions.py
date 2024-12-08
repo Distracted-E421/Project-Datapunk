@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass
-from .nosql_advanced import AdvancedNoSQLParser
-from .core import QueryNode, QueryPlan
+from .query_parser_nosql_advanced import AdvancedNoSQLParser
+from .query_parser_core import QueryNode, QueryPlan
 
 @dataclass
 class MapReduceSpec:
