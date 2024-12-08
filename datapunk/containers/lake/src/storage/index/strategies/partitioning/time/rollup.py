@@ -2,7 +2,7 @@ from typing import List, Dict, Any, Optional, Callable
 from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
-from .strategy import TimePartitionStrategy
+from .time_strategy import TimePartitionStrategy
 
 class TimeRollup:
     """Manages time-based data rollups and aggregations"""
