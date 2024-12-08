@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Optional
 import httpx
-from .auth_manager import AuthManager
+from .nexus_auth_manager import AuthManager
 
 class OAuthProvider(Enum):
     GOOGLE = "google"
