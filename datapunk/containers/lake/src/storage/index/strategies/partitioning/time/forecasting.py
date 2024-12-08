@@ -7,7 +7,7 @@ from statsmodels.tsa.arima.model import ARIMA
 from prophet import Prophet
 import xgboost as xgb
 from datetime import datetime, timedelta
-from .analysis import TimeSeriesAnalyzer
+from .time_analysis import TimeSeriesAnalyzer
 
 class TimeSeriesForecaster:
     """Advanced time series forecasting with multiple models and automatic selection"""
