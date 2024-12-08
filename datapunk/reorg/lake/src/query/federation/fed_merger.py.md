@@ -23,10 +23,17 @@ Provides sophisticated result merging capabilities for federated queries, handli
    - Controls filtering and sorting
 
 3. **ResultMerger** [Lines: 33-253]
+
    - Implements merge logic
    - Handles different source types
    - Manages data transformations
    - Provides result processing
+
+4. **QueryMerger** [Lines: 254-582]
+   - Advanced merge capabilities
+   - Memory management
+   - Parallel processing
+   - Error handling
 
 ### Key Features
 
@@ -44,21 +51,29 @@ Provides sophisticated result merging capabilities for federated queries, handli
    - Object metadata merging
    - Time series resampling
 
-3. **Result Processing** [Lines: 228-253]
-   - Result filtering
-   - Custom sorting
-   - Duplicate removal
-   - Column deduplication
+3. **Memory Management** [Lines: 254-300]
+
+   - Memory estimation
+   - Usage optimization
+   - Resource monitoring
+   - Overflow prevention
+
+4. **Parallel Processing** [Lines: 301-400]
+   - Async operations
+   - Chunked processing
+   - Task coordination
+   - Error handling
 
 ## Dependencies
 
 ### Required Packages
 
-- pandas: Data manipulation
+- pandas: Data manipulation and merging
 - numpy: Numerical operations
+- asyncio: Asynchronous processing
+- typing: Type hints and annotations
 - dataclasses: Data structure definitions
 - enum: Enumeration support
-- asyncio: Asynchronous operations
 - logging: Error tracking
 
 ### Internal Modules
@@ -70,11 +85,11 @@ Provides sophisticated result merging capabilities for federated queries, handli
 
 ## Known Issues
 
-1. **Memory Usage** [Lines: 228-253]
+1. **Memory Management** [Lines: 254-300]
 
-   - Full result materialization
-   - Large dataset handling
-   - Memory pressure during merging
+   - Fixed memory thresholds
+   - Basic optimization strategies
+   - Limited compression support
 
 2. **Type Conversion** [Lines: 175-219]
    - Limited type inference
@@ -90,9 +105,15 @@ Provides sophisticated result merging capabilities for federated queries, handli
    - Transformation costs
 
 2. **Merge Operations** [Lines: 228-253]
+
    - Join performance impact
    - Sorting overhead
    - Deduplication cost
+
+3. **Parallel Processing** [Lines: 301-400]
+   - Task coordination overhead
+   - Memory duplication
+   - Network transfer costs
 
 ## Security Considerations
 
@@ -103,9 +124,15 @@ Provides sophisticated result merging capabilities for federated queries, handli
    - Basic type checking
 
 2. **Resource Protection**
-   - No size limits
+
+   - Memory limits enforcement
    - Basic error handling
-   - Limited resource control
+   - Limited resource isolation
+
+3. **Data Privacy**
+   - No data encryption
+   - Cross-source exposure
+   - Limited access control
 
 ## Trade-offs and Design Decisions
 
@@ -115,32 +142,44 @@ Provides sophisticated result merging capabilities for federated queries, handli
    - **Rationale**: Powerful data manipulation capabilities
    - **Trade-off**: Memory usage vs functionality
 
-2. **Type Handling**
+2. **Memory Management**
 
+   - **Decision**: Fixed memory thresholds [Lines: 254-300]
+   - **Rationale**: Predictable resource usage
+   - **Trade-off**: Flexibility vs stability
+
+3. **Parallel Processing**
+
+   - **Decision**: Async-first design [Lines: 301-400]
+   - **Rationale**: Improved performance for large operations
+   - **Trade-off**: Complexity vs scalability
+
+4. **Type Handling**
    - **Decision**: Type-specific handlers [Lines: 35-43]
    - **Rationale**: Optimize for different data sources
-   - **Trade-off**: Complexity vs performance
-
-3. **Result Processing**
-   - **Decision**: Post-merge processing [Lines: 228-253]
-   - **Rationale**: Flexible result manipulation
-   - **Trade-off**: Performance vs functionality
+   - **Trade-off**: Code complexity vs performance
 
 ## Future Improvements
 
 1. **Memory Optimization**
 
    - Add streaming merge support
-   - Implement chunk processing
-   - Add memory limits
+   - Implement compression
+   - Add dynamic thresholds
 
-2. **Type Handling**
+2. **Type System**
 
    - Enhance type inference
-   - Add custom type converters
-   - Improve error handling
+   - Add custom converters
+   - Improve validation
 
 3. **Performance Enhancement**
-   - Add parallel processing
+
+   - Add caching layer
    - Optimize large joins
-   - Add merge strategy selection
+   - Implement query planning
+
+4. **Security Features**
+   - Add data encryption
+   - Implement access control
+   - Add audit logging

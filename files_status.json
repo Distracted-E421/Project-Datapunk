@@ -206,5 +206,47 @@
     "chunks_read": [{ "start": 1, "end": 86 }],
     "total_lines": 86,
     "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/merger.py": {
+    "read": true,
+    "chunks_read": ["1-250", "251-500", "501-750", "751-822"],
+    "total_lines": 822,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/monitoring.py": {
+    "read": true,
+    "chunks_read": ["1-250", "251-417"],
+    "total_lines": 417,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/planner.py": {
+    "read": true,
+    "chunks_read": ["1-213", "214-354"],
+    "total_lines": 354,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/rules.py": {
+    "read": true,
+    "chunks_read": ["1-250", "251-500", "501-750", "751-822"],
+    "total_lines": 822,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/splitter.py": {
+    "read": true,
+    "chunks_read": ["1-250", "251-354"],
+    "total_lines": 354,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/visualization.py": {
+    "read": true,
+    "chunks_read": ["1-250", "251-352"],
+    "total_lines": 352,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/executor.py": {
+    "read": true,
+    "chunks_read": ["1-194"],
+    "total_lines": 194,
+    "documented": true
   }
 }
