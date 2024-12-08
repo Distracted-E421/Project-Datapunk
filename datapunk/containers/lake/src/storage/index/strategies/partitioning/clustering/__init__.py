@@ -1,5 +1,5 @@
 from .density import DensityAnalyzer
-from .advanced import AdvancedClusterAnalyzer
+from .advanced_clustering import AdvancedClusterAnalyzer
 from .balancer import LoadBalancer
 
 __all__ = [
