@@ -1,7 +1,7 @@
 from typing import List, Tuple
 from s2sphere import CellId, LatLng
 from shapely.geometry import Polygon
-from .base import GridSystem
+from .base_grid import GridSystem
 
 class S2Grid(GridSystem):
     """S2-based hierarchical grid system"""
