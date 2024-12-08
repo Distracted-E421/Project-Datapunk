@@ -3,8 +3,8 @@ import pandas as pd
 from datetime import datetime, timedelta
 import threading
 import logging
-from .strategy import TimePartitionStrategy
-from .analysis import TimeSeriesAnalyzer
+from .time_strategy import TimePartitionStrategy
+from .time_analysis import TimeSeriesAnalyzer
 
 class MaterializedView:
     """Represents a materialized view of time-series data"""
