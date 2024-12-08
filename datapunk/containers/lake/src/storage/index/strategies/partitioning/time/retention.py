@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 import pytz
-from .strategy import TimePartitionStrategy
+from .time_strategy import TimePartitionStrategy
 
 class RetentionPolicy:
     """Manages data retention policies for time-based partitions"""
