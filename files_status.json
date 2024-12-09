@@ -208,5 +208,78 @@
     ],
     "total_lines": 117,
     "documented": true
+  },
+  "datapunk/containers/lake/src/storage/cache_strategies.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 489 }
+    ],
+    "total_lines": 489,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/cache.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 500 },
+      { "start": 501, "end": 745 }
+    ],
+    "total_lines": 745,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/geometry.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 224 }],
+    "total_lines": 224,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/ml_strategies.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 394 }
+    ],
+    "total_lines": 394,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/quorum.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 481 }
+    ],
+    "total_lines": 481,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/stores.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 237 }],
+    "total_lines": 237,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/adaptive.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 428 }
+    ],
+    "total_lines": 428,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/advanced.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 449 }
+    ],
+    "total_lines": 449,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/advisor.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 156 }],
+    "total_lines": 156,
+    "documented": true
   }
 }
