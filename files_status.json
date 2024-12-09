@@ -186,5 +186,27 @@
     ],
     "total_lines": 425,
     "documented": true
+  },
+  "datapunk/containers/lake/src/services/lake_service.py": {
+    "read": true,
+    "chunks_read": [
+      {
+        "start": 1,
+        "end": 66
+      }
+    ],
+    "total_lines": 66,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/services/service_manager.py": {
+    "read": true,
+    "chunks_read": [
+      {
+        "start": 1,
+        "end": 117
+      }
+    ],
+    "total_lines": 117,
+    "documented": true
   }
 }
