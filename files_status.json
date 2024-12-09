@@ -92,5 +92,11 @@
     "chunks_read": [[1, 206]],
     "total_lines": 206,
     "documented": true
+  },
+  "datapunk/containers/lake/src/query/parser/query_parser_core.py": {
+    "read": true,
+    "chunks_read": [[1, 205]],
+    "total_lines": 205,
+    "documented": true
   }
 }
