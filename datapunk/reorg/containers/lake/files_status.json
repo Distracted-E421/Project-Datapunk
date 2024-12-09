@@ -1,0 +1,334 @@
+{
+  "Dockerfile": {
+    "read": true,
+    "chunks_read": [[1, 73]],
+    "total_lines": 73,
+    "documented": true
+  },
+  "pyproject.toml": {
+    "read": true,
+    "chunks_read": [[1, 51]],
+    "total_lines": 51,
+    "documented": true
+  },
+  ".env": {
+    "read": true,
+    "chunks_read": [[1, 38]],
+    "total_lines": 38,
+    "documented": true
+  },
+  ".dockerignore": {
+    "read": true,
+    "chunks_read": [[1, 79]],
+    "total_lines": 79,
+    "documented": true
+  },
+  "poetry.lock": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 500],
+      [501, 750],
+      [751, 1000],
+      [1001, 1250],
+      [1251, 1500],
+      [1501, 1750],
+      [1751, 2000],
+      [2001, 2072]
+    ],
+    "total_lines": 2072,
+    "documented": true
+  },
+  "datapunk/containers/lake/config/init.sql": {
+    "read": true,
+    "chunks_read": [[1, 67]],
+    "total_lines": 67,
+    "documented": true
+  },
+  "datapunk/containers/lake/config/postgresql.conf": {
+    "read": true,
+    "chunks_read": [[1, 45]],
+    "total_lines": 45,
+    "documented": true
+  },
+  "datapunk/containers/lake/init/00-init-extensions.sql": {
+    "read": true,
+    "chunks_read": [[1, 51]],
+    "total_lines": 51,
+    "documented": true
+  },
+  "datapunk/containers/lake/scripts/healthcheck.sh": {
+    "read": true,
+    "chunks_read": [[1, 25]],
+    "total_lines": 25,
+    "documented": true
+  },
+  "datapunk/containers/lake/scripts/debug-postgres.ps1": {
+    "read": true,
+    "chunks_read": [[1, 37]],
+    "total_lines": 37,
+    "documented": true
+  },
+  "datapunk/containers/lake/scripts/debug-docker.ps1": {
+    "read": true,
+    "chunks_read": [[1, 32]],
+    "total_lines": 32,
+    "documented": true
+  },
+  "datapunk/containers/lake/scripts/debug-build.ps1": {
+    "read": true,
+    "chunks_read": [[1, 21]],
+    "total_lines": 21,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/main.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 466]
+    ],
+    "total_lines": 466,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/config/config_manager.py": {
+    "read": true,
+    "chunks_read": [[1, 66]],
+    "total_lines": 66,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/config/storage_config.py": {
+    "read": true,
+    "chunks_read": [[1, 58]],
+    "total_lines": 58,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/handlers/config_handler.py": {
+    "read": true,
+    "chunks_read": [[1, 161]],
+    "total_lines": 161,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/handlers/federation_handler.py": {
+    "read": true,
+    "chunks_read": [[1, 102]],
+    "total_lines": 102,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/handlers/ingestion_handler.py": {
+    "read": true,
+    "chunks_read": [[1, 116]],
+    "total_lines": 116,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/handlers/nexus_handler.py": {
+    "read": true,
+    "chunks_read": [[1, 68]],
+    "total_lines": 68,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/handlers/partition_handler.py": {
+    "read": true,
+    "chunks_read": [[1, 99]],
+    "total_lines": 99,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/handlers/processing_handler.py": {
+    "read": true,
+    "chunks_read": [[1, 122]],
+    "total_lines": 122,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/handlers/query_handler.py": {
+    "read": true,
+    "chunks_read": [[1, 151]],
+    "total_lines": 151,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/handlers/storage_handler.py": {
+    "read": true,
+    "chunks_read": [[1, 182]],
+    "total_lines": 182,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/handlers/stream_handler.py": {
+    "read": true,
+    "chunks_read": [[1, 113]],
+    "total_lines": 113,
+    "documented": true
+  },
+  "datapunk/reorg/lake/src/ingestion/core.md": {
+    "read": true,
+    "chunks_read": [
+      {
+        "start": 1,
+        "end": 174
+      }
+    ],
+    "total_lines": 174,
+    "documented": true
+  },
+  "datapunk/reorg/lake/src/ingestion/monitoring.md": {
+    "read": true,
+    "chunks_read": [
+      {
+        "start": 1,
+        "end": 218
+      }
+    ],
+    "total_lines": 218,
+    "documented": true
+  },
+  "datapunk/reorg/lake/src/ingestion/google/takeout.md": {
+    "read": true,
+    "chunks_read": [
+      {
+        "start": 1,
+        "end": 69
+      }
+    ],
+    "total_lines": 69,
+    "documented": true
+  },
+  "datapunk/reorg/lake/src/mesh/__init__.md": {
+    "read": true,
+    "chunks_read": [
+      {
+        "start": 1,
+        "end": 23
+      }
+    ],
+    "total_lines": 23,
+    "documented": true
+  },
+  "datapunk/reorg/lake/src/mesh/mesh_integrator.md": {
+    "read": true,
+    "chunks_read": [
+      {
+        "start": 1,
+        "end": 250
+      },
+      {
+        "start": 251,
+        "end": 295
+      }
+    ],
+    "total_lines": 295,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/metadata/analyzer.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 500 },
+      { "start": 501, "end": 750 },
+      { "start": 751, "end": 1000 },
+      { "start": 1001, "end": 1250 },
+      { "start": 1251, "end": 1258 }
+    ],
+    "total_lines": 1258,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/metadata/cache.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 500 },
+      { "start": 501, "end": 505 }
+    ],
+    "total_lines": 505,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/metadata/core.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 500 },
+      { "start": 501, "end": 697 }
+    ],
+    "total_lines": 697,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/metadata/store.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 279 }
+    ],
+    "total_lines": 279,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/adapters.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 215 }],
+    "total_lines": 215,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/adapters_extended.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 500 },
+      { "start": 501, "end": 637 }
+    ],
+    "total_lines": 637,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/alerting.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 300 }
+    ],
+    "total_lines": 300,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/cache_strategies.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 407 }
+    ],
+    "total_lines": 407,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/core.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 500 },
+      { "start": 501, "end": 519 }
+    ],
+    "total_lines": 519,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/executor.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 194 }],
+    "total_lines": 194,
+    "documented": false
+  },
+  "datapunk/containers/lake/src/query/federation/manager.py": {
+    "read": true,
+    "chunks_read": [[1, 185]],
+    "total_lines": 185,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/merger.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 417],
+    "total_lines": 417,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/monitoring.py": {
+    "read": true,
+    "chunks_read": [1, 250, 251, 417],
+    "total_lines": 417,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/planner.py": {
+    "read": true,
+    "chunks_read": [1, 213, 214, 354],
+    "total_lines": 354,
+    "documented": true
+  }
+}

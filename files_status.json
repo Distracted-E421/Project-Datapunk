@@ -281,5 +281,538 @@
     "chunks_read": [{ "start": 1, "end": 156 }],
     "total_lines": 156,
     "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/backup.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 371 }
+    ],
+    "total_lines": 371,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/bitmap.py": {
+    "read": true,
+    "chunks_read": [
+      {
+        "start": 1,
+        "end": 148
+      }
+    ],
+    "total_lines": 148,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/btree.py": {
+    "read": true,
+    "chunks_read": [
+      {
+        "start": 1,
+        "end": 250
+      },
+      {
+        "start": 251,
+        "end": 405
+      }
+    ],
+    "total_lines": 405,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/composite.py": {
+    "read": true,
+    "chunks_read": [
+      {
+        "start": 1,
+        "end": 151
+      }
+    ],
+    "total_lines": 151,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/compression.py": {
+    "read": true,
+    "chunks_read": [
+      {
+        "start": 1,
+        "end": 250
+      },
+      {
+        "start": 251,
+        "end": 443
+      }
+    ],
+    "total_lines": 443,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/consensus.py": {
+    "read": true,
+    "chunks_read": [
+      {
+        "start": 1,
+        "end": 250
+      },
+      {
+        "start": 251,
+        "end": 424
+      }
+    ],
+    "total_lines": 424,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/core.py": {
+    "read": true,
+    "chunks_read": [
+      {
+        "start": 1,
+        "end": 231
+      }
+    ],
+    "total_lines": 231,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/diagnostics.py": {
+    "read": true,
+    "chunks_read": [
+      {
+        "start": 1,
+        "end": 250
+      },
+      {
+        "start": 251,
+        "end": 450
+      }
+    ],
+    "total_lines": 450,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/distributed.py": {
+    "read": true,
+    "chunks_read": [
+      {
+        "start": 1,
+        "end": 250
+      },
+      {
+        "start": 251,
+        "end": 443
+      }
+    ],
+    "total_lines": 443,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/exporter.py": {
+    "read": true,
+    "chunks_read": [
+      {
+        "start": 1,
+        "end": 250
+      },
+      {
+        "start": 251,
+        "end": 488
+      }
+    ],
+    "total_lines": 488,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/gist.py": {
+    "read": true,
+    "chunks_read": [
+      {
+        "start": 1,
+        "end": 230
+      }
+    ],
+    "total_lines": 230,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/hash.py": {
+    "read": true,
+    "chunks_read": [[1, 82]],
+    "total_lines": 82,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/hybrid.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 384]
+    ],
+    "total_lines": 384,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/incremental.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 459]
+    ],
+    "total_lines": 459,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/maintenance.py": {
+    "read": true,
+    "chunks_read": [[1, 176]],
+    "total_lines": 176,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/manager.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 285]
+    ],
+    "total_lines": 285,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/migration.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 461]
+    ],
+    "total_lines": 461,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/monitor.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 333]
+    ],
+    "total_lines": 333,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/optimizer.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 302]
+    ],
+    "total_lines": 302,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/partial.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 321]
+    ],
+    "total_lines": 321,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/rtree.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 320]
+    ],
+    "total_lines": 320,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/security.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 349]
+    ],
+    "total_lines": 349,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/sharding.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 349]
+    ],
+    "total_lines": 349,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/stats.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 366]
+    ],
+    "total_lines": 366,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/trends.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 367 }
+    ],
+    "total_lines": 367,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/triggers.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 320 }
+    ],
+    "total_lines": 320,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/visualizer.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 318 }
+    ],
+    "total_lines": 318,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/regex.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 320 }
+    ],
+    "total_lines": 320,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/trigram.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 152 }],
+    "total_lines": 152,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/base/cache.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 29 }],
+    "total_lines": 29,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/base/history.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 45 }],
+    "total_lines": 45,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/base/base_manager.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 177 }],
+    "total_lines": 177,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/clustering/advanced_clustering.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 197 }],
+    "total_lines": 197
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/clustering/balancer.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 140 }],
+    "total_lines": 140
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/clustering/density.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 108 }],
+    "total_lines": 108
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/clustering/__init__.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 9 }],
+    "total_lines": 9
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/visualization/dashboard.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 278]
+    ],
+    "total_lines": 278,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/visualization/interactive.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 399]
+    ],
+    "total_lines": 399,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/visualization/metrics.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 337]
+    ],
+    "total_lines": 337,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/visualization/performance.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 322]
+    ],
+    "total_lines": 322,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/visualization/topology.py": {
+    "read": true,
+    "chunks_read": [[1, 232]],
+    "total_lines": 232,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/distributed/node.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 155 }],
+    "total_lines": 155
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/distributed/network.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 250 }],
+    "total_lines": 259
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/distributed/coordinator.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 230 }],
+    "total_lines": 230
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/distributed/health.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 250 }],
+    "total_lines": 288
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/distributed/replication.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 250 }],
+    "total_lines": 255
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/distributed/recovery.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 250 }],
+    "total_lines": 328
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/distributed/distributed_consensus.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 250 }],
+    "total_lines": 388
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/distributed/distribution_manager.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 250 }],
+    "total_lines": 342
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/distributed/__init__.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 27 }],
+    "total_lines": 27
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/grid/base_grid.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 26 }],
+    "total_lines": 26
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/grid/factory.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 35 }],
+    "total_lines": 35
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/grid/geohash.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 46 }],
+    "total_lines": 46
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/grid/grid-rtree.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 59 }],
+    "total_lines": 59
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/grid/h3.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 49 }],
+    "total_lines": 49
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/grid/quadkey.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 57 }],
+    "total_lines": 57
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/grid/s2.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 65 }],
+    "total_lines": 65
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/grid/__init__.py": {
+    "read": true,
+    "documented": true,
+    "chunks_read": [{ "start": 1, "end": 17 }],
+    "total_lines": 17
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/time/forecasting.py": {
+    "read": true,
+    "chunks_read": [
+      { "start": 1, "end": 250 },
+      { "start": 251, "end": 316 }
+    ],
+    "total_lines": 316,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/time/materialized.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 192 }],
+    "total_lines": 192,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/time/retention.py": {
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 137 }],
+    "total_lines": 137,
+    "documented": false
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/time/rollup.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/time/time_analysis.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/time/time_indexing.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/time/time_optimizer.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
+  },
+  "datapunk/containers/lake/src/storage/index/strategies/partitioning/time/time_strategy.py": {
+    "read": false,
+    "chunks_read": [],
+    "total_lines": null,
+    "documented": false
   }
 }
