@@ -783,7 +783,7 @@
     "read": true,
     "chunks_read": [{ "start": 1, "end": 137 }],
     "total_lines": 137,
-    "documented": false
+    "documented": true
   },
   "datapunk/containers/lake/src/storage/index/strategies/partitioning/time/rollup.py": {
     "read": false,
