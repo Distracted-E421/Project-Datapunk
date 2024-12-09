@@ -16,5 +16,63 @@
     "chunks_read": [[1, 222]],
     "total_lines": 222,
     "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/adapters/pgvector.py": {
+    "read": true,
+    "chunks_read": [[1, 190]],
+    "total_lines": 190,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/adapters/pgvector_advanced.py": {
+    "read": true,
+    "chunks_read": [[1, 202]],
+    "total_lines": 202,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/adapters/timescale.py": {
+    "read": true,
+    "chunks_read": [[1, 222]],
+    "total_lines": 222,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/adapters/timescale_advanced.py": {
+    "read": true,
+    "chunks_read": [[1, 191]],
+    "total_lines": 191,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/federation/adapters/specialized.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 273]
+    ],
+    "total_lines": 273,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/formatter/formatter_core.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 280]
+    ],
+    "total_lines": 280,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/formatter/specialized.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 500],
+      [501, 614]
+    ],
+    "total_lines": 614,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/optimizer/optimizer_core.py": {
+    "read": true,
+    "chunks_read": [[1, 90]],
+    "total_lines": 90,
+    "documented": false
   }
 }
