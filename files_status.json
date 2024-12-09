@@ -98,5 +98,93 @@
     "chunks_read": [[1, 205]],
     "total_lines": 205,
     "documented": true
+  },
+  "datapunk/containers/lake/src/query/parser/query_parser_nosql.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 380]
+    ],
+    "total_lines": 380,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/parser/query_parser_nosql_advanced.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 323]
+    ],
+    "total_lines": 323,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/parser/query_parser_nosql_extensions.py": {
+    "read": true,
+    "chunks_read": [[1, 124]],
+    "total_lines": 124,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/parser/query_parser_sql.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 500],
+      [501, 541]
+    ],
+    "total_lines": 541,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/parser/query_parser_sql_advanced.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 306]
+    ],
+    "total_lines": 306,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/parser/query_parser_sql_extensions.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 303]
+    ],
+    "total_lines": 303,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/validation/query_validation_core.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 304]
+    ],
+    "total_lines": 304,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/validation/validation_nosql.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 449]
+    ],
+    "total_lines": 449,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/validation/validation_sql.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 302]
+    ],
+    "total_lines": 302,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/validation/validation_sql_advanced.py": {
+    "read": true,
+    "chunks_read": [
+      [1, 250],
+      [251, 425]
+    ],
+    "total_lines": 425,
+    "documented": true
   }
 }
