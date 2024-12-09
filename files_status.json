@@ -786,33 +786,33 @@
     "documented": true
   },
   "datapunk/containers/lake/src/storage/index/strategies/partitioning/time/rollup.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 198 }],
+    "total_lines": 198,
+    "documented": true
   },
   "datapunk/containers/lake/src/storage/index/strategies/partitioning/time/time_analysis.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 189 }],
+    "total_lines": 189,
+    "documented": true
   },
   "datapunk/containers/lake/src/storage/index/strategies/partitioning/time/time_indexing.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 193 }],
+    "total_lines": 193,
+    "documented": true
   },
   "datapunk/containers/lake/src/storage/index/strategies/partitioning/time/time_optimizer.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 133 }],
+    "total_lines": 133,
+    "documented": true
   },
   "datapunk/containers/lake/src/storage/index/strategies/partitioning/time/time_strategy.py": {
-    "read": false,
-    "chunks_read": [],
-    "total_lines": null,
-    "documented": false
+    "read": true,
+    "chunks_read": [{ "start": 1, "end": 199 }],
+    "total_lines": 199,
+    "documented": true
   }
 }
