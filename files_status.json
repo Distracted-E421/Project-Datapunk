@@ -73,6 +73,24 @@
     "read": true,
     "chunks_read": [[1, 90]],
     "total_lines": 90,
-    "documented": false
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/optimizer/optimizer_rules.py": {
+    "read": true,
+    "chunks_read": [[1, 157]],
+    "total_lines": 157,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/optimizer/index_aware.py": {
+    "read": true,
+    "chunks_read": [[1, 159]],
+    "total_lines": 159,
+    "documented": true
+  },
+  "datapunk/containers/lake/src/query/optimizer/executor_bridge.py": {
+    "read": true,
+    "chunks_read": [[1, 206]],
+    "total_lines": 206,
+    "documented": true
   }
 }
