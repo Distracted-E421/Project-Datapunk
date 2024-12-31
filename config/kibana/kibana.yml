@@ -1,0 +1,38 @@
+server.name: "datapunk-kibana"
+server.host: "0.0.0.0"
+server.port: 5601
+
+# Elasticsearch connection
+elasticsearch.hosts: ["http://elasticsearch:9200"]
+elasticsearch.username: "${ELASTICSEARCH_USERNAME}"
+elasticsearch.password: "${ELASTICSEARCH_PASSWORD}"
+
+# Security settings
+xpack.security.enabled: true
+xpack.encryptedSavedObjects.encryptionKey: "${KIBANA_ENCRYPTION_KEY}"
+
+# Monitoring settings
+monitoring.ui.container.elasticsearch.enabled: true
+xpack.monitoring.ui.container.elasticsearch.enabled: true
+
+# Reporting settings
+xpack.reporting.enabled: true
+xpack.reporting.capture.browser.chromium.disableSandbox: true
+
+# Index patterns
+kibana.defaultAppId: "discover"
+kibana.index: ".kibana"
+
+# Logging settings
+logging.dest: stdout
+logging.json: true
+logging.quiet: false
+logging.verbose: false
+
+# APM settings
+xpack.apm.enabled: true
+xpack.apm.ui.enabled: true
+
+# Feature controls
+xpack.maps.enabled: false
+xpack.ml.enabled: false

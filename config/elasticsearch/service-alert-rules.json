@@ -1,0 +1,222 @@
+{
+  "alert_rules": [
+    {
+      "name": "lake_query_performance",
+      "type": "metric",
+      "schedule": "*/1 * * * *",
+      "input": {
+        "search": {
+          "request": {
+            "indices": ["datapunk-*"],
+            "body": {
+              "size": 0,
+              "query": {
+                "bool": {
+                  "must": [
+                    {
+                      "range": {
+                        "@timestamp": {
+                          "gte": "now-1m"
+                        }
+                      }
+                    },
+                    {
+                      "term": {
+                        "service.name": "lake"
+                      }
+                    }
+                  ]
+                }
+              },
+              "aggs": {
+                "avg_query_time": {
+                  "avg": {
+                    "field": "query.duration_ms"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "condition": {
+        "script": {
+          "source": "params.avg_query_time.value > 5000"
+        }
+      },
+      "actions": {
+        "slack_notification": {
+          "webhook": {
+            "url": "${SLACK_WEBHOOK_URL}",
+            "message": "Data Lake query performance degraded. Average query time: {{avg_query_time}}ms"
+          }
+        }
+      }
+    },
+    {
+      "name": "stream_processing_lag",
+      "type": "metric",
+      "schedule": "*/1 * * * *",
+      "input": {
+        "search": {
+          "request": {
+            "indices": ["datapunk-*"],
+            "body": {
+              "size": 0,
+              "query": {
+                "bool": {
+                  "must": [
+                    {
+                      "range": {
+                        "@timestamp": {
+                          "gte": "now-1m"
+                        }
+                      }
+                    },
+                    {
+                      "term": {
+                        "service.name": "stream"
+                      }
+                    }
+                  ]
+                }
+              },
+              "aggs": {
+                "max_lag": {
+                  "max": {
+                    "field": "stream.lag_ms"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "condition": {
+        "script": {
+          "source": "params.max_lag.value > 10000"
+        }
+      },
+      "actions": {
+        "slack_notification": {
+          "webhook": {
+            "url": "${SLACK_WEBHOOK_URL}",
+            "message": "Stream processing lag exceeds threshold. Current lag: {{max_lag}}ms"
+          }
+        }
+      }
+    },
+    {
+      "name": "gateway_error_spike",
+      "type": "metric",
+      "schedule": "*/1 * * * *",
+      "input": {
+        "search": {
+          "request": {
+            "indices": ["datapunk-*"],
+            "body": {
+              "size": 0,
+              "query": {
+                "bool": {
+                  "must": [
+                    {
+                      "range": {
+                        "@timestamp": {
+                          "gte": "now-1m"
+                        }
+                      }
+                    },
+                    {
+                      "term": {
+                        "service.name": "gateway"
+                      }
+                    },
+                    {
+                      "range": {
+                        "response.status": {
+                          "gte": 500
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "condition": {
+        "script": {
+          "source": "ctx.payload.hits.total.value > 50"
+        }
+      },
+      "actions": {
+        "slack_notification": {
+          "webhook": {
+            "url": "${SLACK_WEBHOOK_URL}",
+            "message": "API Gateway error spike detected. {{ctx.payload.hits.total.value}} errors in the last minute."
+          }
+        }
+      }
+    },
+    {
+      "name": "mesh_circuit_breaker",
+      "type": "metric",
+      "schedule": "*/1 * * * *",
+      "input": {
+        "search": {
+          "request": {
+            "indices": ["datapunk-*"],
+            "body": {
+              "size": 0,
+              "query": {
+                "bool": {
+                  "must": [
+                    {
+                      "range": {
+                        "@timestamp": {
+                          "gte": "now-1m"
+                        }
+                      }
+                    },
+                    {
+                      "term": {
+                        "service.name": "mesh"
+                      }
+                    },
+                    {
+                      "term": {
+                        "circuit_breaker.status": "open"
+                      }
+                    }
+                  ]
+                }
+              },
+              "aggs": {
+                "breakers": {
+                  "terms": {
+                    "field": "target.service.keyword",
+                    "size": 10
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "condition": {
+        "script": {
+          "source": "ctx.payload.hits.total.value > 0"
+        }
+      },
+      "actions": {
+        "slack_notification": {
+          "webhook": {
+            "url": "${SLACK_WEBHOOK_URL}",
+            "message": "Circuit breaker opened for services: {{#ctx.payload.aggregations.breakers.buckets}}{{key}}, {{/ctx.payload.aggregations.breakers.buckets}}"
+          }
+        }
+      }
+    }
+  ]
+}

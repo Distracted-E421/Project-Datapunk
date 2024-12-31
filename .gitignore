@@ -177,9 +177,5 @@ storage.bson
 *.bson
 mongod.lock
 
-# Datapunk 
-venv/   
-class/
-Agentic Research/
-datapunk/docs/Agentic Research/
-DatapunkManifesto.txt
+# Personal Local Files 
+external/

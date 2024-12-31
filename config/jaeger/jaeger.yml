@@ -1,0 +1,143 @@
+agent:
+  collector:
+    host-port: "jaeger-collector:14250"
+  tags:
+    - key: "environment"
+      value: "production"
+    - key: "deployment"
+      value: "datapunk"
+
+collector:
+  zipkin:
+    host-port: ":9411"
+  otlp:
+    enabled: true
+  queue:
+    num-workers: 50
+    queue-size: 2000
+  tags:
+    - key: "cluster"
+      value: "datapunk-cluster"
+
+sampling:
+  strategies:
+    # Data Lake Service - Higher sampling for write operations
+    - service: "lake"
+      type: "probabilistic"
+      param: 0.5
+      operationStrategies:
+        - operation: "write"
+          type: "probabilistic"
+          param: 0.8
+        - operation: "query"
+          type: "probabilistic"
+          param: 0.3
+        - operation: "delete"
+          type: "probabilistic"
+          param: 1.0
+
+    # Stream Processing Service - Rate limiting for high-volume events
+    - service: "stream"
+      type: "ratelimiting"
+      param: 100
+      operationStrategies:
+        - operation: "process"
+          type: "probabilistic"
+          param: 0.7
+        - operation: "aggregate"
+          type: "probabilistic"
+          param: 0.5
+        - operation: "transform"
+          type: "probabilistic"
+          param: 0.6
+
+    # API Gateway Service - Full tracing for errors
+    - service: "gateway"
+      type: "probabilistic"
+      param: 0.3
+      operationStrategies:
+        - operation: "/api/v1/"
+          type: "probabilistic"
+          param: 0.2
+        - operation: "error"
+          type: "probabilistic"
+          param: 1.0
+        - operation: "auth"
+          type: "probabilistic"
+          param: 0.8
+
+    # Service Mesh - Focus on service communication
+    - service: "mesh"
+      type: "probabilistic"
+      param: 0.4
+      operationStrategies:
+        - operation: "route"
+          type: "probabilistic"
+          param: 0.3
+        - operation: "loadbalance"
+          type: "probabilistic"
+          param: 0.5
+        - operation: "circuitbreaker"
+          type: "probabilistic"
+          param: 1.0
+
+    # Default fallback strategy
+    - service: "default"
+      type: "probabilistic"
+      param: 0.1
+
+storage:
+  type: "elasticsearch"
+  options:
+    es:
+      server-urls: "http://elasticsearch:9200"
+      username: "${ELASTIC_USERNAME}"
+      password: "${ELASTIC_PASSWORD}"
+      index-prefix: "jaeger"
+      tls:
+        enabled: false
+      num-shards: 5
+      num-replicas: 1
+      max-doc-count: 20000000
+      max-span-age: "72h"
+      index-rollover: "24h"
+      index-suffix: "2006-01-02"
+      tags-as-fields:
+        all: true
+        dot-replacement: "_"
+      mapping:
+        nested_object_limit: 100
+      bulk:
+        size: 5000000
+        workers: 1
+        flush-interval: "200ms"
+
+query:
+  base-path: "/jaeger"
+  static-files: "/go/jaeger-ui/"
+  ui-config: |
+    {
+      "menu": [
+        {
+          "label": "About Datapunk",
+          "items": [
+            {
+              "label": "Documentation",
+              "url": "https://datapunk.docs/tracing"
+            }
+          ]
+        }
+      ],
+      "dependencies": {
+        "menuEnabled": true,
+        "dagMaxNumServices": 200
+      },
+      "tracking": {
+        "gaID": null,
+        "trackErrors": true
+      },
+      "search": {
+        "maxLookback": "24h",
+        "maxLimit": 1000
+      }
+    }

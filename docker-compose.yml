@@ -1,0 +1,312 @@
+services:
+  # Infrastructure Layer
+  consul:
+    extends:
+      file: docker-compose.base.yml
+      service: consul
+
+  # Monitoring Stack
+  prometheus:
+    extends:
+      file: docker-compose.base.yml
+      service: prometheus
+    volumes:
+      - ./config/prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    depends_on:
+      - consul
+
+  alertmanager:
+    image: prom/alertmanager:v0.25.0
+    volumes:
+      - ./config/alertmanager:/etc/alertmanager
+      - alertmanager_data:/alertmanager
+    command:
+      - "--config.file=/etc/alertmanager/config.yml"
+      - "--storage.path=/alertmanager"
+    ports:
+      - "9093:9093"
+    networks:
+      - mesh-network
+    depends_on:
+      - prometheus
+
+  grafana:
+    image: grafana/grafana:9.5.2
+    volumes:
+      - ./config/grafana:/etc/grafana
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3000:3000"
+    networks:
+      - mesh-network
+    depends_on:
+      - prometheus
+      - alertmanager
+
+  node-exporter:
+    image: prom/node-exporter:v1.6.1
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.rootfs=/rootfs"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+    ports:
+      - "9100:9100"
+    networks:
+      - mesh-network
+    restart: unless-stopped
+
+  # Logging Stack
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
+    volumes:
+      - ./config/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - ./config/elasticsearch/lifecycle-policy.json:/usr/share/elasticsearch/config/lifecycle-policy.json:ro
+      - ./config/elasticsearch/backup-policy.json:/usr/share/elasticsearch/config/backup-policy.json:ro
+      - ./config/elasticsearch/init-backup.sh:/usr/share/elasticsearch/init-backup.sh:ro
+      - ./config/elasticsearch/alert-rules.json:/usr/share/elasticsearch/config/alert-rules.json:ro
+      - ./config/elasticsearch/service-alert-rules.json:/usr/share/elasticsearch/config/service-alert-rules.json:ro
+      - ./config/elasticsearch/init-alerts.sh:/usr/share/elasticsearch/init-alerts.sh:ro
+      - elasticsearch_data:/usr/share/elasticsearch/data
+      - elasticsearch_logs:/usr/share/elasticsearch/logs
+      - elasticsearch_snapshots:/usr/share/elasticsearch/snapshots
+    environment:
+      - node.name=datapunk-node-1
+      - cluster.name=datapunk-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD:-changeme}
+      - xpack.security.enabled=true
+      - xpack.security.transport.ssl.enabled=true
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - mesh-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'curl -s http://localhost:9200/_cluster/health | grep -vq ''"status":"red"''',
+        ]
+      interval: 20s
+      timeout: 10s
+      retries: 3
+    entrypoint: |
+      /bin/bash -c "
+        /usr/local/bin/docker-entrypoint.sh &
+        sleep 30
+        chmod +x /usr/share/elasticsearch/init-backup.sh
+        chmod +x /usr/share/elasticsearch/init-alerts.sh
+        /usr/share/elasticsearch/init-backup.sh
+        /usr/share/elasticsearch/init-alerts.sh
+      "
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.1
+    volumes:
+      - ./config/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+      - ./config/kibana/dashboards:/usr/share/kibana/dashboards:ro
+    environment:
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_SYSTEM_PASSWORD:-changeme}
+      - KIBANA_ENCRYPTION_KEY=${KIBANA_ENCRYPTION_KEY:-c2VjcmV0X2tleQ==}
+    ports:
+      - "5601:5601"
+    networks:
+      - mesh-network
+    depends_on:
+      - elasticsearch
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -s http://localhost:5601/api/status | grep -q 'Looking good'",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.11.1
+    volumes:
+      - ./config/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - filebeat_data:/usr/share/filebeat/data
+    environment:
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD:-changeme}
+      - NODE_NAME=${HOSTNAME}
+    user: root
+    networks:
+      - mesh-network
+    depends_on:
+      - elasticsearch
+      - kibana
+    command: ["--strict.perms=false"]
+
+  # Tracing Stack
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.88.0
+    volumes:
+      - ./config/opentelemetry/otel-collector.yml:/etc/otelcol/config.yml:ro
+    ports:
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+      - "8889:8889" # Prometheus metrics
+      - "13133:13133" # Health check
+      - "55679:55679" # ZPages
+    networks:
+      - mesh-network
+    depends_on:
+      - jaeger-collector
+    command:
+      - "--config=/etc/otelcol/config.yml"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:13133/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  jaeger-collector:
+    image: jaegertracing/jaeger-collector:1.47
+    volumes:
+      - ./config/jaeger/jaeger.yml:/etc/jaeger/jaeger.yml:ro
+    environment:
+      - SPAN_STORAGE_TYPE=elasticsearch
+      - ES_SERVER_URLS=http://elasticsearch:9200
+      - ES_USERNAME=${ELASTIC_USERNAME:-elastic}
+      - ES_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+    ports:
+      - "14250:14250" # gRPC
+      - "14268:14268" # HTTP
+      - "14269:14269" # Admin
+      - "9411:9411" # Zipkin
+    networks:
+      - mesh-network
+    depends_on:
+      - elasticsearch
+    command:
+      - "--config-file=/etc/jaeger/jaeger.yml"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:14269/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  jaeger-query:
+    image: jaegertracing/jaeger-query:1.47
+    volumes:
+      - ./config/jaeger/jaeger.yml:/etc/jaeger/jaeger.yml:ro
+    environment:
+      - SPAN_STORAGE_TYPE=elasticsearch
+      - ES_SERVER_URLS=http://elasticsearch:9200
+      - ES_USERNAME=${ELASTIC_USERNAME:-elastic}
+      - ES_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+    ports:
+      - "16686:16686" # UI
+      - "16687:16687" # Admin
+    networks:
+      - mesh-network
+    depends_on:
+      - elasticsearch
+      - jaeger-collector
+    command:
+      - "--config-file=/etc/jaeger/jaeger.yml"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:16687/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  jaeger-agent:
+    image: jaegertracing/jaeger-agent:1.47
+    volumes:
+      - ./config/jaeger/jaeger.yml:/etc/jaeger/jaeger.yml:ro
+    ports:
+      - "5775:5775/udp" # Zipkin compact
+      - "6831:6831/udp" # Jaeger compact
+      - "6832:6832/udp" # Jaeger binary
+      - "5778:5778" # Admin
+    networks:
+      - mesh-network
+    depends_on:
+      - jaeger-collector
+    command:
+      - "--config-file=/etc/jaeger/jaeger.yml"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:5778/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Health Check Service
+  health-checker:
+    image: datapunk/health-checker:latest
+    volumes:
+      - ./config/health/health-config.yml:/etc/health-checker/config.yml:ro
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=${ELASTIC_USERNAME:-elastic}
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD:-changeme}
+      - PROMETHEUS_URL=http://prometheus:9090
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+    ports:
+      - "8080:8080" # Health check API
+      - "9104:9104" # Metrics endpoint
+    networks:
+      - mesh-network
+    depends_on:
+      - elasticsearch
+      - prometheus
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    command:
+      - "--config=/etc/health-checker/config.yml"
+      - "--log-level=info"
+      - "--metrics-port=9104"
+      - "--api-port=8080"
+
+volumes:
+  prometheus_data:
+  alertmanager_data:
+  grafana_data:
+  elasticsearch_data:
+  elasticsearch_logs:
+  elasticsearch_snapshots:
+  filebeat_data:
+
+networks:
+  mesh-network:
+    driver: bridge

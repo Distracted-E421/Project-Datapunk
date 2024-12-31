@@ -1,0 +1,78 @@
+filebeat.inputs:
+  - type: container
+    paths:
+      - "/var/lib/docker/containers/*/*.log"
+    processors:
+      - add_docker_metadata:
+          host: "unix:///var/run/docker.sock"
+      - decode_json_fields:
+          fields: ["message"]
+          target: "json"
+          overwrite_keys: true
+      - add_kubernetes_metadata:
+          host: ${NODE_NAME}
+          matchers:
+            - logs_path:
+                logs_path: "/var/log/containers/"
+
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/*.log
+      - /var/log/messages
+      - /var/log/syslog
+    fields:
+      log_type: system
+    fields_under_root: true
+
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+  - add_kubernetes_metadata: ~
+  - timestamp:
+      field: event.created
+      layouts:
+        - "2006-01-02T15:04:05Z07:00"
+        - "2006-01-02T15:04:05.999Z07:00"
+  - drop_fields:
+      fields:
+        ["agent.ephemeral_id", "agent.hostname", "agent.id", "agent.version"]
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+  username: "${ELASTICSEARCH_USERNAME}"
+  password: "${ELASTICSEARCH_PASSWORD}"
+  protocol: "http"
+  indices:
+    - index: "datapunk-logs-%{+yyyy.MM.dd}"
+      when.contains:
+        container.labels.application: "datapunk"
+    - index: "system-logs-%{+yyyy.MM.dd}"
+      when.equals:
+        log_type: "system"
+
+setup.kibana:
+  host: "kibana:5601"
+  username: "${ELASTICSEARCH_USERNAME}"
+  password: "${ELASTICSEARCH_PASSWORD}"
+
+setup.template.name: "datapunk"
+setup.template.pattern: "datapunk-*"
+setup.template.settings:
+  index.number_of_shards: 1
+  index.number_of_replicas: 0
+
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permissions: 0644
+
+monitoring.enabled: true
+monitoring.elasticsearch:
+  username: "${ELASTICSEARCH_USERNAME}"
+  password: "${ELASTICSEARCH_PASSWORD}"

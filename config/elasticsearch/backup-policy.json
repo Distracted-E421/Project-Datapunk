@@ -1,0 +1,34 @@
+{
+  "repository": {
+    "type": "fs",
+    "settings": {
+      "location": "/usr/share/elasticsearch/snapshots",
+      "compress": true
+    }
+  },
+  "snapshot_policy": {
+    "name": "daily_backup",
+    "schedule": "0 0 * * *",
+    "repository": "datapunk_backup",
+    "config": {
+      "indices": ["datapunk-*", "system-*"],
+      "ignore_unavailable": true,
+      "include_global_state": true,
+      "partial": false
+    },
+    "retention": {
+      "expire_after": "30d",
+      "min_count": 5,
+      "max_count": 30
+    }
+  },
+  "restore_policy": {
+    "indices": ["datapunk-*", "system-*"],
+    "ignore_unavailable": true,
+    "include_global_state": true,
+    "include_aliases": true,
+    "partial": false,
+    "rename_pattern": "(.+)",
+    "rename_replacement": "restored_$1"
+  }
+}

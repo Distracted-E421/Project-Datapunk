@@ -1,0 +1,37 @@
+cluster.name: "datapunk-cluster"
+node.name: "datapunk-node-1"
+network.host: 0.0.0.0
+
+# Security settings
+xpack.security.enabled: true
+xpack.security.transport.ssl.enabled: true
+xpack.security.transport.ssl.verification_mode: certificate
+xpack.security.transport.ssl.keystore.path: elastic-certificates.p12
+xpack.security.transport.ssl.truststore.path: elastic-certificates.p12
+
+# Memory settings
+bootstrap.memory_lock: true
+
+# Network settings
+http.port: 9200
+transport.port: 9300
+
+# Discovery settings
+discovery.type: single-node
+
+# Index settings
+action.auto_create_index: .monitoring-*,.watches,.triggered_watches,.watcher-history-*,.ml-*
+
+# Index lifecycle management
+xpack.ilm.enabled: true
+xpack.ilm.history_max_age: 7d
+
+# Monitoring settings
+xpack.monitoring.collection.enabled: true
+
+# Path settings
+path.data: /usr/share/elasticsearch/data
+path.logs: /usr/share/elasticsearch/logs
+
+# Snapshot settings
+path.repo: /usr/share/elasticsearch/snapshots

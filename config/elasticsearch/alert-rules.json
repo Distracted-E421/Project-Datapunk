@@ -1,0 +1,213 @@
+{
+  "alert_rules": [
+    {
+      "name": "high_error_rate",
+      "type": "metric",
+      "schedule": "*/5 * * * *",
+      "input": {
+        "search": {
+          "request": {
+            "indices": ["datapunk-*"],
+            "body": {
+              "size": 0,
+              "query": {
+                "bool": {
+                  "must": [
+                    {
+                      "range": {
+                        "@timestamp": {
+                          "gte": "now-5m"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "aggs": {
+                "error_rate": {
+                  "filters": {
+                    "filters": {
+                      "errors": {
+                        "match": {
+                          "level": "error"
+                        }
+                      },
+                      "total": {
+                        "match_all": {}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "condition": {
+        "script": {
+          "source": "params.error_rate.buckets.errors.doc_count / params.error_rate.buckets.total.doc_count > 0.05"
+        }
+      },
+      "actions": {
+        "slack_notification": {
+          "webhook": {
+            "url": "${SLACK_WEBHOOK_URL}",
+            "message": "High error rate detected in the last 5 minutes. Error rate: {{error_rate}}%"
+          }
+        }
+      }
+    },
+    {
+      "name": "service_health_degraded",
+      "type": "metric",
+      "schedule": "*/1 * * * *",
+      "input": {
+        "search": {
+          "request": {
+            "indices": ["datapunk-*"],
+            "body": {
+              "size": 0,
+              "query": {
+                "bool": {
+                  "must": [
+                    {
+                      "range": {
+                        "@timestamp": {
+                          "gte": "now-1m"
+                        }
+                      }
+                    },
+                    {
+                      "term": {
+                        "type": "health_check"
+                      }
+                    },
+                    {
+                      "term": {
+                        "status": "unhealthy"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "condition": {
+        "script": {
+          "source": "ctx.payload.hits.total.value > 0"
+        }
+      },
+      "actions": {
+        "slack_notification": {
+          "webhook": {
+            "url": "${SLACK_WEBHOOK_URL}",
+            "message": "Service health check failed. Service: {{service.name}}, Status: {{status}}, Message: {{message}}"
+          }
+        }
+      }
+    },
+    {
+      "name": "high_latency",
+      "type": "metric",
+      "schedule": "*/1 * * * *",
+      "input": {
+        "search": {
+          "request": {
+            "indices": ["datapunk-*"],
+            "body": {
+              "size": 0,
+              "query": {
+                "bool": {
+                  "must": [
+                    {
+                      "range": {
+                        "@timestamp": {
+                          "gte": "now-1m"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "aggs": {
+                "avg_latency": {
+                  "avg": {
+                    "field": "response.time_ms"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "condition": {
+        "script": {
+          "source": "params.avg_latency.value > 1000"
+        }
+      },
+      "actions": {
+        "slack_notification": {
+          "webhook": {
+            "url": "${SLACK_WEBHOOK_URL}",
+            "message": "High latency detected. Average response time: {{avg_latency}}ms"
+          }
+        }
+      }
+    },
+    {
+      "name": "disk_space_warning",
+      "type": "metric",
+      "schedule": "*/5 * * * *",
+      "input": {
+        "search": {
+          "request": {
+            "indices": ["datapunk-*"],
+            "body": {
+              "size": 0,
+              "query": {
+                "bool": {
+                  "must": [
+                    {
+                      "range": {
+                        "@timestamp": {
+                          "gte": "now-5m"
+                        }
+                      }
+                    },
+                    {
+                      "term": {
+                        "type": "system_metrics"
+                      }
+                    }
+                  ]
+                }
+              },
+              "aggs": {
+                "disk_usage": {
+                  "max": {
+                    "field": "system.filesystem.used.pct"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "condition": {
+        "script": {
+          "source": "params.disk_usage.value > 0.85"
+        }
+      },
+      "actions": {
+        "slack_notification": {
+          "webhook": {
+            "url": "${SLACK_WEBHOOK_URL}",
+            "message": "Disk space usage exceeds 85%. Current usage: {{disk_usage}}%"
+          }
+        }
+      }
+    }
+  ]
+}

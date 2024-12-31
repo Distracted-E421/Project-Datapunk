@@ -1,0 +1,158 @@
+global:
+  check_interval: 30s
+  timeout: 5s
+  initial_delay: 10s
+  failure_threshold: 3
+  success_threshold: 2
+
+services:
+  # Data Lake Service Health Checks
+  lake:
+    checks:
+      - name: storage_connectivity
+        type: http
+        endpoint: "/health/storage"
+        interval: 15s
+        timeout: 3s
+        success_threshold: 1
+        failure_threshold: 2
+        headers:
+          Content-Type: "application/json"
+      - name: query_performance
+        type: metric
+        query: "rate(query_duration_seconds_sum[5m]) / rate(query_duration_seconds_count[5m]) > 5"
+        interval: 1m
+        failure_threshold: 3
+      - name: storage_capacity
+        type: metric
+        query: "disk_free_bytes / disk_total_bytes < 0.1"
+        interval: 5m
+        failure_threshold: 1
+
+  # Stream Processing Service Health Checks
+  stream:
+    checks:
+      - name: processing_lag
+        type: metric
+        query: "stream_processing_lag_seconds > 30"
+        interval: 30s
+        failure_threshold: 3
+      - name: queue_depth
+        type: metric
+        query: "stream_queue_size > 10000"
+        interval: 1m
+        failure_threshold: 2
+      - name: consumer_health
+        type: http
+        endpoint: "/health/consumers"
+        interval: 30s
+        timeout: 5s
+
+  # API Gateway Service Health Checks
+  gateway:
+    checks:
+      - name: endpoint_health
+        type: http
+        endpoint: "/health"
+        interval: 15s
+        timeout: 3s
+        headers:
+          Accept: "application/json"
+      - name: error_rate
+        type: metric
+        query: 'rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05'
+        interval: 1m
+        failure_threshold: 2
+      - name: response_time
+        type: metric
+        query: "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2"
+        interval: 1m
+        failure_threshold: 3
+
+  # Service Mesh Health Checks
+  mesh:
+    checks:
+      - name: service_discovery
+        type: http
+        endpoint: "/health/discovery"
+        interval: 30s
+        timeout: 5s
+      - name: circuit_breakers
+        type: metric
+        query: "sum(rate(circuit_breaker_open_total[5m])) > 0"
+        interval: 1m
+        failure_threshold: 1
+      - name: load_balancer
+        type: http
+        endpoint: "/health/loadbalancer"
+        interval: 30s
+        timeout: 5s
+
+dependencies:
+  lake:
+    - service: elasticsearch
+      critical: true
+    - service: prometheus
+      critical: false
+
+  stream:
+    - service: kafka
+      critical: true
+    - service: zookeeper
+      critical: true
+    - service: prometheus
+      critical: false
+
+  gateway:
+    - service: lake
+      critical: true
+    - service: stream
+      critical: true
+    - service: mesh
+      critical: true
+    - service: prometheus
+      critical: false
+
+  mesh:
+    - service: consul
+      critical: true
+    - service: prometheus
+      critical: false
+
+aggregation_rules:
+  # Critical service degradation
+  critical_degradation:
+    condition: "count(service_health{status='unhealthy', critical='true'}) > 0"
+    severity: critical
+    description: "Critical service degradation detected"
+
+  # High error rate across services
+  high_error_rate:
+    condition: "sum(rate(service_errors_total[5m])) / sum(rate(service_requests_total[5m])) > 0.1"
+    severity: warning
+    description: "High error rate across services"
+
+  # Resource exhaustion
+  resource_exhaustion:
+    condition: "max(resource_usage_percent) > 90"
+    severity: warning
+    description: "Resource usage approaching limits"
+
+notifications:
+  slack:
+    webhook_url: "${SLACK_WEBHOOK_URL}"
+    channels:
+      critical:
+        - "#datapunk-alerts"
+      warning:
+        - "#datapunk-warnings"
+      info:
+        - "#datapunk-info"
+
+storage:
+  type: elasticsearch
+  options:
+    index: "health-checks"
+    retention: "30d"
+    shards: 3
+    replicas: 1

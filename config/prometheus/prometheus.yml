@@ -1,0 +1,49 @@
+global:
+  scrape_interval: 15s # Match service mesh health check interval
+  evaluation_interval: 15s # Alert evaluation frequency
+  external_labels:
+    environment: "production"
+    region: "default"
+
+# Rule files contain recording rules and alerting rules
+rule_files:
+  - "rules/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Core services monitoring
+  - job_name: "datapunk-services"
+    metrics_path: "/metrics"
+    scrape_interval: 10s
+    static_configs:
+      - targets:
+          - "lake:8080" # Data Lake service
+          - "stream:8081" # Stream Processing service
+          - "cortex:8082" # ML/AI service
+          - "forge:8083" # Data Processing service
+          - "nexus:8084" # API Gateway
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: "(go_|process_).*"
+        action: keep
+
+  # Node metrics collection
+  - job_name: "node"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+
+  # Container metrics
+  - job_name: "docker"
+    static_configs:
+      - targets: ["docker.for.win.localhost:9323"]
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
